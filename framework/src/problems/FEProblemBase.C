@@ -5636,6 +5636,12 @@ FEProblemBase::checkNonlinearConvergence(std::string & msg,
 {
   TIME_SECTION(_check_nonlinear_convergence_timer);
 
+  // Store norms for possible use by Console. The residual norm is already
+  // stored in PetscOutput::petscNonlinearOutput, so just the step and solution
+  // norms need to be stored here.
+  _norm_solution = xnorm;
+  _norm_step = snorm;
+
   NonlinearSystemBase & system = getNonlinearSystemBase();
   MooseNonlinearConvergenceReason reason = MOOSE_NONLINEAR_ITERATING;
 

@@ -306,12 +306,25 @@ Console::output(const ExecFlagType & type)
   if (type == EXEC_NONLINEAR && _execute_on.contains(EXEC_NONLINEAR))
   {
     if (_nonlinear_iter == 0)
+    {
       _old_nonlinear_norm = std::numeric_limits<Real>::max();
+      _old_step_norm = std::numeric_limits<Real>::max();
+      // _old_solution_norm = std::numeric_limits<Real>::max();
+    }
+
+    const Real step_norm = _problem_ptr->getNonlinearStepNorm();
 
     _console << std::setw(2) << _nonlinear_iter
-             << " Nonlinear |R| = " << outputNorm(_old_nonlinear_norm, _norm) << '\n';
+             << " Nonlinear |R| = " << outputNorm(_old_nonlinear_norm, _norm);
+
+    // if (_print_step_norms)
+    if (_nonlinear_iter > 0)
+      _console << ", Step |du| = " << outputNorm(_old_step_norm, step_norm);
+
+    _console << '\n';
 
     _old_nonlinear_norm = _norm;
+    _old_step_norm = step_norm;
   }
 
   // Print Linear Residual (control with "execute_on")

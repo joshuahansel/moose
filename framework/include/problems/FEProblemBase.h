@@ -1601,6 +1601,11 @@ public:
     return _u_dotdot_old_requested;
   };
 
+  /**
+   * Gets nonlinear step norm from the last PETSc nonlinear convergence check
+   */
+  Real getNonlinearStepNorm() const { return _norm_step; }
+
 protected:
   /// Create extra tagged vectors and matrices
   void createTagVectors();
@@ -1622,6 +1627,11 @@ protected:
   int & _t_step;
   Real & _dt;
   Real & _dt_old;
+
+  /// Solution norm from last PETSc nonlinear convergence check; used by Console
+  Real _norm_solution;
+  /// Step norm from last PETSc nonlinear convergence check; used by Console
+  Real _norm_step;
 
   std::shared_ptr<NonlinearSystemBase> _nl;
   std::shared_ptr<AuxiliarySystem> _aux;
