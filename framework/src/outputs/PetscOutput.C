@@ -170,17 +170,31 @@ PetscOutput::solveSetup()
 // Only define the monitor functions if PETSc exists
 #ifdef LIBMESH_HAVE_PETSC
 PetscErrorCode
-PetscOutput::petscNonlinearOutput(SNES, PetscInt its, PetscReal norm, void * void_ptr)
+PetscOutput::petscNonlinearOutput(SNES snes, PetscInt its, PetscReal norm, void * void_ptr)
 {
   // Get the outputter object
   PetscOutput * ptr = static_cast<PetscOutput *>(void_ptr);
+
+  // Get the step and solution norms
+  Real step_norm;
+  {
+    PetscErrorCode ierr = SNESGetUpdateNorm(snes, step_norm);
+    CHKERRABORT(ptr->comm().get(), ierr);
+  }
+  Real solution_norm;
+  {
+    PetscErrorCode ierr = SNESGetSolutionNorm(snes, solution_norm);
+    CHKERRABORT(ptr->comm().get(), ierr);
+  }
 
   // Update the pseudo times
   ptr->_nonlinear_time += ptr->_nonlinear_dt;
   ptr->_linear_time = ptr->_nonlinear_time;
 
-  // Set the current norm and iteration number
+  // Set the current norms and iteration number
   ptr->_norm = norm;
+  ptr->_step_norm = step_norm;
+  ptr->_solution_norm = solution_norm;
   ptr->_nonlinear_iter = its;
 
   // Set the flag indicating that output is occurring on the non-linear residual

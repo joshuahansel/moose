@@ -42,8 +42,14 @@ public:
   virtual Real time() override;
 
 protected:
-  /// Current norm returned from PETSc
+  /// Current residual norm returned from PETSc
   Real _norm;
+
+  /// Current step norm returned from PETSc
+  Real _step_norm;
+
+  /// Current solution norm returned from PETSc
+  Real _solution_norm;
 
   /// Current non-linear iteration returned from PETSc
   PetscInt _nonlinear_iter;

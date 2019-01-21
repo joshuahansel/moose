@@ -176,6 +176,8 @@ Console::Console(const InputParameters & parameters)
     _console_buffer(_app.getOutputWarehouse().consoleBuffer()),
     _old_linear_norm(std::numeric_limits<Real>::max()),
     _old_nonlinear_norm(std::numeric_limits<Real>::max()),
+    _old_abs_step_norm(std::numeric_limits<Real>::max()),
+    _old_rel_step_norm(std::numeric_limits<Real>::max()),
     _print_mesh_changed_info(getParam<bool>("print_mesh_changed_info")),
     _system_info_flags(getParam<MultiMooseEnum>("system_info")),
     _allow_changing_sysinfo_flag(true)
@@ -306,12 +308,25 @@ Console::output(const ExecFlagType & type)
   if (type == EXEC_NONLINEAR && _execute_on.contains(EXEC_NONLINEAR))
   {
     if (_nonlinear_iter == 0)
+    {
       _old_nonlinear_norm = std::numeric_limits<Real>::max();
+      _old_abs_step_norm = std::numeric_limits<Real>::max();
+      _old_rel_step_norm = std::numeric_limits<Real>::max();
+    }
 
     _console << std::setw(2) << _nonlinear_iter
-             << " Nonlinear |R| = " << outputNorm(_old_nonlinear_norm, _norm) << '\n';
+             << " Nonlinear |R| = " << outputNorm(_old_nonlinear_norm, _norm);
+
+    _console << "   Step |s| = " << outputNorm(_old_abs_step_norm, _step_norm);
+
+    const Real rel_step_norm = _step_norm / _solution_norm;
+    _console << "   Relative Step |s|/|u| = " << outputNorm(_old_rel_step_norm, rel_step_norm);
+
+    _console << '\n';
 
     _old_nonlinear_norm = _norm;
+    _old_abs_step_norm = _step_norm;
+    _old_rel_step_norm = rel_step_norm;
   }
 
   // Print Linear Residual (control with "execute_on")

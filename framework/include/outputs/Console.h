@@ -220,6 +220,12 @@ private:
   /// Storage for the old non linear residual (needed for color output and only when used when printing to the screen)
   Real _old_nonlinear_norm;
 
+  /// Storage for the old non linear absolute step norm (needed for color output and only when used when printing to the screen)
+  Real _old_abs_step_norm;
+
+  /// Storage for the old non linear relative step norm (needed for color output and only when used when printing to the screen)
+  Real _old_rel_step_norm;
+
   /// Flag for printing mesh information when the mesh changes
   bool _print_mesh_changed_info;
 
