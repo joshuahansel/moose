@@ -32,11 +32,6 @@ public:
   virtual ~Simulation();
 
   /**
-   * Gets the FE type for the flow in this simulation
-   */
-  const FEType & getFlowFEType() const { return _flow_fe_type; }
-
-  /**
    * Sets up quadrature rules
    */
   virtual void setupQuadrature();
@@ -331,9 +326,6 @@ protected:
 
   /// "Global" of this simulation
   const InputParameters & _thm_pars;
-
-  /// finite element type for the flow in the simulation
-  FEType _flow_fe_type;
 
   /**
    * Setup equations to be solved in this simulation

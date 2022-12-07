@@ -54,7 +54,8 @@ HeatTransferFromHeatStructure3D1Phase::HeatTransferFromHeatStructure3D1Phase(
 const FEType &
 HeatTransferFromHeatStructure3D1Phase::getFEType()
 {
-  return HeatConductionModel::feType();
+  const HeatStructureBase & hs = getComponentByName<HeatStructureBase>(_hs_name);
+  return hs.getFEType();
 }
 
 void
@@ -239,7 +240,7 @@ void
 HeatTransferFromHeatStructure3D1Phase::addVariables()
 {
   getTHMProblem().addSimVariable(
-      false, _P_hf_name, getTHMProblem().getFlowFEType(), _flow_channel_subdomains);
+      false, _P_hf_name, FEType(CONSTANT, MONOMIAL), _flow_channel_subdomains);
 
   _P_hf_fn_name = getParam<FunctionName>("P_hf");
   getTHMProblem().addFunctionIC(_P_hf_name, _P_hf_fn_name, _flow_channel_subdomains);

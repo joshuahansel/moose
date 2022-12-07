@@ -30,6 +30,11 @@ public:
   FunctionName getInitialT() const;
 
   /**
+   * Gets the finite element type used by variables on the heat structure
+   */
+  const FEType & getFEType() const { return _fe_type; }
+
+  /**
    * Gets the geometrical component inheriting from this interface
    */
   const GeometricalComponent & getGeometricalComponent() const
@@ -74,4 +79,7 @@ protected:
 private:
   /// The geometrical component inheriting from this interface
   GeometricalComponent & _geometrical_component_hsi;
+
+  /// The finite element type used by variables on the heat structure
+  const FEType _fe_type;
 };

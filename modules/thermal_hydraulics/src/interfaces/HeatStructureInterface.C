@@ -19,6 +19,9 @@ HeatStructureInterface::validParams()
   params.addParam<FunctionName>("initial_T", "Initial temperature [K]");
   params.addParam<Real>(
       "scaling_factor_temperature", 1.0, "Scaling factor for solid temperature variable.");
+  params.addParam<bool>("use_2nd_order_fe",
+                        false,
+                        "Use 2nd-order Lagrange elements? Else, use 1st-order Lagrange elements.");
 
   params.addPrivateParam<std::string>("component_type", "heat_struct");
 
@@ -26,7 +29,11 @@ HeatStructureInterface::validParams()
 }
 
 HeatStructureInterface::HeatStructureInterface(GeometricalComponent * geometrical_component)
-  : _geometrical_component_hsi(*geometrical_component)
+  : _geometrical_component_hsi(*geometrical_component),
+
+    _fe_type(_geometrical_component_hsi.getParam<bool>("use_2nd_order_fe")
+                 ? FEType(SECOND, LAGRANGE)
+                 : FEType(FIRST, LAGRANGE))
 {
 }
 

@@ -205,3 +205,10 @@ FileMeshComponent::buildMesh()
 
   return subdomain_names;
 }
+
+Order
+FileMeshComponent::getMinimumQuadratureOrder() const
+{
+  mooseWarning("The minimum quadrature order should be specified.");
+  return CONSTANT;
+}

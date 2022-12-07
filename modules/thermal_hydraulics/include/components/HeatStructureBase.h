@@ -33,6 +33,11 @@ public:
   virtual void addVariables() override;
   virtual void addMooseObjects() override;
 
+  virtual Order getMinimumQuadratureOrder() const override
+  {
+    return getFEType().default_quadrature_order();
+  }
+
   const std::vector<unsigned int> & getSideNodeIds(const std::string & name) const;
   const std::vector<unsigned int> & getOuterNodeIds() const;
   const std::vector<BoundaryName> & getOuterBoundaryNames() const;

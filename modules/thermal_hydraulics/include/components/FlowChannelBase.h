@@ -46,6 +46,16 @@ public:
   virtual void addMooseObjects() override;
 
   /**
+   * Gets the finite element type
+   */
+  virtual const FEType & getFEType() const { return _fe_type; }
+
+  virtual Order getMinimumQuadratureOrder() const override
+  {
+    return getFEType().default_quadrature_order();
+  }
+
+  /**
    * Gets the gravity angle for this component
    *
    * @return gravity angle for this component
@@ -233,6 +243,10 @@ protected:
 
 public:
   static InputParameters validParams();
+
+private:
+  /// The finite element type for variables on the flow channel
+  static const FEType _fe_type;
 };
 
 namespace THM

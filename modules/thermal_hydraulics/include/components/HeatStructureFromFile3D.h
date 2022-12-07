@@ -25,6 +25,11 @@ public:
   virtual void addVariables() override;
   virtual void addMooseObjects() override;
 
+  virtual Order getMinimumQuadratureOrder() const override
+  {
+    return getFEType().default_quadrature_order();
+  }
+
   /**
    * Has the given region?
    */

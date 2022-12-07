@@ -40,7 +40,10 @@ HeatStructureBase::validParams()
 }
 
 HeatStructureBase::HeatStructureBase(const InputParameters & params)
-  : Component2D(params), HeatStructureInterface(this), _connected_to_flow_channel(false)
+  : Component2D(params),
+    HeatStructureInterface(this),
+
+    _connected_to_flow_channel(false)
 {
 }
 
@@ -67,7 +70,7 @@ HeatStructureBase::getIndexFromName(const std::string & name) const
 bool
 HeatStructureBase::usingSecondOrderMesh() const
 {
-  return HeatConductionModel::feType().order == SECOND;
+  return getFEType().order == SECOND;
 }
 
 void

@@ -40,7 +40,7 @@ FlowModel::FlowModel(const InputParameters & params)
     _sim(*params.getCheckedPointerParam<THMProblem *>("_thm_problem")),
     _factory(_app.getFactory()),
     _flow_channel(*params.getCheckedPointerParam<FlowChannelBase *>("_flow_channel")),
-    _fe_type(_sim.getFlowFEType()),
+    _fe_type(_flow_channel.getFEType()),
     _fp_name(params.get<UserObjectName>("fp")),
     _comp_name(name()),
     _gravity_vector(_flow_channel.getParam<RealVectorValue>("gravity_vector")),

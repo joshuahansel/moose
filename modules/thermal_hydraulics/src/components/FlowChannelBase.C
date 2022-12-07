@@ -16,6 +16,8 @@
 #include "libmesh/edge_edge2.h"
 #include "libmesh/edge_edge3.h"
 
+const FEType FlowChannelBase::_fe_type(FEType(CONSTANT, MONOMIAL));
+
 const std::map<std::string, FlowChannelBase::EConvHeatTransGeom>
     FlowChannelBase::_heat_transfer_geom_to_enum{{"PIPE", PIPE}, {"ROD_BUNDLE", ROD_BUNDLE}};
 

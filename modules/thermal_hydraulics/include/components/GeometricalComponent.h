@@ -44,6 +44,11 @@ public:
    */
   const std::vector<dof_id_type> & getElementIDs() const;
 
+  /**
+   * Gets the minimum quadrature order needed for this component
+   */
+  virtual Order getMinimumQuadratureOrder() const = 0;
+
 protected:
   Node * addNode(const Point & pt);
 

@@ -39,14 +39,10 @@ Simulation::Simulation(FEProblemBase & fe_problem, const InputParameters & pars)
     _thm_app(static_cast<ThermalHydraulicsApp &>(*pars.get<MooseApp *>("_moose_app"))),
     _thm_factory(_thm_app.getFactory()),
     _thm_pars(pars),
-    _flow_fe_type(FEType(CONSTANT, MONOMIAL)),
     _implicit_time_integration(true),
     _check_jacobian(false),
     _zero(0)
 {
-  bool second_order_mesh = pars.get<bool>("2nd_order_mesh");
-  HeatConductionModel::_fe_type =
-      second_order_mesh ? FEType(SECOND, LAGRANGE) : FEType(FIRST, LAGRANGE);
 }
 
 Simulation::~Simulation()
@@ -62,31 +58,14 @@ Simulation::setupQuadrature()
     return;
 
   Order order = CONSTANT;
-  unsigned int n_flow_channels = 0;
-  unsigned int n_heat_structures = 0;
-
   for (auto && comp : getComponents())
   {
-    auto flow_channel = dynamic_cast<FlowChannelBase *>(comp.get());
-    if (flow_channel != nullptr)
-      n_flow_channels++;
-
-    auto hs_interface = dynamic_cast<HeatStructureInterface *>(comp.get());
-    if (hs_interface)
-      n_heat_structures++;
-  }
-
-  if (n_flow_channels > 0)
-  {
-    const FEType & fe_type = getFlowFEType();
-    if (fe_type.default_quadrature_order() > order)
-      order = fe_type.default_quadrature_order();
-  }
-  if (n_heat_structures > 0)
-  {
-    const FEType & fe_type = HeatConductionModel::feType();
-    if (fe_type.default_quadrature_order() > order)
-      order = fe_type.default_quadrature_order();
+    auto gc = dynamic_cast<GeometricalComponent *>(comp.get());
+    if (gc)
+    {
+      if (gc->getMinimumQuadratureOrder() > order)
+        order = gc->getMinimumQuadratureOrder();
+    }
   }
 
   _fe_problem.createQRules(QGAUSS, order, order, order);

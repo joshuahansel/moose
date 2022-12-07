@@ -21,6 +21,8 @@ public:
 
   FileMeshComponent(const InputParameters & parameters);
 
+  virtual Order getMinimumQuadratureOrder() const override;
+
 protected:
   virtual void setupMesh() override;
 

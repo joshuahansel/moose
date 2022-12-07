@@ -116,8 +116,9 @@ HeatTransferBase::addMooseObjects()
 void
 HeatTransferBase::addHeatedPerimeter()
 {
+  const FlowChannelBase & flow_channel = getComponentByName<FlowChannelBase>(_flow_channel_name);
   getTHMProblem().addSimVariable(
-      false, _P_hf_name, getTHMProblem().getFlowFEType(), _flow_channel_subdomains);
+      false, _P_hf_name, flow_channel.getFEType(), _flow_channel_subdomains);
 
   // create heat flux perimeter variable if not transferred from external app
   if (!_P_hf_transferred)
