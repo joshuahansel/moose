@@ -23,13 +23,8 @@ public:
   virtual void check() const override;
   virtual Real getUnitPerimeter(const ExternalBoundaryType & side) const override;
 
-  /**
-   * Gets the depth of the plate
-   */
-  const Real & getDepth() const { return _depth; }
-
-  virtual Real computeRadialBoundaryArea(const Real & length, const Real & y) const override;
-  virtual Real computeAxialBoundaryArea(const Real & y_min, const Real & y_max) const override;
+  virtual bool isCylindrical() const override { return false; }
+  virtual Real getDepth() const override { return _depth; }
 
 protected:
   virtual bool useCylindricalTransformation() const override { return false; }

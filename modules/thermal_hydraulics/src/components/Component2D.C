@@ -576,3 +576,45 @@ Component2D::getBoundaryArea(const BoundaryName & boundary_name) const
   else
     mooseError(name(), ": The boundary '", boundary_name, "' does not exist on this component.");
 }
+
+Real
+Component2D::computeRadialBoundaryArea(const Real & length, const Real & y) const
+{
+  if (isCylindrical())
+  {
+    const auto inner_radius = getInnerRadius();
+    return length * 2 * libMesh::pi * (inner_radius + y);
+  }
+  else
+  {
+    const auto depth = getDepth();
+    return length * depth;
+  }
+}
+
+Real
+Component2D::computeAxialBoundaryArea(const Real & y_min, const Real & y_max) const
+{
+  if (isCylindrical())
+  {
+    const auto inner_radius = getInnerRadius();
+    return libMesh::pi * (std::pow(inner_radius + y_max, 2) - std::pow(inner_radius + y_min, 2));
+  }
+  else
+  {
+    const auto depth = getDepth();
+    return (y_max - y_min) * depth;
+  }
+}
+
+Real
+Component2D::getDepth() const
+{
+  mooseError("Not implemented.");
+}
+
+Real
+Component2D::getInnerRadius() const
+{
+  mooseError("Not implemented.");
+}
