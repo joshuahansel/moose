@@ -22,15 +22,8 @@ public:
   virtual void setupMesh() override;
   virtual Real getUnitPerimeter(const ExternalBoundaryType & side) const override;
 
-  /**
-   * Get the inner radius of the heat structure
-   *
-   * @returns The inner radius of the heat structure
-   */
-  virtual Real getInnerRadius() const { return _inner_radius; }
-
-  virtual Real computeRadialBoundaryArea(const Real & length, const Real & y) const override;
-  virtual Real computeAxialBoundaryArea(const Real & y_min, const Real & y_max) const override;
+  virtual bool isCylindrical() const override { return true; }
+  virtual Real getInnerRadius() const override { return _inner_radius; }
 
 protected:
   virtual bool useCylindricalTransformation() const override { return true; }
