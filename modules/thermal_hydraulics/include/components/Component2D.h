@@ -128,7 +128,7 @@ public:
    * @param[in] y        Transverse position of the surface, which ranges from
    *                     0 (inner) to total width (outer).
    */
-  virtual Real computeRadialBoundaryArea(const Real & length, const Real & y) const = 0;
+  Real computeRadialBoundaryArea(const Real & length, const Real & y) const;
 
   /**
    * Computes the area of an axial boundary
@@ -138,7 +138,22 @@ public:
    * @param[in] y_max    Maximum transverse position of the surface, which ranges from
    *                     0 (inner) to total width (outer).
    */
-  virtual Real computeAxialBoundaryArea(const Real & y_min, const Real & y_max) const = 0;
+  Real computeAxialBoundaryArea(const Real & y_min, const Real & y_max) const;
+
+  /**
+   * Returns true if the component is cylindrical
+   */
+  virtual bool isCylindrical() const = 0;
+
+  /**
+   * Gets the depth of the plate (if applicable)
+   */
+  virtual Real getDepth() const;
+
+  /**
+   * Gets the inner radius of the component (if applicable)
+   */
+  virtual Real getInnerRadius() const;
 
 protected:
   virtual void check() const override;
