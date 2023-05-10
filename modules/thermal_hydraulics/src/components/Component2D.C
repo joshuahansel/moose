@@ -44,6 +44,33 @@ Component2D::Component2D(const InputParameters & params)
 }
 
 void
+Component2D::setupMesh()
+{
+  _names = getRegionNames();
+  _n_regions = _names.size();
+
+  _width = getRegionWidths();
+  _total_width = std::accumulate(_width.begin(), _width.end(), 0.0);
+
+  _n_part_elems = getRegionNumbersOfElements();
+  for (unsigned int i = 0; i < _n_part_elems.size(); i++)
+    _total_elem_number += _n_part_elems[i];
+
+  if (_width.size() == _n_regions)
+  {
+    Real y1 = 0.0;
+    for (unsigned int i = 0; i < _n_regions; i++)
+    {
+      const Real y2 = y1 + _width[i];
+      _volume.push_back(computeRegionVolume(y1, y2));
+      y1 = y2;
+    }
+  }
+
+  GeneratedMeshComponent::setupMesh();
+}
+
+void
 Component2D::check() const
 {
   GeneratedMeshComponent::check();
@@ -605,6 +632,12 @@ Component2D::computeAxialBoundaryArea(const Real & y_min, const Real & y_max) co
     const auto depth = getDepth();
     return (y_max - y_min) * depth;
   }
+}
+
+Real
+Component2D::computeRegionVolume(const Real & y_min, const Real & y_max) const
+{
+  return computeAxialBoundaryArea(y_min, y_max) * _length;
 }
 
 Real

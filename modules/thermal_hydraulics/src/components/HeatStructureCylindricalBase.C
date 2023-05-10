@@ -24,26 +24,7 @@ HeatStructureCylindricalBase::HeatStructureCylindricalBase(const InputParameters
 void
 HeatStructureCylindricalBase::setupMesh()
 {
-  _axial_offset = _inner_radius;
+  _axial_offset = getInnerRadius();
 
   HeatStructureBase::setupMesh();
-}
-
-Real
-HeatStructureCylindricalBase::getUnitPerimeter(const ExternalBoundaryType & side) const
-{
-  switch (side)
-  {
-    case ExternalBoundaryType::OUTER:
-      return 2 * M_PI * (_inner_radius + _total_width);
-
-    case ExternalBoundaryType::INNER:
-      return 2 * M_PI * _inner_radius;
-
-    case ExternalBoundaryType::START:
-    case ExternalBoundaryType::END:
-      return std::numeric_limits<Real>::quiet_NaN();
-  }
-
-  mooseError(name(), ": Unknown value of 'side' parameter.");
 }

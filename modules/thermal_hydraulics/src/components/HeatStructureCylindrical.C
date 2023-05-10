@@ -32,33 +32,7 @@ HeatStructureCylindrical::validParams()
 HeatStructureCylindrical::HeatStructureCylindrical(const InputParameters & params)
   : HeatStructureCylindricalBase(params)
 {
-  _names = getParam<std::vector<std::string>>("names");
-  _n_regions = _names.size();
-  for (unsigned int i = 0; i < _names.size(); i++)
-    _name_index[_names[i]] = i;
-
   _material_names = getParam<std::vector<std::string>>("materials");
-
-  _width = getParam<std::vector<Real>>("widths");
-  _total_width = std::accumulate(_width.begin(), _width.end(), 0.0);
-
-  _n_part_elems = getParam<std::vector<unsigned int>>("n_part_elems");
-  for (unsigned int i = 0; i < _n_part_elems.size(); i++)
-    _total_elem_number += _n_part_elems[i];
-
-  _num_rods = getParam<Real>("num_rods");
-
-  _inner_radius = getParam<Real>("inner_radius");
-
-  if (_width.size() == _n_regions)
-  {
-    std::vector<Real> r(_n_regions + 1, _inner_radius);
-    for (unsigned int i = 0; i < _n_regions; i++)
-    {
-      r[i + 1] = r[i] + _width[i];
-      _volume.push_back(_num_rods * M_PI * (r[i + 1] * r[i + 1] - r[i] * r[i]) * _length);
-    }
-  }
 }
 
 void
@@ -70,4 +44,34 @@ HeatStructureCylindrical::check() const
   checkEqualSize<std::string, Real>("names", "widths");
   if (isParamValid("materials"))
     checkEqualSize<std::string, std::string>("names", "materials");
+}
+
+std::vector<std::string>
+HeatStructureCylindrical::getRegionNames() const
+{
+  return getParam<std::vector<std::string>>("names");
+}
+
+std::vector<Real>
+HeatStructureCylindrical::getRegionWidths() const
+{
+  return getParam<std::vector<Real>>("widths");
+}
+
+std::vector<unsigned int>
+HeatStructureCylindrical::getRegionNumbersOfElements() const
+{
+  return getParam<std::vector<unsigned int>>("n_part_elems");
+}
+
+Real
+HeatStructureCylindrical::getNumberOfUnits() const
+{
+  return getParam<Real>("num_rods");
+}
+
+Real
+HeatStructureCylindrical::getInnerRadius() const
+{
+  return getParam<Real>("inner_radius");
 }

@@ -21,9 +21,12 @@ public:
   HeatStructurePlate(const InputParameters & params);
 
   virtual void check() const override;
-  virtual Real getUnitPerimeter(const ExternalBoundaryType & side) const override;
 
   virtual bool isCylindrical() const override { return false; }
+  virtual std::vector<std::string> getRegionNames() const override;
+  virtual std::vector<Real> getRegionWidths() const override;
+  virtual std::vector<unsigned int> getRegionNumbersOfElements() const override;
+  virtual Real getNumberOfUnits() const override;
   virtual Real getDepth() const override { return _depth; }
 
 protected:

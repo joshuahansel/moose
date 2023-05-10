@@ -21,6 +21,12 @@ public:
 
   virtual void check() const override;
 
+  virtual std::vector<std::string> getRegionNames() const override;
+  virtual std::vector<Real> getRegionWidths() const override;
+  virtual std::vector<unsigned int> getRegionNumbersOfElements() const override;
+  virtual Real getNumberOfUnits() const override;
+  virtual Real getInnerRadius() const override;
+
 public:
   static InputParameters validParams();
 };

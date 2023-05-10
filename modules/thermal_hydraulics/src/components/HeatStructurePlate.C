@@ -33,27 +33,7 @@ HeatStructurePlate::validParams()
 HeatStructurePlate::HeatStructurePlate(const InputParameters & params)
   : HeatStructureBase(params), _depth(getParam<Real>("depth"))
 {
-  _names = getParam<std::vector<std::string>>("names");
-  _n_regions = _names.size();
-  for (unsigned int i = 0; i < _names.size(); i++)
-    _name_index[_names[i]] = i;
-
   _material_names = getParam<std::vector<std::string>>("materials");
-
-  _width = getParam<std::vector<Real>>("widths");
-  _total_width = std::accumulate(_width.begin(), _width.end(), 0.0);
-
-  _n_part_elems = getParam<std::vector<unsigned int>>("n_part_elems");
-  for (unsigned int i = 0; i < _n_part_elems.size(); i++)
-    _total_elem_number += _n_part_elems[i];
-
-  _num_rods = getParam<Real>("num_rods");
-
-  if (_width.size() == _n_regions)
-  {
-    for (unsigned int i = 0; i < _n_regions; i++)
-      _volume.push_back(_num_rods * _width[i] * _depth * _length);
-  }
 }
 
 void
@@ -67,19 +47,26 @@ HeatStructurePlate::check() const
     checkEqualSize<std::string, std::string>("names", "materials");
 }
 
-Real
-HeatStructurePlate::getUnitPerimeter(const ExternalBoundaryType & side) const
+std::vector<std::string>
+HeatStructurePlate::getRegionNames() const
 {
-  switch (side)
-  {
-    case ExternalBoundaryType::OUTER:
-    case ExternalBoundaryType::INNER:
-      return _depth;
+  return getParam<std::vector<std::string>>("names");
+}
 
-    case ExternalBoundaryType::START:
-    case ExternalBoundaryType::END:
-      return std::numeric_limits<Real>::quiet_NaN();
-  }
+std::vector<Real>
+HeatStructurePlate::getRegionWidths() const
+{
+  return getParam<std::vector<Real>>("widths");
+}
 
-  mooseError(name(), ": Unknown value of 'side' parameter.");
+std::vector<unsigned int>
+HeatStructurePlate::getRegionNumbersOfElements() const
+{
+  return getParam<std::vector<unsigned int>>("n_part_elems");
+}
+
+Real
+HeatStructurePlate::getNumberOfUnits() const
+{
+  return getParam<Real>("num_rods");
 }
