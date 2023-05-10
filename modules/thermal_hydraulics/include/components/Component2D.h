@@ -265,7 +265,7 @@ protected:
   std::map<BoundaryName, std::vector<std::tuple<dof_id_type, unsigned short int>>> _boundary_info;
 
   /// Distance by which to offset the mesh from the component axis
-  mutable Real _axial_offset;
+  Real _axial_offset;
 
 private:
 public:

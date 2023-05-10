@@ -19,7 +19,6 @@ class HeatStructureCylindricalBase : public HeatStructureBase
 public:
   HeatStructureCylindricalBase(const InputParameters & params);
 
-  virtual void setupMesh() override;
   virtual bool isCylindrical() const override { return true; }
 
 protected:

@@ -56,6 +56,11 @@ Component2D::setupMesh()
   for (unsigned int i = 0; i < _n_part_elems.size(); i++)
     _total_elem_number += _n_part_elems[i];
 
+  if (isCylindrical())
+    _axial_offset = getInnerRadius();
+  else
+    _axial_offset = 0.0;
+
   if (_width.size() == _n_regions)
   {
     Real y1 = 0.0;
