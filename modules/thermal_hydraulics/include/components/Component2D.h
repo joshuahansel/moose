@@ -11,6 +11,13 @@
 
 #include "GeneratedMeshComponent.h"
 
+/**
+ * Base class for generated 2D components
+ *
+ * These components may be either Cartesian (brick/plate) geometry, or cylindrical.
+ * A generated 2D component is divided axially into "sections" and radially into
+ * "regions".
+ */
 class Component2D : public GeneratedMeshComponent
 {
 public:
@@ -25,6 +32,7 @@ public:
 
   Component2D(const InputParameters & params);
 
+  virtual void setupMesh() override;
   virtual void buildMesh() override;
 
   /**
@@ -50,9 +58,24 @@ public:
   const std::vector<std::string> & getNames() const { return _names; }
 
   /**
-   * Gets the volumes of the transverse regions
+   * Gets the name of each radial region
    */
-  const std::vector<Real> & getVolumes() const { return _volume; }
+  virtual std::vector<std::string> getRegionNames() const = 0;
+
+  /**
+   * Gets the width of each radial region
+   */
+  virtual std::vector<Real> getRegionWidths() const = 0;
+
+  /**
+   * Gets the number of elements of each radial region
+   */
+  virtual std::vector<unsigned int> getRegionNumbersOfElements() const = 0;
+
+  /**
+   * Gets the volume of each radial region
+   */
+  const std::vector<Real> & getRegionVolumes() const { return _volume; }
 
   /**
    * Returns true if the supplied boundary is in the given vector
@@ -139,6 +162,16 @@ public:
    *                     0 (inner) to total width (outer).
    */
   Real computeAxialBoundaryArea(const Real & y_min, const Real & y_max) const;
+
+  /**
+   * Computes the volume of a radial region
+   *
+   * @param[in] y_min    Minimum transverse position of the surface, which ranges from
+   *                     0 (inner) to total width (outer).
+   * @param[in] y_max    Maximum transverse position of the surface, which ranges from
+   *                     0 (inner) to total width (outer).
+   */
+  virtual Real computeRegionVolume(const Real & y_min, const Real & y_max) const;
 
   /**
    * Returns true if the component is cylindrical

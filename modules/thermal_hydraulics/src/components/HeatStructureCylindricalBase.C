@@ -27,32 +27,15 @@ HeatStructureCylindricalBase::HeatStructureCylindricalBase(const InputParameters
 void
 HeatStructureCylindricalBase::setupMesh()
 {
+  const Real inner_radius = getInnerRadius();
+
   if (getParam<bool>("offset_mesh_by_inner_radius") || !_connected_to_flow_channel)
-    _axial_offset = _inner_radius;
-  else if (!MooseUtils::absoluteFuzzyEqual(_inner_radius, 0.0))
+    _axial_offset = inner_radius;
+  else if (!MooseUtils::absoluteFuzzyEqual(inner_radius, 0.0))
     mooseDeprecated(
         "Cylindrical heat structure meshes must now be offset by their inner radii. Set "
         "'offset_mesh_by_inner_radius = true', and re-gold any output files depending "
         "on heat structure mesh position.");
 
   HeatStructureBase::setupMesh();
-}
-
-Real
-HeatStructureCylindricalBase::getUnitPerimeter(const ExternalBoundaryType & side) const
-{
-  switch (side)
-  {
-    case ExternalBoundaryType::OUTER:
-      return 2 * M_PI * (_inner_radius + _total_width);
-
-    case ExternalBoundaryType::INNER:
-      return 2 * M_PI * _inner_radius;
-
-    case ExternalBoundaryType::START:
-    case ExternalBoundaryType::END:
-      return std::numeric_limits<Real>::quiet_NaN();
-  }
-
-  mooseError(name(), ": Unknown value of 'side' parameter.");
 }

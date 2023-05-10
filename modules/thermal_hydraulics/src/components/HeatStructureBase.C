@@ -20,11 +20,18 @@ HeatStructureBase::validParams()
 }
 
 HeatStructureBase::HeatStructureBase(const InputParameters & params)
-  : Component2D(params),
-    HeatStructureInterface(this),
-    _connected_to_flow_channel(false),
-    _number_of_hs(_n_regions)
+  : Component2D(params), HeatStructureInterface(this), _connected_to_flow_channel(false)
 {
+}
+
+void
+HeatStructureBase::setupMesh()
+{
+  Component2D::setupMesh();
+
+  const auto region_names = getRegionNames();
+  for (unsigned int i = 0; i < region_names.size(); i++)
+    _name_index[region_names[i]] = i;
 }
 
 void
@@ -44,6 +51,8 @@ HeatStructureBase::check() const
 const unsigned int &
 HeatStructureBase::getIndexFromName(const std::string & name) const
 {
+  checkSetupStatus(MESH_PREPARED);
+
   return _name_index.at(name);
 }
 
@@ -89,4 +98,35 @@ HeatStructureBase::addMooseObjects()
         comp->connectObject(rho_fn->parameters(), rho_fn->name(), "rho", "value");
     }
   }
+}
+
+Real
+HeatStructureBase::computeRegionVolume(const Real & y_min, const Real & y_max) const
+{
+  return getNumberOfUnits() * Component2D::computeRegionVolume(y_min, y_max);
+}
+
+Real
+HeatStructureBase::getUnitPerimeter(const ExternalBoundaryType & side) const
+{
+  switch (side)
+  {
+    case ExternalBoundaryType::OUTER:
+      if (isCylindrical())
+        return 2 * libMesh::pi * (getInnerRadius() + _total_width);
+      else
+        return getDepth();
+
+    case ExternalBoundaryType::INNER:
+      if (isCylindrical())
+        return 2 * libMesh::pi * getInnerRadius();
+      else
+        return getDepth();
+
+    case ExternalBoundaryType::START:
+    case ExternalBoundaryType::END:
+      return std::numeric_limits<Real>::quiet_NaN();
+  }
+
+  mooseError(name(), ": Unknown value of 'side' parameter.");
 }
