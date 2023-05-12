@@ -1180,6 +1180,32 @@ public:
   void setAxisymmetricCoordAxis(const MooseEnum & rz_coord_axis);
 
   /**
+   * Sets general coordinate axes for axisymmetric blocks.
+   *
+   * This method should be used instead of setAxisymmetricCoordAxis() when
+   * either of the following is true:
+   * - There are multiple (different) axisymmetric coordinate systems
+   * - Any axisymmetric coordinate system is not the +X or +Y axis, starting
+   *   at the origin.
+   *
+   * @param[in] blocks  Subdomain names
+   * @param[in] axes  Pair of values defining the axisymmetric coordinate axis
+   *                  for each subdomain. The first value is the point on the axis
+   *                  corresponding to the origin. The second value is the direction
+   *                  vector of the axis (normalization not necessary).
+   */
+  void setGeneralAxisymmetricCoordAxes(const std::vector<SubdomainName> & blocks,
+                                       const std::vector<std::pair<Point, RealVectorValue>> & axes);
+
+  /**
+   * Gets the general axisymmetric coordinate axis for a block.
+   *
+   * @param[in] subdomain_id  Subdomain ID for which to get general axisymmetric coordinate axis
+   */
+  const std::pair<Point, RealVectorValue> &
+  getGeneralAxisymmetricCoordAxis(SubdomainID subdomain_id) const;
+
+  /**
    * Returns the desired radial direction for RZ coordinate transformation
    * @return The coordinate direction for the radial direction
    */
@@ -1610,6 +1636,9 @@ private:
 
   /// Storage for RZ axis selection
   unsigned int _rz_coord_axis;
+
+  /// Map of subdomain ID to general axisymmetric axis
+  std::map<SubdomainID, std::pair<Point, RealVectorValue>> _subdomain_id_to_rz_general_axis;
 
   /// A coordinate transformation object that describes how to transform this problem's coordinate
   /// system into the canonical/reference coordinate system

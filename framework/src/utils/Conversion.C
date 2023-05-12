@@ -56,6 +56,7 @@ initCoordinateSystemType()
     coordinate_system_type_to_enum["XYZ"] = COORD_XYZ;
     coordinate_system_type_to_enum["RZ"] = COORD_RZ;
     coordinate_system_type_to_enum["RSPHERICAL"] = COORD_RSPHERICAL;
+    coordinate_system_type_to_enum["RZ_GENERAL"] = COORD_RZ_GENERAL;
   }
 }
 

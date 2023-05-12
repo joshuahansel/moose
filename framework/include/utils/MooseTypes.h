@@ -718,7 +718,8 @@ enum CoordinateSystemType : int
 {
   COORD_XYZ = 0,
   COORD_RZ,
-  COORD_RSPHERICAL
+  COORD_RSPHERICAL,
+  COORD_RZ_GENERAL
 };
 
 /**

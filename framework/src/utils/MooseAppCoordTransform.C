@@ -199,12 +199,20 @@ MooseAppCoordTransform::validParams()
       "coord_block",
       "Block IDs for the coordinate systems. If this parameter is specified, then it must "
       "encompass all the subdomains on the mesh.");
-  MultiMooseEnum coord_types("XYZ RZ RSPHERICAL", "XYZ");
+  MultiMooseEnum coord_types("XYZ RZ RSPHERICAL RZ_GENERAL", "XYZ");
   MooseEnum rz_coord_axis("X=0 Y=1", "Y");
   params.addParam<MultiMooseEnum>(
       "coord_type", coord_types, "Type of the coordinate system per block param");
   params.addParam<MooseEnum>(
       "rz_coord_axis", rz_coord_axis, "The rotation axis (X | Y) for axisymetric coordinates");
+  params.addParam<std::vector<SubdomainName>>("rz_general_blocks",
+                                              "Blocks using the RZ_GENERAL coordinate system");
+  params.addParam<std::vector<Point>>("rz_general_origins",
+                                      "Axis origin points for each block in 'rz_general_blocks'");
+  // Elsewhere, we use RealVectorValue for these directions, but InputParameters
+  // does not handle std::vector<RealVectorValue> in the expected way. See #24337.
+  params.addParam<std::vector<Point>>("rz_general_directions",
+                                      "Axis directions for each block in 'rz_general_blocks'");
   params.addParam<std::string>(
       "length_unit",
       "How much distance one mesh length unit represents, e.g. 1 cm, 1 nm, 1 ft, 5inches");
@@ -241,6 +249,8 @@ MooseAppCoordTransform::validParams()
   params.addParamNamesToGroup(
       "length_unit alpha_rotation beta_rotation gamma_rotation up_direction",
       "Transformations relative to parent application frame of reference");
+  params.addParamNamesToGroup("rz_general_blocks rz_general_origins rz_general_directions",
+                              "RZ_GENERAL coordinate system specifications");
   return params;
 }
 

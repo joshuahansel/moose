@@ -58,11 +58,18 @@ coordTransformFactor(const MooseMesh & mesh,
                   : true,
               "Coordinate systems must be the same between element and neighbor");
   const auto coord_type = mesh.getCoordSystem(sub_id);
-  MooseMeshUtils::coordTransformFactor(
-      point,
-      factor,
-      coord_type,
-      coord_type == Moose::COORD_RZ ? mesh.getAxisymmetricRadialCoord() : libMesh::invalid_uint);
+
+  if (coord_type == Moose::COORD_RZ_GENERAL)
+  {
+    const auto & axis = mesh.getGeneralAxisymmetricCoordAxis(sub_id);
+    MooseMeshUtils::coordTransformFactorRZGeneral(point, axis, factor);
+  }
+  else
+    MooseMeshUtils::coordTransformFactor(
+        point,
+        factor,
+        coord_type,
+        coord_type == Moose::COORD_RZ ? mesh.getAxisymmetricRadialCoord() : libMesh::invalid_uint);
 }
 
 Assembly::Assembly(SystemBase & sys, THREAD_ID tid)
