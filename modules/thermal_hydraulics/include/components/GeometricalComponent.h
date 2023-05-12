@@ -35,6 +35,16 @@ public:
   virtual const std::vector<Moose::CoordinateSystemType> & getCoordSysTypes() const;
 
   /**
+   * Gets the name of each RZ subdomain in this component
+   */
+  const std::vector<SubdomainName> & getRZSubdomainNames() const;
+
+  /**
+   * Gets the RZ coordinate axis for each RZ subdomain in this component
+   */
+  const std::vector<std::pair<Point, RealVectorValue>> & getRZAxes() const;
+
+  /**
    * Gets the node IDs corresponding to this component
    */
   const std::vector<dof_id_type> & getNodeIDs() const;
@@ -63,16 +73,23 @@ protected:
                          dof_id_type node8);
 
   /**
-   * Sets the next subdomain ID, name, and coordinate system
+   * Sets the subdomain ID, name, and coordinate system for an XYZ subdomain
    *
    * @param[in] subdomain_id  subdomain index
    * @param[in] subdomain_name  name of the new subdomain
-   * @param[in] coord_system  type of coordinate system
    */
-  virtual void
-  setSubdomainInfo(SubdomainID subdomain_id,
-                   const std::string & subdomain_name,
-                   const Moose::CoordinateSystemType & coord_system = Moose::COORD_XYZ);
+  virtual void setSubdomainInfoXYZ(SubdomainID subdomain_id, const std::string & subdomain_name);
+
+  /**
+   * Sets the subdomain ID, name, coordinate system, and RZ axis data for an RZ_GENERAL subdomain
+   *
+   * @param[in] subdomain_id  subdomain index
+   * @param[in] subdomain_name  name of the new subdomain
+   * @param[in] axis  RZ axis
+   */
+  virtual void setSubdomainInfoRZ(SubdomainID subdomain_id,
+                                  const SubdomainName & subdomain_name,
+                                  const std::pair<Point, RealVectorValue> & axis);
 
   /**
    * Makes a constant function parameter controllable and returns its name
@@ -87,6 +104,12 @@ protected:
   std::vector<SubdomainName> _subdomain_names;
   /// List of coordinate system for each subdomain
   std::vector<Moose::CoordinateSystemType> _coord_sys;
+
+  /// List of RZ subdomain names
+  std::vector<SubdomainName> _rz_subdomain_names;
+  /// List of RZ axes
+  std::vector<std::pair<Point, RealVectorValue>> _rz_axes;
+
   /// List of node IDs this components owns
   std::vector<dof_id_type> _node_ids;
   /// Elements ids of this component

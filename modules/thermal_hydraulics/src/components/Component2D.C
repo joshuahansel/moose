@@ -378,10 +378,12 @@ Component2D::buildMesh()
   // Assign subdomain to each transverse region
   for (unsigned int i = 0; i < _n_regions; i++)
   {
-    // The coordinate system for MOOSE is always XYZ, even for axisymmetric
-    // components, since we do the RZ integration ourselves until we can set
-    // arbitrary number of axis symmetries in MOOSE.
-    setSubdomainInfo(mesh().getNextSubdomainId(), genName(_name, _names[i]), Moose::COORD_XYZ);
+    if (isCylindrical())
+      setSubdomainInfoRZ(mesh().getNextSubdomainId(),
+                         genName(_name, _names[i]),
+                         std::make_pair(getPosition(), getDirection()));
+    else
+      setSubdomainInfoXYZ(mesh().getNextSubdomainId(), genName(_name, _names[i]));
   }
 
   // Create boundary IDs and associated boundary names

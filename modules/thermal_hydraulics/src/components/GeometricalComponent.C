@@ -99,6 +99,22 @@ GeometricalComponent::getCoordSysTypes() const
   return _coord_sys;
 }
 
+const std::vector<SubdomainName> &
+GeometricalComponent::getRZSubdomainNames() const
+{
+  checkSetupStatus(MESH_PREPARED);
+
+  return _rz_subdomain_names;
+}
+
+const std::vector<std::pair<Point, RealVectorValue>> &
+GeometricalComponent::getRZAxes() const
+{
+  checkSetupStatus(MESH_PREPARED);
+
+  return _rz_axes;
+}
+
 const FunctionName &
 GeometricalComponent::getVariableFn(const FunctionName & fn_param_name)
 {
@@ -114,19 +130,40 @@ GeometricalComponent::getVariableFn(const FunctionName & fn_param_name)
 }
 
 void
-GeometricalComponent::setSubdomainInfo(SubdomainID subdomain_id,
-                                       const std::string & subdomain_name,
-                                       const Moose::CoordinateSystemType & coord_system)
+GeometricalComponent::setSubdomainInfoXYZ(SubdomainID subdomain_id,
+                                          const std::string & subdomain_name)
 {
   _subdomain_ids.push_back(subdomain_id);
   _subdomain_names.push_back(subdomain_name);
-  _coord_sys.push_back(coord_system);
+  _coord_sys.push_back(Moose::COORD_XYZ);
   if (_parent)
   {
     GeometricalComponent * gc = dynamic_cast<GeometricalComponent *>(_parent);
     gc->_subdomain_ids.push_back(subdomain_id);
     gc->_subdomain_names.push_back(subdomain_name);
-    gc->_coord_sys.push_back(coord_system);
+    gc->_coord_sys.push_back(Moose::COORD_XYZ);
+  }
+  mesh().setSubdomainName(subdomain_id, subdomain_name);
+}
+
+void
+GeometricalComponent::setSubdomainInfoRZ(SubdomainID subdomain_id,
+                                         const SubdomainName & subdomain_name,
+                                         const std::pair<Point, RealVectorValue> & axis)
+{
+  _subdomain_ids.push_back(subdomain_id);
+  _subdomain_names.push_back(subdomain_name);
+  _coord_sys.push_back(Moose::COORD_RZ_GENERAL);
+  _rz_subdomain_names.push_back(subdomain_name);
+  _rz_axes.push_back(axis);
+  if (_parent)
+  {
+    GeometricalComponent * gc = dynamic_cast<GeometricalComponent *>(_parent);
+    gc->_subdomain_ids.push_back(subdomain_id);
+    gc->_subdomain_names.push_back(subdomain_name);
+    gc->_coord_sys.push_back(Moose::COORD_RZ_GENERAL);
+    gc->_rz_subdomain_names.push_back(subdomain_name);
+    gc->_rz_axes.push_back(axis);
   }
   mesh().setSubdomainName(subdomain_id, subdomain_name);
 }
