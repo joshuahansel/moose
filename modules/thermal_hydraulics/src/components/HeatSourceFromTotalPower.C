@@ -8,7 +8,6 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "HeatSourceFromTotalPower.h"
-#include "HeatStructureCylindricalBase.h"
 #include "HeatStructurePlate.h"
 #include "TotalPowerBase.h"
 
@@ -75,10 +74,6 @@ HeatSourceFromTotalPower::addMooseObjects()
     length = 1.0;
   }
 
-  const HeatStructureCylindricalBase * hs_cyl =
-      dynamic_cast<const HeatStructureCylindricalBase *>(&hs);
-  const bool is_cylindrical = hs_cyl != nullptr;
-
   const HeatStructurePlate * hs_plate = dynamic_cast<const HeatStructurePlate *>(&hs);
   const bool is_plate = hs_plate != nullptr;
 
@@ -96,17 +91,10 @@ HeatSourceFromTotalPower::addMooseObjects()
                                                     : genName(_power_shape_func, "integral");
 
   {
-    const std::string class_name =
-        is_cylindrical ? "FunctionElementIntegralRZ" : "FunctionElementIntegral";
+    const std::string class_name = "FunctionElementIntegral";
     InputParameters pars = _factory.getValidParams(class_name);
     pars.set<std::vector<SubdomainName>>("block") = _subdomain_names;
     pars.set<FunctionName>("function") = _power_shape_func;
-    if (is_cylindrical)
-    {
-      pars.set<Point>("axis_point") = hs_cyl->getPosition();
-      pars.set<RealVectorValue>("axis_dir") = hs_cyl->getDirection();
-      pars.set<Real>("offset") = hs_cyl->getInnerRadius() - hs_cyl->getAxialOffset();
-    }
     pars.set<ExecFlagEnum>("execute_on") = {EXEC_INITIAL};
     // TODO: This seems to produce incorrect output files, even though this is the line
     // that should be here, becuase we don't want this PPS to be in any output. The effect
@@ -117,8 +105,7 @@ HeatSourceFromTotalPower::addMooseObjects()
   }
 
   {
-    const std::string class_name =
-        is_cylindrical ? "ADHeatStructureHeatSourceRZ" : "ADHeatStructureHeatSource";
+    const std::string class_name = "ADHeatStructureHeatSource";
     InputParameters pars = _factory.getValidParams(class_name);
     pars.set<NonlinearVariableName>("variable") = HeatConductionModel::TEMPERATURE;
     pars.set<std::vector<SubdomainName>>("block") = _subdomain_names;
@@ -127,13 +114,7 @@ HeatSourceFromTotalPower::addMooseObjects()
     pars.set<FunctionName>("power_shape_function") = _power_shape_func;
     pars.set<std::vector<VariableName>>("total_power") =
         std::vector<VariableName>(1, _power_var_name);
-    if (is_cylindrical)
-    {
-      pars.set<Point>("axis_point") = hs_cyl->getPosition();
-      pars.set<RealVectorValue>("axis_dir") = hs_cyl->getDirection();
-      pars.set<Real>("offset") = hs_cyl->getInnerRadius() - hs_cyl->getAxialOffset();
-    }
-    else if (is_plate)
+    if (is_plate)
     {
       // For plate heat structure, the element integral of the power shape only
       // integrates over x and y, not z, so the depth still needs to be applied.

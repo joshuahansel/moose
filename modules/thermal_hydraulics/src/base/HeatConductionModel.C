@@ -82,7 +82,7 @@ HeatConductionModel::addMaterials()
 }
 
 void
-HeatConductionModel::addHeatEquationXYZ()
+HeatConductionModel::addHeatEquation()
 {
   const auto & blocks = _geometrical_component.getSubdomainNames();
 
@@ -105,47 +105,6 @@ HeatConductionModel::addHeatEquationXYZ()
     pars.set<std::vector<SubdomainName>>("block") = blocks;
     pars.set<MaterialPropertyName>("thermal_conductivity") = THERMAL_CONDUCTIVITY;
     pars.set<bool>("use_displaced_mesh") = false;
-    _sim.addKernel(class_name, genName(_comp_name, "hc"), pars);
-  }
-}
-
-void
-HeatConductionModel::addHeatEquationRZ()
-{
-  HeatStructureCylindricalBase & hs_cyl =
-      dynamic_cast<HeatStructureCylindricalBase &>(_geometrical_component);
-
-  const auto & blocks = hs_cyl.getSubdomainNames();
-  const auto & position = hs_cyl.getPosition();
-  const auto & direction = hs_cyl.getDirection();
-  const auto & inner_radius = hs_cyl.getInnerRadius();
-  const auto & axis_offset = hs_cyl.getAxialOffset();
-
-  // add transient term
-  {
-    std::string class_name = "ADHeatConductionTimeDerivativeRZ";
-    InputParameters pars = _factory.getValidParams(class_name);
-    pars.set<NonlinearVariableName>("variable") = TEMPERATURE;
-    pars.set<std::vector<SubdomainName>>("block") = blocks;
-    pars.set<MaterialPropertyName>("specific_heat") = SPECIFIC_HEAT_CONSTANT_PRESSURE;
-    pars.set<MaterialPropertyName>("density_name") = DENSITY;
-    pars.set<bool>("use_displaced_mesh") = false;
-    pars.set<Point>("axis_point") = position;
-    pars.set<RealVectorValue>("axis_dir") = direction;
-    pars.set<Real>("offset") = inner_radius - axis_offset;
-    _sim.addKernel(class_name, genName(_comp_name, "td"), pars);
-  }
-  // add diffusion term
-  {
-    std::string class_name = "ADHeatConductionRZ";
-    InputParameters pars = _factory.getValidParams(class_name);
-    pars.set<NonlinearVariableName>("variable") = TEMPERATURE;
-    pars.set<std::vector<SubdomainName>>("block") = blocks;
-    pars.set<MaterialPropertyName>("thermal_conductivity") = THERMAL_CONDUCTIVITY;
-    pars.set<bool>("use_displaced_mesh") = false;
-    pars.set<Point>("axis_point") = position;
-    pars.set<RealVectorValue>("axis_dir") = direction;
-    pars.set<Real>("offset") = inner_radius - axis_offset;
     _sim.addKernel(class_name, genName(_comp_name, "hc"), pars);
   }
 }

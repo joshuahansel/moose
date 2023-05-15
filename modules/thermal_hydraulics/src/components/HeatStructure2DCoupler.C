@@ -8,7 +8,6 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "HeatStructure2DCoupler.h"
-#include "HeatStructureCylindricalBase.h"
 
 registerMooseObject("ThermalHydraulicsApp", HeatStructure2DCoupler);
 
@@ -47,10 +46,7 @@ HeatStructure2DCoupler::addMooseObjects()
 
   for (unsigned int i = 0; i < 2; i++)
   {
-    const HeatStructureBase & hs = getComponentByName<HeatStructureBase>(_hs_names[i]);
-
-    const std::string class_name =
-        _is_cylindrical[i] ? "HeatStructure2DCouplerRZBC" : "HeatStructure2DCouplerBC";
+    const std::string class_name = "HeatStructure2DCouplerBC";
     InputParameters params = _factory.getValidParams(class_name);
     params.set<NonlinearVariableName>("variable") = HeatConductionModel::TEMPERATURE;
     params.set<std::string>("coupled_variable") = HeatConductionModel::TEMPERATURE;
@@ -59,16 +55,6 @@ HeatStructure2DCoupler::addMooseObjects()
     params.set<FunctionName>("heat_transfer_coefficient") =
         getParam<FunctionName>("heat_transfer_coefficient");
     params.set<Real>("coupling_area_fraction") = _coupling_area_fractions[i];
-    if (_is_cylindrical[i])
-    {
-      const HeatStructureCylindricalBase & hs_cylindrical =
-          getComponentByName<HeatStructureCylindricalBase>(_hs_names[i]);
-
-      params.set<Point>("axis_point") = hs.getPosition();
-      params.set<RealVectorValue>("axis_dir") = hs.getDirection();
-      params.set<Real>("offset") =
-          hs_cylindrical.getInnerRadius() - hs_cylindrical.getAxialOffset();
-    }
     getTHMProblem().addBoundaryCondition(class_name, genName(name(), class_name, i), params);
   }
 }

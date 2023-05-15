@@ -45,14 +45,9 @@ public:
   virtual void addMaterials();
 
   /**
-   * Add heat conduction equation for cartesian coordinate system
+   * Add heat conduction equation
    */
-  virtual void addHeatEquationXYZ();
-
-  /**
-   * Add heat conduction equation for RZ coordinate system
-   */
-  virtual void addHeatEquationRZ();
+  virtual void addHeatEquation();
 
   /**
    * Get the FE type used for heat conduction

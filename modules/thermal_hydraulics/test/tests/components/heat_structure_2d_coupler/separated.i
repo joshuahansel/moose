@@ -81,10 +81,8 @@ htc = ${fparse power_per_K / (L_hs * P2)}
 
 [Postprocessors]
   [E_hs1]
-    type = ADHeatStructureEnergyRZ
+    type = ADHeatStructureEnergy
     block = 'hs1:region1'
-    axis_dir = '1 0 0'
-    axis_point = '0 0 0'
     execute_on = 'INITIAL TIMESTEP_END'
   []
   [E_hs1_change]
@@ -95,10 +93,8 @@ htc = ${fparse power_per_K / (L_hs * P2)}
   []
 
   [E_hs2]
-    type = ADHeatStructureEnergyRZ
+    type = ADHeatStructureEnergy
     block = 'hs2:region1'
-    axis_dir = '1 0 0'
-    axis_point = '0 0.3 0'
     execute_on = 'INITIAL TIMESTEP_END'
   []
   [E_hs2_change]

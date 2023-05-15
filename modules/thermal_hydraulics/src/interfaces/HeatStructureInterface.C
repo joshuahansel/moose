@@ -71,10 +71,7 @@ HeatStructureInterface::addVariables()
 void
 HeatStructureInterface::addMooseObjects()
 {
-  if (useCylindricalTransformation())
-    _hc_model->addHeatEquationRZ();
-  else
-    _hc_model->addHeatEquationXYZ();
+  _hc_model->addHeatEquation();
 }
 
 FunctionName

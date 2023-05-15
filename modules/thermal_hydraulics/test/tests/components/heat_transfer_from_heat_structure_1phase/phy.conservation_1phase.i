@@ -103,6 +103,7 @@
     execute_on = 'initial timestep_end'
   []
   [E_heat_structure]
+    type = ADHeatStructureEnergy
     block = 'heat_structure:main'
     n_units = 5
     execute_on = 'initial timestep_end'

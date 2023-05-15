@@ -109,6 +109,9 @@ DensityTempl<is_ad>::computeQpProperties()
         if (_q_point[_qp](0) != 0.0)
           Ayy = Azz = _disp_r[_qp] / _q_point[_qp](0) + 1.0;
         break;
+
+      default:
+        mooseError("Not implemented.");
     }
 
     const auto detF = Axx * Ayy * Azz + Axy * Ayz * Azx + Axz * Ayx * Azy - Azx * Ayy * Axz -

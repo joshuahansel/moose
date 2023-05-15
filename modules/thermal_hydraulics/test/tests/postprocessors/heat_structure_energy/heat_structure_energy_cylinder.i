@@ -1,4 +1,4 @@
-# Tests the HeatStructureEnergyRZ post-processor for a cylinder geometry.
+# Tests the HeatStructureEnergy post-processor for a cylinder geometry.
 #
 # The heat structure will consist of 5 units of the following geometry:
 #   x in (x1, x2) = (0, 2) => length (x-direction) = 2
@@ -70,11 +70,9 @@
 
 [Postprocessors]
   [E_tot]
-    type = ADHeatStructureEnergyRZ
+    type = ADHeatStructureEnergy
     block = 'heat_structure:region2'
     n_units = 5
-    axis_point = '0 2 0'
-    axis_dir = '1 0 0'
     execute_on = 'initial'
   []
 []

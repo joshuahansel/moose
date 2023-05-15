@@ -8,8 +8,6 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "HeatSourceFromPowerDensity.h"
-#include "HeatStructureInterface.h"
-#include "HeatStructureCylindricalBase.h"
 
 registerMooseObject("ThermalHydraulicsApp", HeatSourceFromPowerDensity);
 
@@ -30,24 +28,12 @@ HeatSourceFromPowerDensity::HeatSourceFromPowerDensity(const InputParameters & p
 void
 HeatSourceFromPowerDensity::addMooseObjects()
 {
-  /// The heat structure component we work with
-  const HeatStructureInterface & hs = getComponent<HeatStructureInterface>("hs");
-  const HeatStructureCylindricalBase * hs_cyl =
-      dynamic_cast<const HeatStructureCylindricalBase *>(&hs);
-  const bool is_cylindrical = hs_cyl != nullptr;
-
   {
-    const std::string class_name = is_cylindrical ? "CoupledForceRZ" : "CoupledForce";
+    const std::string class_name = "CoupledForce";
     InputParameters pars = _factory.getValidParams(class_name);
     pars.set<NonlinearVariableName>("variable") = HeatConductionModel::TEMPERATURE;
     pars.set<std::vector<SubdomainName>>("block") = _subdomain_names;
     pars.set<std::vector<VariableName>>("v") = std::vector<VariableName>(1, _power_density_name);
-    if (is_cylindrical)
-    {
-      pars.set<Point>("axis_point") = hs_cyl->getPosition();
-      pars.set<RealVectorValue>("axis_dir") = hs_cyl->getDirection();
-      pars.set<Real>("offset") = hs_cyl->getInnerRadius() - hs_cyl->getAxialOffset();
-    }
     std::string mon = genName(name(), "heat_src");
     getTHMProblem().addKernel(class_name, mon, pars);
   }

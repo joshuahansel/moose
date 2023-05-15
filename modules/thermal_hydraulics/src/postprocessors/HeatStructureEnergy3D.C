@@ -14,19 +14,19 @@ registerMooseObject("ThermalHydraulicsApp", HeatStructureEnergy3D);
 InputParameters
 HeatStructureEnergy3D::validParams()
 {
-  InputParameters params = HeatStructureEnergyBase::validParams();
+  InputParameters params = HeatStructureEnergy::validParams();
   params.suppressParameter<Real>("n_units");
   params.addClassDescription("Computes the total energy for a 3D heat structure.");
   return params;
 }
 
 HeatStructureEnergy3D::HeatStructureEnergy3D(const InputParameters & parameters)
-  : HeatStructureEnergyBase(parameters)
+  : HeatStructureEnergy(parameters)
 {
 }
 
 Real
 HeatStructureEnergy3D::computeQpIntegral()
 {
-  return HeatStructureEnergyBase::computeQpIntegral();
+  return HeatStructureEnergy::computeQpIntegral();
 }

@@ -8,7 +8,6 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "HeatStructure2DRadiationCouplerRZ.h"
-#include "HeatStructureCylindricalBase.h"
 #include "HeatConductionNames.h"
 #include "THMMesh.h"
 
@@ -99,8 +98,6 @@ HeatStructure2DRadiationCouplerRZ::addMooseObjects()
   {
     const unsigned int j = i == 0 ? 1 : 0;
 
-    const auto & hs_cyl = getComponentByName<HeatStructureCylindricalBase>(_hs_names[i]);
-
     const std::string class_name = "HeatStructure2DRadiationCouplerRZBC";
     InputParameters params = _factory.getValidParams(class_name);
     params.set<NonlinearVariableName>("variable") = HeatConductionModel::TEMPERATURE;
@@ -113,9 +110,6 @@ HeatStructure2DRadiationCouplerRZ::addMooseObjects()
     params.set<Real>("area") = _areas[i];
     params.set<Real>("coupled_area") = _areas[j];
     params.set<Real>("stefan_boltzmann_constant") = getParam<Real>("stefan_boltzmann_constant");
-    params.set<Point>("axis_point") = hs_cyl.getPosition();
-    params.set<RealVectorValue>("axis_dir") = hs_cyl.getDirection();
-    params.set<Real>("offset") = hs_cyl.getInnerRadius() - hs_cyl.getAxialOffset();
     getTHMProblem().addBoundaryCondition(class_name, genName(name(), class_name, i), params);
   }
 }

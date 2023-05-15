@@ -1,0 +1,13 @@
+[Tests]
+  design = 'HeatRateConduction.md'
+  issues = '#23461'
+
+  [test]
+    type = CSVDiff
+    input = 'heat_rate_conduction.i'
+    csvdiff = 'heat_rate_conduction.csv'
+    rel_err = 0
+
+    requirement = 'The system shall compute the heat conduction rate across a boundary.'
+  []
+[]
