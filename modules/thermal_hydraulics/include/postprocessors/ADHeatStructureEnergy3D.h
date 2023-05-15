@@ -9,12 +9,12 @@
 
 #pragma once
 
-#include "ADHeatStructureEnergyBase.h"
+#include "ADHeatStructureEnergy.h"
 
 /**
  * Computes the total energy for a 3D heat structure
  */
-class ADHeatStructureEnergy3D : public ADHeatStructureEnergyBase
+class ADHeatStructureEnergy3D : public ADHeatStructureEnergy
 {
 public:
   ADHeatStructureEnergy3D(const InputParameters & parameters);

@@ -56,10 +56,6 @@ protected:
   const Real _P_hs_unit;
   /// Number of units of heat structure
   const unsigned int _n_unit;
-  /// Is the heat structure coordinate system cylindrical?
-  const bool _hs_coord_system_is_cylindrical;
-  /// Coordinate transformation
-  const Real _hs_coord;
   /// Factor by which to scale term on the flow channel side for the heat structure side
   const Real _hs_scale;
   /// Variable numbers for the off-diagonal jacobian computation

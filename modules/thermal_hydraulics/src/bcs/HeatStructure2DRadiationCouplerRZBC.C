@@ -16,7 +16,6 @@ InputParameters
 HeatStructure2DRadiationCouplerRZBC::validParams()
 {
   InputParameters params = HeatStructure2DCouplerBCBase::validParams();
-  params += RZSymmetry::validParams();
 
   params.addRequiredParam<Real>("emissivity", "Emissivity function of this boundary");
   params.addRequiredParam<Real>("coupled_emissivity",
@@ -37,7 +36,6 @@ HeatStructure2DRadiationCouplerRZBC::validParams()
 HeatStructure2DRadiationCouplerRZBC::HeatStructure2DRadiationCouplerRZBC(
     const InputParameters & parameters)
   : HeatStructure2DCouplerBCBase(parameters),
-    RZSymmetry(this, parameters),
 
     _emissivity(getParam<Real>("emissivity")),
     _coupled_emissivity(getParam<Real>("coupled_emissivity")),
@@ -54,7 +52,6 @@ ADReal
 HeatStructure2DRadiationCouplerRZBC::computeQpResidual()
 {
   const auto T_coupled = computeCoupledTemperature();
-  const Real circumference = computeCircumference(_q_point[_qp]);
   return _sigma * (std::pow(_u[_qp], 4) - std::pow(T_coupled, 4)) / _radiation_resistance *
-         circumference * _test[_i][_qp];
+         _test[_i][_qp];
 }

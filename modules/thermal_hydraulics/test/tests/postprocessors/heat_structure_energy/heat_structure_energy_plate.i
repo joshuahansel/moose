@@ -74,7 +74,7 @@
   [E_tot]
     type = ADHeatStructureEnergy
     block = 'heat_structure:region2'
-    plate_depth = 4.0
+    scale = 4.0
     execute_on = 'initial'
   []
 []

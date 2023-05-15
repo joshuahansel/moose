@@ -64,10 +64,8 @@ emissivity2 = 0.5
 
 [Postprocessors]
   [E_tot]
-    type = ADHeatStructureEnergyRZ
+    type = ADHeatStructureEnergy
     block = 'hs1:region1 hs2:region1'
-    axis_dir = '1 1 0'
-    axis_point = '0 0 0'
     execute_on = 'INITIAL TIMESTEP_END'
   []
   [E_tot_change]

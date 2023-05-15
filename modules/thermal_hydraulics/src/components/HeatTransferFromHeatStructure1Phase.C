@@ -10,7 +10,6 @@
 #include "HeatTransferFromHeatStructure1Phase.h"
 #include "FlowChannel1Phase.h"
 #include "HeatStructureBase.h"
-#include "HeatStructureCylindricalBase.h"
 #include "FlowModelSinglePhase.h"
 #include "THMMesh.h"
 #include "MooseUtils.h"
@@ -129,7 +128,6 @@ HeatTransferFromHeatStructure1Phase::addMooseObjects()
   execute_on = {EXEC_INITIAL, EXEC_LINEAR, EXEC_NONLINEAR};
 
   const HeatStructureBase & hs = getComponentByName<HeatStructureBase>(_hs_name);
-  const bool is_cylindrical = dynamic_cast<const HeatStructureCylindricalBase *>(&hs) != nullptr;
   const FlowChannel1Phase & flow_channel =
       getComponentByName<FlowChannel1Phase>(_flow_channel_name);
 
@@ -164,7 +162,6 @@ HeatTransferFromHeatStructure1Phase::addMooseObjects()
     params.set<UserObjectName>("q_uo") = heat_flux_uo_name;
     params.set<Real>("P_hs_unit") = hs.getUnitPerimeter(_hs_side);
     params.set<unsigned int>("n_unit") = hs.getNumberOfUnits();
-    params.set<bool>("hs_coord_system_is_cylindrical") = is_cylindrical;
     getTHMProblem().addBoundaryCondition(class_name, genName(name(), "heat_flux_bc"), params);
   }
 

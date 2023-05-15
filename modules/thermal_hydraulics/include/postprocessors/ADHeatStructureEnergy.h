@@ -9,12 +9,12 @@
 
 #pragma once
 
-#include "ADHeatStructureEnergyBase.h"
+#include "ElementIntegralPostprocessor.h"
 
 /**
- * Computes the total energy for a plate heat structure.
+ * Computes the total energy for a heat structure.
  */
-class ADHeatStructureEnergy : public ADHeatStructureEnergyBase
+class ADHeatStructureEnergy : public ElementIntegralPostprocessor
 {
 public:
   ADHeatStructureEnergy(const InputParameters & parameters);
@@ -22,8 +22,25 @@ public:
 protected:
   virtual Real computeQpIntegral() override;
 
-  /// Depth of the heat structure
-  const Real _plate_depth;
+  /// Number of units that heat structure is multiplied by
+  const Real _n_units;
+
+  /// Reference temperature
+  const Real & _T_ref;
+
+  /// Density of the heat structure
+  const ADMaterialProperty<Real> & _rho;
+
+  /// Isobaric specific heat capacity
+  const ADMaterialProperty<Real> & _cp;
+
+  /// Temperature variable
+  MooseVariable * _T_var;
+  /// Temperature variable value
+  const VariableValue & _T;
+
+  /// Factor by which to scale integral
+  const Real _scale;
 
 public:
   static InputParameters validParams();

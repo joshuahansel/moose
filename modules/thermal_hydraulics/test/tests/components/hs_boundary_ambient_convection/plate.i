@@ -75,7 +75,7 @@ E_change = ${fparse scale * heat_flux_integral * t}
   [E_hs]
     type = ADHeatStructureEnergy
     block = 'hs:region'
-    plate_depth = ${depth}
+    scale = ${depth}
     execute_on = 'INITIAL TIMESTEP_END'
   []
   [E_hs_change]
