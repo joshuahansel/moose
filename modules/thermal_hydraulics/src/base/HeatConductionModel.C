@@ -41,8 +41,7 @@ HeatConductionModel::HeatConductionModel(const InputParameters & params)
     _sim(*params.getCheckedPointerParam<THMProblem *>("_thm_problem")),
     _factory(_app.getFactory()),
     _hs_interface(*params.getCheckedPointerParam<HeatStructureInterface *>("_hs")),
-    _geometrical_component(
-        dynamic_cast<GeometricalComponent &>(_hs_interface)), // TODO: do something safer
+    _mesh_component(dynamic_cast<MeshComponent &>(_hs_interface)), // TODO: do something safer
     _comp_name(name())
 {
 }
@@ -50,7 +49,7 @@ HeatConductionModel::HeatConductionModel(const InputParameters & params)
 void
 HeatConductionModel::addVariables()
 {
-  const auto & subdomain_names = _geometrical_component.getSubdomainNames();
+  const auto & subdomain_names = _mesh_component.getSubdomainNames();
   const Real & scaling_factor = getParam<Real>("scaling_factor_temperature");
 
   _sim.addSimVariable(true, TEMPERATURE, _fe_type, subdomain_names, scaling_factor);
@@ -59,16 +58,15 @@ HeatConductionModel::addVariables()
 void
 HeatConductionModel::addInitialConditions()
 {
-  const auto & subdomain_names = _geometrical_component.getSubdomainNames();
+  const auto & subdomain_names = _mesh_component.getSubdomainNames();
   _sim.addFunctionIC(TEMPERATURE, _hs_interface.getInitialT(), subdomain_names);
 }
 
 void
 HeatConductionModel::addMaterials()
 {
-  const auto & blocks = _geometrical_component.getSubdomainNames();
-  const auto & material_names =
-      _geometrical_component.getParam<std::vector<std::string>>("materials");
+  const auto & blocks = _mesh_component.getSubdomainNames();
+  const auto & material_names = _mesh_component.getParam<std::vector<std::string>>("materials");
 
   for (std::size_t i = 0; i < blocks.size(); i++)
   {
@@ -84,7 +82,7 @@ HeatConductionModel::addMaterials()
 void
 HeatConductionModel::addHeatEquation()
 {
-  const auto & blocks = _geometrical_component.getSubdomainNames();
+  const auto & blocks = _mesh_component.getSubdomainNames();
 
   // add transient term
   {

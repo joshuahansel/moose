@@ -15,10 +15,10 @@
 /**
  * Intermediate class for components that have mesh
  */
-class GeometricalComponent : public Component
+class MeshComponent : public Component
 {
 public:
-  GeometricalComponent(const InputParameters & parameters);
+  MeshComponent(const InputParameters & parameters);
 
   /**
    * Gets the subdomain names for this component

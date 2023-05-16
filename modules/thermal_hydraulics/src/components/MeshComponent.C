@@ -7,24 +7,21 @@
 //* Licensed under LGPL 2.1, please see LICENSE for details
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
-#include "GeometricalComponent.h"
+#include "MeshComponent.h"
 #include "ConstantFunction.h"
 #include "THMMesh.h"
 
 InputParameters
-GeometricalComponent::validParams()
+MeshComponent::validParams()
 {
   InputParameters params = Component::validParams();
   return params;
 }
 
-GeometricalComponent::GeometricalComponent(const InputParameters & parameters)
-  : Component(parameters)
-{
-}
+MeshComponent::MeshComponent(const InputParameters & parameters) : Component(parameters) {}
 
 Node *
-GeometricalComponent::addNode(const Point & pt)
+MeshComponent::addNode(const Point & pt)
 {
   auto node = mesh().addNode(pt);
   _node_ids.push_back(node->id());
@@ -32,8 +29,7 @@ GeometricalComponent::addNode(const Point & pt)
 }
 
 Elem *
-GeometricalComponent::addElement(libMesh::ElemType elem_type,
-                                 const std::vector<dof_id_type> & node_ids)
+MeshComponent::addElement(libMesh::ElemType elem_type, const std::vector<dof_id_type> & node_ids)
 {
   auto elem = mesh().addElement(elem_type, node_ids);
   _elem_ids.push_back(elem->id());
@@ -41,7 +37,7 @@ GeometricalComponent::addElement(libMesh::ElemType elem_type,
 }
 
 Elem *
-GeometricalComponent::addElementEdge2(dof_id_type node0, dof_id_type node1)
+MeshComponent::addElementEdge2(dof_id_type node0, dof_id_type node1)
 {
   auto elem = mesh().addElementEdge2(node0, node1);
   _elem_ids.push_back(elem->id());
@@ -49,7 +45,7 @@ GeometricalComponent::addElementEdge2(dof_id_type node0, dof_id_type node1)
 }
 
 Elem *
-GeometricalComponent::addElementEdge3(dof_id_type node0, dof_id_type node1, dof_id_type node2)
+MeshComponent::addElementEdge3(dof_id_type node0, dof_id_type node1, dof_id_type node2)
 {
   auto elem = mesh().addElementEdge3(node0, node1, node2);
   _elem_ids.push_back(elem->id());
@@ -57,10 +53,10 @@ GeometricalComponent::addElementEdge3(dof_id_type node0, dof_id_type node1, dof_
 }
 
 Elem *
-GeometricalComponent::addElementQuad4(dof_id_type node0,
-                                      dof_id_type node1,
-                                      dof_id_type node2,
-                                      dof_id_type node3)
+MeshComponent::addElementQuad4(dof_id_type node0,
+                               dof_id_type node1,
+                               dof_id_type node2,
+                               dof_id_type node3)
 {
   auto elem = mesh().addElementQuad4(node0, node1, node2, node3);
   _elem_ids.push_back(elem->id());
@@ -68,15 +64,15 @@ GeometricalComponent::addElementQuad4(dof_id_type node0,
 }
 
 Elem *
-GeometricalComponent::addElementQuad9(dof_id_type node0,
-                                      dof_id_type node1,
-                                      dof_id_type node2,
-                                      dof_id_type node3,
-                                      dof_id_type node4,
-                                      dof_id_type node5,
-                                      dof_id_type node6,
-                                      dof_id_type node7,
-                                      dof_id_type node8)
+MeshComponent::addElementQuad9(dof_id_type node0,
+                               dof_id_type node1,
+                               dof_id_type node2,
+                               dof_id_type node3,
+                               dof_id_type node4,
+                               dof_id_type node5,
+                               dof_id_type node6,
+                               dof_id_type node7,
+                               dof_id_type node8)
 {
   auto elem = mesh().addElementQuad9(node0, node1, node2, node3, node4, node5, node6, node7, node8);
   _elem_ids.push_back(elem->id());
@@ -84,7 +80,7 @@ GeometricalComponent::addElementQuad9(dof_id_type node0,
 }
 
 const std::vector<SubdomainName> &
-GeometricalComponent::getSubdomainNames() const
+MeshComponent::getSubdomainNames() const
 {
   checkSetupStatus(MESH_PREPARED);
 
@@ -92,7 +88,7 @@ GeometricalComponent::getSubdomainNames() const
 }
 
 const std::vector<Moose::CoordinateSystemType> &
-GeometricalComponent::getCoordSysTypes() const
+MeshComponent::getCoordSysTypes() const
 {
   checkSetupStatus(MESH_PREPARED);
 
@@ -100,7 +96,7 @@ GeometricalComponent::getCoordSysTypes() const
 }
 
 const std::vector<SubdomainName> &
-GeometricalComponent::getRZSubdomainNames() const
+MeshComponent::getRZSubdomainNames() const
 {
   checkSetupStatus(MESH_PREPARED);
 
@@ -108,7 +104,7 @@ GeometricalComponent::getRZSubdomainNames() const
 }
 
 const std::vector<std::pair<Point, RealVectorValue>> &
-GeometricalComponent::getRZAxes() const
+MeshComponent::getRZAxes() const
 {
   checkSetupStatus(MESH_PREPARED);
 
@@ -116,7 +112,7 @@ GeometricalComponent::getRZAxes() const
 }
 
 const FunctionName &
-GeometricalComponent::getVariableFn(const FunctionName & fn_param_name)
+MeshComponent::getVariableFn(const FunctionName & fn_param_name)
 {
   const FunctionName & fn_name = getParam<FunctionName>(fn_param_name);
   const Function & fn = getTHMProblem().getFunction(fn_name);
@@ -130,26 +126,25 @@ GeometricalComponent::getVariableFn(const FunctionName & fn_param_name)
 }
 
 void
-GeometricalComponent::setSubdomainInfoXYZ(SubdomainID subdomain_id,
-                                          const std::string & subdomain_name)
+MeshComponent::setSubdomainInfoXYZ(SubdomainID subdomain_id, const std::string & subdomain_name)
 {
   _subdomain_ids.push_back(subdomain_id);
   _subdomain_names.push_back(subdomain_name);
   _coord_sys.push_back(Moose::COORD_XYZ);
   if (_parent)
   {
-    GeometricalComponent * gc = dynamic_cast<GeometricalComponent *>(_parent);
-    gc->_subdomain_ids.push_back(subdomain_id);
-    gc->_subdomain_names.push_back(subdomain_name);
-    gc->_coord_sys.push_back(Moose::COORD_XYZ);
+    MeshComponent * mesh_comp = dynamic_cast<MeshComponent *>(_parent);
+    mesh_comp->_subdomain_ids.push_back(subdomain_id);
+    mesh_comp->_subdomain_names.push_back(subdomain_name);
+    mesh_comp->_coord_sys.push_back(Moose::COORD_XYZ);
   }
   mesh().setSubdomainName(subdomain_id, subdomain_name);
 }
 
 void
-GeometricalComponent::setSubdomainInfoRZ(SubdomainID subdomain_id,
-                                         const SubdomainName & subdomain_name,
-                                         const std::pair<Point, RealVectorValue> & axis)
+MeshComponent::setSubdomainInfoRZ(SubdomainID subdomain_id,
+                                  const SubdomainName & subdomain_name,
+                                  const std::pair<Point, RealVectorValue> & axis)
 {
   _subdomain_ids.push_back(subdomain_id);
   _subdomain_names.push_back(subdomain_name);
@@ -158,18 +153,18 @@ GeometricalComponent::setSubdomainInfoRZ(SubdomainID subdomain_id,
   _rz_axes.push_back(axis);
   if (_parent)
   {
-    GeometricalComponent * gc = dynamic_cast<GeometricalComponent *>(_parent);
-    gc->_subdomain_ids.push_back(subdomain_id);
-    gc->_subdomain_names.push_back(subdomain_name);
-    gc->_coord_sys.push_back(Moose::COORD_RZ);
-    gc->_rz_subdomain_names.push_back(subdomain_name);
-    gc->_rz_axes.push_back(axis);
+    MeshComponent * mesh_comp = dynamic_cast<MeshComponent *>(_parent);
+    mesh_comp->_subdomain_ids.push_back(subdomain_id);
+    mesh_comp->_subdomain_names.push_back(subdomain_name);
+    mesh_comp->_coord_sys.push_back(Moose::COORD_RZ);
+    mesh_comp->_rz_subdomain_names.push_back(subdomain_name);
+    mesh_comp->_rz_axes.push_back(axis);
   }
   mesh().setSubdomainName(subdomain_id, subdomain_name);
 }
 
 const std::vector<dof_id_type> &
-GeometricalComponent::getNodeIDs() const
+MeshComponent::getNodeIDs() const
 {
   checkSetupStatus(MESH_PREPARED);
 
@@ -177,7 +172,7 @@ GeometricalComponent::getNodeIDs() const
 }
 
 const std::vector<dof_id_type> &
-GeometricalComponent::getElementIDs() const
+MeshComponent::getElementIDs() const
 {
   checkSetupStatus(MESH_PREPARED);
 

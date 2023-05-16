@@ -705,11 +705,11 @@ Simulation::setupCoordinateSystem()
 
   for (auto && comp : _components)
   {
-    GeometricalComponent * gc = dynamic_cast<GeometricalComponent *>(comp.get());
-    if (gc != NULL && gc->parent() == nullptr)
+    MeshComponent * mesh_comp = dynamic_cast<MeshComponent *>(comp.get());
+    if (mesh_comp != NULL && mesh_comp->parent() == nullptr)
     {
-      const std::vector<SubdomainName> & subdomains = gc->getSubdomainNames();
-      const std::vector<Moose::CoordinateSystemType> & coord_sys = gc->getCoordSysTypes();
+      const std::vector<SubdomainName> & subdomains = mesh_comp->getSubdomainNames();
+      const std::vector<Moose::CoordinateSystemType> & coord_sys = mesh_comp->getCoordSysTypes();
 
       for (unsigned int i = 0; i < subdomains.size(); i++)
       {
@@ -728,8 +728,8 @@ Simulation::setupCoordinateSystem()
         }
       }
 
-      const auto & comp_rz_subdomains = gc->getRZSubdomainNames();
-      const auto & comp_rz_axes = gc->getRZAxes();
+      const auto & comp_rz_subdomains = mesh_comp->getRZSubdomainNames();
+      const auto & comp_rz_axes = mesh_comp->getRZAxes();
 
       rz_subdomains.insert(
           rz_subdomains.begin(), comp_rz_subdomains.begin(), comp_rz_subdomains.end());

@@ -13,7 +13,7 @@
 InputParameters
 GeneratedMeshComponent::validParams()
 {
-  InputParameters params = GeometricalComponent::validParams();
+  InputParameters params = MeshComponent::validParams();
   params += DiscreteLineSegmentInterface::validParams();
 
   params.addParam<std::vector<std::string>>("axial_region_names",
@@ -23,7 +23,7 @@ GeneratedMeshComponent::validParams()
 }
 
 GeneratedMeshComponent::GeneratedMeshComponent(const InputParameters & parameters)
-  : GeometricalComponent(parameters),
+  : MeshComponent(parameters),
     DiscreteLineSegmentInterface(this),
 
     _axial_region_names(getParam<std::vector<std::string>>("axial_region_names"))
@@ -53,7 +53,7 @@ GeneratedMeshComponent::setupMesh()
 void
 GeneratedMeshComponent::check() const
 {
-  GeometricalComponent::check();
+  MeshComponent::check();
 
   // Do not use TRAP q-rule with 2nd order FEs
   if (usingSecondOrderMesh())

@@ -12,7 +12,7 @@
 #include "InputParameters.h"
 
 class HeatConductionModel;
-class GeometricalComponent;
+class MeshComponent;
 
 /**
  * Interface class for heat structure components
@@ -22,7 +22,7 @@ class HeatStructureInterface
 public:
   static InputParameters validParams();
 
-  HeatStructureInterface(GeometricalComponent * geometrical_component);
+  HeatStructureInterface(MeshComponent * mesh_component);
 
   /**
    * Gets the initial temperature function name
@@ -32,10 +32,7 @@ public:
   /**
    * Gets the geometrical component inheriting from this interface
    */
-  const GeometricalComponent & getGeometricalComponent() const
-  {
-    return _geometrical_component_hsi;
-  }
+  const MeshComponent & getMeshComponent() const { return _mesh_component_hsi; }
 
 protected:
   /**
@@ -73,5 +70,5 @@ protected:
 
 private:
   /// The geometrical component inheriting from this interface
-  GeometricalComponent & _geometrical_component_hsi;
+  MeshComponent & _mesh_component_hsi;
 };

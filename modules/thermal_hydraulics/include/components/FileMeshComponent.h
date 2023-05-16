@@ -9,12 +9,12 @@
 
 #pragma once
 
-#include "GeometricalComponent.h"
+#include "MeshComponent.h"
 
 /**
  * Loads a mesh from an ExodusII file without adding physics.
  */
-class FileMeshComponent : public GeometricalComponent
+class FileMeshComponent : public MeshComponent
 {
 public:
   static InputParameters validParams();

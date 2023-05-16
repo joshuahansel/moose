@@ -7,7 +7,7 @@ that has axisymmetry; thus it is either a cylinder or cylindrical shell.
 
 !template load file=heat_structure_usage.md.template name=HeatStructureCylindrical
 
-!template load file=geometrical_component_usage.md.template name=HeatStructureCylindrical
+!template load file=mesh_component_usage.md.template name=HeatStructureCylindrical
 
 !template load file=heat_structure_2d_usage.md.template name=HeatStructureCylindrical
 
@@ -21,7 +21,7 @@ assumed to be a solid cylinder.
 
 ### Axial Discretization id=mesh_axial
 
-!template load file=geometrical_component_mesh.md.template name=HeatStructureCylindrical
+!template load file=mesh_component_mesh.md.template name=HeatStructureCylindrical
 
 ### Radial Discretization id=mesh_radial
 

@@ -18,7 +18,7 @@ registerMooseObject("ThermalHydraulicsApp", FileMeshComponent);
 InputParameters
 FileMeshComponent::validParams()
 {
-  InputParameters params = GeometricalComponent::validParams();
+  InputParameters params = MeshComponent::validParams();
 
   params.addRequiredParam<FileName>("file", "The ExodusII mesh file name");
   params.addRequiredParam<Point>("position", "Translation vector for the file mesh [m]");
@@ -29,7 +29,7 @@ FileMeshComponent::validParams()
 }
 
 FileMeshComponent::FileMeshComponent(const InputParameters & parameters)
-  : GeometricalComponent(parameters),
+  : MeshComponent(parameters),
     _file_name(getParam<FileName>("file")),
     _file_is_readable(MooseUtils::pathExists(_file_name) &&
                       MooseUtils::checkFileReadable(_file_name, false, false)),

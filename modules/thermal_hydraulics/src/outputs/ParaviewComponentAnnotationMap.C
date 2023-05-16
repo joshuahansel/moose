@@ -13,7 +13,7 @@
 #include "LockFile.h"
 #include "JsonIO.h"
 #include "THMProblem.h"
-#include "GeometricalComponent.h"
+#include "MeshComponent.h"
 #include <fstream>
 
 registerMooseObject("ThermalHydraulicsApp", ParaviewComponentAnnotationMap);
@@ -57,10 +57,10 @@ ParaviewComponentAnnotationMap::output(const ExecFlagType & /*type*/)
     std::vector<std::string> anns;
     for (auto & c : comps)
     {
-      auto gc = dynamic_cast<GeometricalComponent *>(c.get());
-      if (gc != nullptr)
+      auto mesh_comp = dynamic_cast<MeshComponent *>(c.get());
+      if (mesh_comp != nullptr)
       {
-        const std::vector<SubdomainName> & subdomains = gc->getSubdomainNames();
+        const std::vector<SubdomainName> & subdomains = mesh_comp->getSubdomainNames();
         for (auto & sn : subdomains)
         {
           SubdomainID sid = _mesh_ptr->getSubdomainID(sn);

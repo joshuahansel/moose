@@ -9,7 +9,7 @@
 
 #include "HeatStructureInterface.h"
 #include "HeatConductionModel.h"
-#include "GeometricalComponent.h"
+#include "MeshComponent.h"
 
 InputParameters
 HeatStructureInterface::validParams()
@@ -25,23 +25,22 @@ HeatStructureInterface::validParams()
   return params;
 }
 
-HeatStructureInterface::HeatStructureInterface(GeometricalComponent * geometrical_component)
-  : _geometrical_component_hsi(*geometrical_component)
+HeatStructureInterface::HeatStructureInterface(MeshComponent * mesh_component)
+  : _mesh_component_hsi(*mesh_component)
 {
 }
 
 std::shared_ptr<HeatConductionModel>
 HeatStructureInterface::buildModel()
 {
-  auto & factory = _geometrical_component_hsi.getMooseApp().getFactory();
+  auto & factory = _mesh_component_hsi.getMooseApp().getFactory();
 
   const std::string class_name = "HeatConductionModel";
   InputParameters params = factory.getValidParams(class_name);
-  params.set<THMProblem *>("_thm_problem") = &_geometrical_component_hsi.getTHMProblem();
+  params.set<THMProblem *>("_thm_problem") = &_mesh_component_hsi.getTHMProblem();
   params.set<HeatStructureInterface *>("_hs") = this;
-  params.applyParameters(_geometrical_component_hsi.parameters());
-  return factory.create<HeatConductionModel>(
-      class_name, _geometrical_component_hsi.name(), params, 0);
+  params.applyParameters(_mesh_component_hsi.parameters());
+  return factory.create<HeatConductionModel>(class_name, _mesh_component_hsi.name(), params, 0);
 }
 
 void
@@ -53,18 +52,18 @@ HeatStructureInterface::init()
 void
 HeatStructureInterface::check() const
 {
-  auto & moose_app = _geometrical_component_hsi.getMooseApp();
-  bool ics_set = _geometrical_component_hsi.getTHMProblem().hasInitialConditionsFromFile() ||
-                 _geometrical_component_hsi.isParamValid("initial_T");
+  auto & moose_app = _mesh_component_hsi.getMooseApp();
+  bool ics_set = _mesh_component_hsi.getTHMProblem().hasInitialConditionsFromFile() ||
+                 _mesh_component_hsi.isParamValid("initial_T");
   if (!ics_set && !moose_app.isRestarting())
-    _geometrical_component_hsi.logError("Missing initial condition for temperature.");
+    _mesh_component_hsi.logError("Missing initial condition for temperature.");
 }
 
 void
 HeatStructureInterface::addVariables()
 {
   _hc_model->addVariables();
-  if (_geometrical_component_hsi.isParamValid("initial_T"))
+  if (_mesh_component_hsi.isParamValid("initial_T"))
     _hc_model->addInitialConditions();
 }
 
@@ -77,10 +76,9 @@ HeatStructureInterface::addMooseObjects()
 FunctionName
 HeatStructureInterface::getInitialT() const
 {
-  if (_geometrical_component_hsi.isParamValid("initial_T"))
-    return _geometrical_component_hsi.getParam<FunctionName>("initial_T");
+  if (_mesh_component_hsi.isParamValid("initial_T"))
+    return _mesh_component_hsi.getParam<FunctionName>("initial_T");
   else
-    _geometrical_component_hsi.mooseError(
-        _geometrical_component_hsi.name(),
-        ": The parameter 'initial_T' was requested but not supplied");
+    _mesh_component_hsi.mooseError(_mesh_component_hsi.name(),
+                                   ": The parameter 'initial_T' was requested but not supplied");
 }

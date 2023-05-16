@@ -9,13 +9,13 @@
 
 #pragma once
 
-#include "GeometricalComponent.h"
+#include "MeshComponent.h"
 #include "DiscreteLineSegmentInterface.h"
 
 /**
  * Base class for components that generate their own mesh
  */
-class GeneratedMeshComponent : public GeometricalComponent, public DiscreteLineSegmentInterface
+class GeneratedMeshComponent : public MeshComponent, public DiscreteLineSegmentInterface
 {
 public:
   static InputParameters validParams();

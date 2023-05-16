@@ -50,8 +50,7 @@ void
 HSBoundaryExternalAppConvection::addVariables()
 {
   const HeatStructureInterface & hs = getComponent<HeatStructureInterface>("hs");
-  const std::vector<SubdomainName> & subdomain_names =
-      hs.getGeometricalComponent().getSubdomainNames();
+  const std::vector<SubdomainName> & subdomain_names = hs.getMeshComponent().getSubdomainNames();
 
   getTHMProblem().addSimVariable(
       false, _T_ext_var_name, HeatConductionModel::feType(), subdomain_names);

@@ -7,7 +7,7 @@ that has a plate/brick/box shape.
 
 !template load file=heat_structure_usage.md.template name=HeatStructurePlate
 
-!template load file=geometrical_component_usage.md.template name=HeatStructurePlate
+!template load file=mesh_component_usage.md.template name=HeatStructurePlate
 
 !template load file=heat_structure_2d_usage.md.template name=HeatStructurePlate
 
@@ -20,7 +20,7 @@ specified via [!param](/Components/HeatStructurePlate/depth).
 
 ### Axial Discretization id=mesh_axial
 
-!template load file=geometrical_component_mesh.md.template name=HeatStructurePlate
+!template load file=mesh_component_mesh.md.template name=HeatStructurePlate
 
 ### Radial Discretization id=mesh_radial
 

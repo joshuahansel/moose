@@ -4,7 +4,7 @@ This component is a single-phase [flow channel](component_groups/flow_channel.md
 
 ## Usage
 
-!template load file=geometrical_component_usage.md.template name=FlowChannel1Phase
+!template load file=mesh_component_usage.md.template name=FlowChannel1Phase
 
 !alert note
 [!param](/Components/FlowChannel1Phase/orientation) can only be used to specify a single
@@ -30,7 +30,7 @@ the following parameters:
 
 ### Axial Discretization id=mesh_axial
 
-!template load file=geometrical_component_mesh.md.template name=FlowChannel1Phase
+!template load file=mesh_component_mesh.md.template name=FlowChannel1Phase
 
 ### Blocks and Boundaries id=mesh_blocks
 
