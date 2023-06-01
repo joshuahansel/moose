@@ -113,7 +113,7 @@ FileMeshComponent::buildMesh()
     // Generate the subdomain name and ID for THMMesh, and set them
     const std::string component_subdomain_name = genName(_name, subdomain_name);
     SubdomainID sid = thm_mesh.getNextSubdomainId();
-    setSubdomainInfo(sid, component_subdomain_name, Moose::COORD_XYZ);
+    setSubdomainInfoXYZ(sid, component_subdomain_name);
 
     const std::string type_str(exio_helper.get_elem_type());
     const auto & conv = exio_helper.get_conversion(type_str);

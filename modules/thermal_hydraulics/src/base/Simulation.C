@@ -700,6 +700,9 @@ Simulation::setupCoordinateSystem()
   MultiMooseEnum coord_types("XYZ RZ RSPHERICAL");
   std::vector<SubdomainName> blocks;
 
+  std::vector<SubdomainName> rz_subdomains;
+  std::vector<std::pair<Point, RealVectorValue>> rz_axes;
+
   for (auto && comp : _components)
   {
     GeometricalComponent * gc = dynamic_cast<GeometricalComponent *>(comp.get());
@@ -711,16 +714,30 @@ Simulation::setupCoordinateSystem()
       for (unsigned int i = 0; i < subdomains.size(); i++)
       {
         blocks.push_back(subdomains[i]);
-        // coord_types.push_back("XYZ");
-        coord_types.push_back(coord_sys[i] == Moose::COORD_RZ ? "RZ" : "XYZ");
+
+        switch (coord_sys[i])
+        {
+          case Moose::COORD_XYZ:
+            coord_types.push_back("XYZ");
+            break;
+          case Moose::COORD_RZ:
+            coord_types.push_back("RZ");
+            break;
+          default:
+            mooseError("Coordinate system not supported.");
+        }
       }
+
+      const auto & comp_rz_subdomains = gc->getRZSubdomainNames();
+      const auto & comp_rz_axes = gc->getRZAxes();
+
+      rz_subdomains.insert(
+          rz_subdomains.begin(), comp_rz_subdomains.begin(), comp_rz_subdomains.end());
+      rz_axes.insert(rz_axes.begin(), comp_rz_axes.begin(), comp_rz_axes.end());
     }
   }
-  _fe_problem.setCoordSystem(blocks, coord_types);
-
-  // RZ geometries are always aligned with x-axis
-  MooseEnum rz_coord_axis("X=0 Y=1", "X");
-  _fe_problem.setAxisymmetricCoordAxis(rz_coord_axis);
+  _thm_mesh.setCoordSystem(blocks, coord_types);
+  _thm_mesh.setGeneralAxisymmetricCoordAxes(rz_subdomains, rz_axes);
 }
 
 void

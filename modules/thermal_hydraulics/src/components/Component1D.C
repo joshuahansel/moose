@@ -110,7 +110,7 @@ Component1D::buildMesh()
     {
       const std::string & region_name = _axial_region_names[i];
       SubdomainID subdomain_id = mesh().getNextSubdomainId();
-      setSubdomainInfo(subdomain_id, genName(name(), region_name));
+      setSubdomainInfoXYZ(subdomain_id, genName(name(), region_name));
 
       for (unsigned int j = 0; j < _n_elems[i]; j++, k++)
       {
@@ -122,7 +122,7 @@ Component1D::buildMesh()
   else
   {
     SubdomainID subdomain_id = mesh().getNextSubdomainId();
-    setSubdomainInfo(subdomain_id, name());
+    setSubdomainInfoXYZ(subdomain_id, name());
 
     for (auto && id : _elem_ids)
       mesh().elemPtr(id)->subdomain_id() = subdomain_id;
