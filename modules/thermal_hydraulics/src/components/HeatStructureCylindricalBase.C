@@ -13,8 +13,6 @@ InputParameters
 HeatStructureCylindricalBase::validParams()
 {
   InputParameters params = HeatStructureBase::validParams();
-  params.addParam<bool>(
-      "offset_mesh_by_inner_radius", false, "Offset the mesh by the inner radius?");
   return params;
 }
 
