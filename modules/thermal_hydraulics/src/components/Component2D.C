@@ -46,8 +46,8 @@ Component2D::Component2D(const InputParameters & params)
 void
 Component2D::setupMesh()
 {
-  _names = getRegionNames();
-  _n_regions = _names.size();
+  _region_names = getRegionNames();
+  _n_regions = _region_names.size();
 
   _width = getRegionWidths();
   _total_width = std::accumulate(_width.begin(), _width.end(), 0.0);
@@ -85,7 +85,7 @@ Component2D::check() const
 bool
 Component2D::hasBlock(const std::string & name) const
 {
-  return std::find(_names.begin(), _names.end(), name) != _names.end();
+  return std::find(_region_names.begin(), _region_names.end(), name) != _region_names.end();
 }
 
 void
@@ -154,7 +154,7 @@ Component2D::build2DMesh()
           }
 
           // exterior axial boundaries (per radial section)
-          if (_names.size() > 1)
+          if (_region_names.size() > 1)
           {
             if (i == 0)
             {
@@ -212,7 +212,7 @@ Component2D::build2DMesh()
           }
 
           // interior radial boundaries (all axial sections)
-          if (_n_regions > 1 && _names.size() == _n_regions && j_section != 0)
+          if (_n_regions > 1 && _region_names.size() == _n_regions && j_section != 0)
           {
             unsigned int j_section_begin = 0;
             for (unsigned int jj_section = 0; jj_section < j_section; ++jj_section)
@@ -297,7 +297,7 @@ Component2D::build2DMesh2ndOrder()
             _boundary_info[_boundary_name_end].push_back(
                 std::tuple<dof_id_type, unsigned short int>(elem->id(), 2));
           }
-          if (_names.size() > 1)
+          if (_region_names.size() > 1)
           {
             if (i == 0)
             {
@@ -343,7 +343,7 @@ Component2D::build2DMesh2ndOrder()
           }
 
           // interior radial boundaries
-          if (_n_regions > 1 && _names.size() == _n_regions && j_section != 0)
+          if (_n_regions > 1 && _region_names.size() == _n_regions && j_section != 0)
           {
             unsigned int j_section_begin = 0;
             for (unsigned int jj_section = 0; jj_section < j_section; ++jj_section)
@@ -376,7 +376,7 @@ Component2D::buildMesh()
     // The coordinate system for MOOSE is always XYZ, even for axisymmetric
     // components, since we do the RZ integration ourselves until we can set
     // arbitrary number of axis symmetries in MOOSE.
-    setSubdomainInfo(mesh().getNextSubdomainId(), genName(_name, _names[i]), Moose::COORD_XYZ);
+    setSubdomainInfo(mesh().getNextSubdomainId(), genName(_name, _region_names[i]), Moose::COORD_XYZ);
   }
 
   // Create boundary IDs and associated boundary names
@@ -411,25 +411,26 @@ Component2D::buildMesh()
   _boundary_name_end = genName(name(), "end");
   _boundary_name_to_area[_boundary_name_start] = computeAxialBoundaryArea(0.0, getTotalWidth());
   _boundary_name_to_area[_boundary_name_end] = computeAxialBoundaryArea(0.0, getTotalWidth());
-  if (_names.size() > 1)
+  if (_region_names.size() > 1)
   {
     Real y1 = 0.0;
-    for (unsigned int i = 0; i < _names.size(); i++)
+    for (unsigned int i = 0; i < _region_names.size(); i++)
     {
       const Real y2 = y1 + _width[i];
 
       _radial_start_bc_id.push_back(mesh().getNextBoundaryId());
       _radial_end_bc_id.push_back(mesh().getNextBoundaryId());
-      const BoundaryName boundary_name_radial_start = genName(name(), _names[i], "start");
-      const BoundaryName boundary_name_radial_end = genName(name(), _names[i], "end");
+      const BoundaryName boundary_name_radial_start = genName(name(), _region_names[i], "start");
+      const BoundaryName boundary_name_radial_end = genName(name(), _region_names[i], "end");
       _boundary_names_radial_start.push_back(boundary_name_radial_start);
       _boundary_names_radial_end.push_back(boundary_name_radial_end);
       _boundary_name_to_area[boundary_name_radial_start] = computeAxialBoundaryArea(y1, y2);
       _boundary_name_to_area[boundary_name_radial_end] = computeAxialBoundaryArea(y1, y2);
-      if (i != _names.size() - 1)
+      if (i != _region_names.size() - 1)
       {
         _inner_radial_bc_id.push_back(mesh().getNextBoundaryId());
-        const BoundaryName boundary_name_inner_radial = genName(name(), _names[i], _names[i + 1]);
+        const BoundaryName boundary_name_inner_radial =
+            genName(name(), _region_names[i], _region_names[i + 1]);
         _boundary_names_inner_radial.push_back(boundary_name_inner_radial);
         _boundary_name_to_area[boundary_name_inner_radial] = computeRadialBoundaryArea(_length, y2);
       }
@@ -442,13 +443,13 @@ Component2D::buildMesh()
     for (unsigned int i = 0; i < _n_sections - 1; i++)
     {
       Real y1 = 0.0;
-      for (unsigned int j = 0; j < _names.size(); j++)
+      for (unsigned int j = 0; j < _region_names.size(); j++)
       {
         const Real y2 = y1 + _width[j];
 
         _interior_axial_per_radial_section_bc_id.push_back(mesh().getNextBoundaryId());
-        const BoundaryName boundary_name_interior_axial_per_radial_section =
-            genName(name(), _names[j], _axial_region_names[i] + ":" + _axial_region_names[i + 1]);
+        const BoundaryName boundary_name_interior_axial_per_radial_section = genName(
+            name(), _region_names[j], _axial_region_names[i] + ":" + _axial_region_names[i + 1]);
         _boundary_names_interior_axial_per_radial_section.push_back(
             boundary_name_interior_axial_per_radial_section);
         _boundary_name_to_area[boundary_name_interior_axial_per_radial_section] =
@@ -475,12 +476,12 @@ Component2D::buildMesh()
     }
   binfo.sideset_name(_start_bc_id) = _boundary_name_start;
   binfo.sideset_name(_end_bc_id) = _boundary_name_end;
-  if (_names.size() > 1)
-    for (unsigned int i = 0; i < _names.size(); i++)
+  if (_region_names.size() > 1)
+    for (unsigned int i = 0; i < _region_names.size(); i++)
     {
       binfo.sideset_name(_radial_start_bc_id[i]) = _boundary_names_radial_start[i];
       binfo.sideset_name(_radial_end_bc_id[i]) = _boundary_names_radial_end[i];
-      if (i != _names.size() - 1)
+      if (i != _region_names.size() - 1)
         binfo.sideset_name(_inner_radial_bc_id[i]) = _boundary_names_inner_radial[i];
     }
   for (unsigned int k = 0; k < _interior_axial_per_radial_section_bc_id.size(); k++)

@@ -53,11 +53,6 @@ public:
   bool hasBlock(const std::string & name) const;
 
   /**
-   * Gets the names of the transverse regions
-   */
-  const std::vector<std::string> & getNames() const { return _names; }
-
-  /**
    * Gets the name of each radial region
    */
   virtual std::vector<std::string> getRegionNames() const = 0;
@@ -204,7 +199,7 @@ protected:
   /// Number of transverse regions
   unsigned int _n_regions;
   /// Names of each transverse region
-  std::vector<std::string> _names;
+  std::vector<std::string> _region_names;
   /// Width of each transverse region
   std::vector<Real> _width;
   /// Total width of all transverse regions
@@ -264,10 +259,6 @@ protected:
   /// Map of boundary name to list of tuples of element and side IDs for that boundary
   std::map<BoundaryName, std::vector<std::tuple<dof_id_type, unsigned short int>>> _boundary_info;
 
-  /// Distance by which to offset the mesh from the component axis
-  mutable Real _axial_offset;
-
-private:
 public:
   static InputParameters validParams();
 
