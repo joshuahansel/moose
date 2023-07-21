@@ -19,6 +19,7 @@ CoupledVarNeumannBC::validParams()
   params.addCoupledVar("scale_factor", 1., "Scale factor to multiply the heat flux with");
   params.addParam<Real>(
       "coef", 1.0, "Coefficent ($\\sigma$) multiplier for the coupled force term.");
+  params.addParam<FunctionName>("scale", 1.0, "Function by which to scale the boundary condition");
   params.addClassDescription("Imposes the integrated boundary condition "
                              "$\\frac{\\partial u}{\\partial n}=v$, "
                              "where $v$ is a variable.");
@@ -30,21 +31,22 @@ CoupledVarNeumannBC::CoupledVarNeumannBC(const InputParameters & parameters)
     _coupled_var(coupledValue("v")),
     _coupled_num(coupled("v")),
     _coef(getParam<Real>("coef")),
-    _scale_factor(coupledValue("scale_factor"))
+    _scale_factor(coupledValue("scale_factor")),
+    _scale_fn(getFunction("scale"))
 {
 }
 
 Real
 CoupledVarNeumannBC::computeQpResidual()
 {
-  return -_scale_factor[_qp] * _coef * _test[_i][_qp] * _coupled_var[_qp];
+  return -_scale_fn.value(_t, _q_point[_qp]) * _scale_factor[_qp] * _coef * _test[_i][_qp] * _coupled_var[_qp];
 }
 
 Real
 CoupledVarNeumannBC::computeQpOffDiagJacobian(const unsigned int jvar)
 {
   if (jvar == _coupled_num)
-    return -_scale_factor[_qp] * _coef * _test[_i][_qp] * _phi[_j][_qp];
+    return -_scale_fn.value(_t, _q_point[_qp]) * _scale_factor[_qp] * _coef * _test[_i][_qp] * _phi[_j][_qp];
   else
     return 0;
 }

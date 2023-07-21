@@ -37,4 +37,7 @@ protected:
 
   /// Scale factor
   const VariableValue & _scale_factor;
+
+  /// Function by which to scale the boundary condition
+  const Function & _scale_fn;
 };
