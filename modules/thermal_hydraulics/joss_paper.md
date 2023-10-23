@@ -34,22 +34,22 @@ studying thermal hydraulic systems. Its core capability lies in assembling a net
 coupled components, for instance, pipes, junctions, valves, etc.
 
 THM provides several new systems to MOOSE to enable and facilitate thermal
-hydraulic simulations, most notably the `Components` system, which allows provides
+hydraulic simulations, most notably the `Components` system, which provides
 a higher-level syntax to MOOSE's lower-level objects. This system is extensible
 by the user, but the current library primarily includes components based on a 1D, single-phase,
 variable-area, compressible flow model, as well as heat conduction.
 
 # Statement of need
 
-Numerous engineering applications employ fluid flow to transfer heat.
+Numerous engineering applications employ fluids as mediums for transferring heat.
 Power generation applications notably transfer heat from a source, such as a boiler,
 to an energy conversion system, such as a turbine. Thermal
 hydraulic systems are well-suited for the task, due to their ability to move
 energy efficiently over the scale of a plant. These systems vary widely in their size
 and complexity and may feature a large number of components coupled together.
 
-A notable example of the application of thermal hydraulic systems analysis is for
-nuclear reactor systems. These systems typically involve a large network of
+A notable example of the application of thermal hydraulic systems analysis is a
+nuclear reactor system. These systems typically involve a large network of
 components to perform the conversion of the nuclear power to electrical power and
 additional heat transfer components to remove the heat during accidental transients.
 For example, there may be a
@@ -72,15 +72,15 @@ used in nuclear microreactors.
 ## `Components` system
 
 The `Components` system allows users to add "components", which are very flexible
-in their use, but in general represent "pieces" of a simulation, which may couple
+in their use, but in general represent "pieces" of a simulation, which may be coupled
 together. Common uses for components include adding meshes (1D, 2D, or 3D), variables,
 equations, and output. Components provide a higher level syntax that
 hides lower level MOOSE objects such as `Kernel`s, `BoundaryCondition`s, etc. While
 `Action`s can also be used to create a higher level syntax, components provide much more
 convenience, particularly when multiple components interact.
 
-Usually components represent some physical component in a system
-such as a 1D pipe, a 2D wall/structure, or a 0D junction; however, they can also be abstract,
+Usually components represent physical pieces in a system
+such as pipes, solid bodies, or junctions; however, they can also be abstract,
 for example, coupling other components together, providing some
 source or boundary conditions, or just adding any other MOOSE objects
 in a convenient manner.
@@ -150,7 +150,11 @@ interact with them:
 The `Closures` system allows users to create MOOSE objects (usually `Material`s)
 that specify closures for their component models. For example, a flow channel
 may require definition of quantities such as friction factors and heat transfer
-coefficients. While these definitions could be made inside a component, it is
+coefficients. Selection of closure relations may depend on the application.
+Closure relations may be generic correlations or custom relations, such as
+correlations from experimentally measured data.
+
+While these definitions could be made inside a component, it is
 advantageous to have closure definitions separately both for code-reuse purposes and
 to avoid duplicating objects. There may be a large number of
 closure choices, each with their own user parameters. In large systems of
@@ -213,19 +217,23 @@ Every pull request to the module runs the entire test suite for MOOSE, including
 The test suite is comprehensive and aims to cover every feature available in the module. It
 consists of unit and regression tests, described below. The entire test suite is run with a wide variety of
 configurations, from compiling with the oldest and newest supported compilers, to running with several
-shared memory threads and distributed memory processes, on a variety of operating systems. The test suite
-is also run encapsulated in Valgrind to detect memory leaks. Every pull request to the module
-must include tests to cover any new features. This is ensured by the reviewer. The review process is detailed
-in MOOSE's SQA plan [@sqa].
+shared memory threads and distributed memory processes, on a variety of operating systems. The code
+is also checked for memory leaks using Valgrind [@valgrind].
 
 Unit tests in THM are targeted at specific routines that can be accessed by creating the relevant object with
-example parameters. For example, creating a `Flux` object, we can check that the formulation of the numerical
+example parameters. For example, in a `Flux` object, we can check that the formulation of the numerical
 flux, whether with a centered scheme or with HLLC, are both consistent and symmetric.
 
-Regression tests are essentially created for each object to ensure that their output does not vary on a
-relevant test case. For example, each function or each auxiliary kernel is tested on a simple Cartesian mesh to make sure
+Regression tests are typically created for every object to ensure that their behavior does not vary on a
+relevant test case. For example, each function or each auxiliary kernel is tested on a simple Cartesian mesh to ensure
 the field it produces is consistently the same. Components are often tested in the minimal configuration sufficient
 to satisfy the test requirement, for example, to prove conservation of mass and energy on a flow channel.
+
+In addition to the automated testing provided by CIVET, proposed changes to the module
+are reviewed by at least one member of the MOOSE change control board, as detailed in MOOSE's SQA plan [@sqa],
+in addition to any other interested reviewers.
+Reviewers determine if the proposed changes have an acceptable design, follow coding
+standards, and are sufficiently tested.
 
 # Demonstration
 
@@ -234,12 +242,12 @@ The flexibility of THM is demonstrated with a two-loop system that is typical of
 
 ![System diagram (left) and temperature distribution (right) \label{fig:demo}](demo_dia_T.png)
 
-The system is shown in \autoref{fig:demo}. Helium circulates in the primary loop and extracts heat from a rod. Heat is transferred to a secondary system through a heat exchanger. The cold helium then enters a pump, before flowing in the heated section again.
+The system is shown in \autoref{fig:demo}. Helium circulates in the primary loop (displayed in light gray color) and extracts heat from a rod (`core_hs`). Heat is transferred to a secondary system (displayed in light blue color) through a heat exchanger (`hx/*`). The cold helium then enters a pump, before flowing in the heated section again.
 Each part of the system shown in \autoref{fig:demo} is defined using the appropriate `Component` object.
 The `ControlLogic` system is used to set the pump head to match a target mass flow rate in the primary loop. The secondary side is a flow channel with water.
 The MOOSE Fluid Properties Module is used to define the fluid properties in each loop.
-This example features 2 sets of `Closures` objects. The first set is of type `Closures1PhaseTHM` and uses classic engineering correlations for the heat transfer coefficient and friction factor; the second set is of type `Closures1PhaseNone` and allows the user to define custom relations for the closure coefficient.
-In this example, custom closures are used for the primary side of the heat exchanger, this is useful for complex geometries where experimental data can be used to set these closure coefficients. THM then calculates quantities of interest such as pressure, temperature, or mass flow rate.
+This example features two sets of `Closures` objects. The first set is of type `Closures1PhaseTHM` and uses classic engineering correlations for the heat transfer coefficient and friction factor; the second set is of type `Closures1PhaseNone`, used to define custom relations for the various closures
+for the primary side of the heat exchanger. THM can then calculate quantities of interest such as pressure, temperature, and mass flow rate.
 
 
 # Conclusions
@@ -267,9 +275,10 @@ support will be provided to comply with MOOSE's SQA standard.
 
 # Acknowledgements
 
-We would like to acknowledge the time and effort of THM's many contributors,
+We would first like to thank Richard Martineau for his strong support and efforts
+to acquire funding for the project.
+We would also like to acknowledge the time and effort of THM's many contributors,
 most notably Jack Cavaluzzi, Thomas Freyman, Luiz Aldeia, and Rachel Beall.
-We would also like to thank Richard Martineau for his strong support of the project.
 
 This work was funded by the Department of Energy Nuclear Energy Advanced Modeling and Simulation (NEAMS) program.
 This manuscript has been authored by Battelle Energy Alliance, LLC under Contract No. DE-AC07-05ID14517 with the US Department of Energy. The United States Government retains and the publisher, by accepting the article for publication, acknowledges that the United States Government retains a nonexclusive, paid-up, irrevocable, worldwide license to publish or reproduce the published form of this manuscript, or allow others to do so, for United States Government purposes.
