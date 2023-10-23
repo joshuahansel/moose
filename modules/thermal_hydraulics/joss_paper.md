@@ -41,17 +41,18 @@ variable-area, compressible flow model, as well as heat conduction.
 
 # Statement of need
 
-Numerous engineering applications employ fluid flow, and in particular, use systems
-of connected components to transfer heat. Power generation applications must
-provide a medium for converting power from a source to useful energy, and thermal
+Numerous engineering applications employ fluid flow to transfer heat.
+Power generation applications notably transfer heat from a source, such as a boiler,
+to an energy conversion system, such as a turbine. Thermal
 hydraulic systems are well-suited for the task, due to their ability to move
-energy efficiently over long distances. These systems vary widely in their size
+energy efficiently over the scale of a plant. These systems vary widely in their size
 and complexity and may feature a large number of components coupled together.
 
 A notable example of the application of thermal hydraulic systems analysis is for
 nuclear reactor systems. These systems typically involve a large network of
-components to facilitate the conversion of the nuclear power to electrical power,
-as well as provide a number of safety systems. For example, there may be a
+components to perform the conversion of the nuclear power to electrical power and
+additional heat transfer components to remove the heat during accidental transients.
+For example, there may be a
 primary flow "loop" of pipes that extract heat from the fuel, pumps to force
 circulation, one or more heat exchangers exchanging heat between this primary
 loop and a secondary loop, turbomachinery components like turbines and generators,
@@ -93,7 +94,7 @@ base class `Component`; some intermediate base classes are the following:
 - `Component2D`: generates a 2D mesh in 3D space, defined by the same axial
   parameters as `Component1D`, plus transverse direction, length, and discretization.
   This may represent either a Cartesian or axisymmetric coordinate system.
-- `FileMeshComponent`: generates a mesh copied from a file (generally 3D).
+- `FileMeshComponent`: generates a mesh read from an external file (any dimension).
 - `Component1DBoundary`: used for applying boundary conditions to a `Component1D` component.
 - `Component1DJunction`: used for applying coupled boundary conditions between `Component1D` components.
 
@@ -120,7 +121,7 @@ related to this flow model are summarized as follows:
 
 In addition to these components, there is also `FlowComponentNS`, which leverages
 a selection of flow formulations from MOOSE's Navier-Stokes module [@lindsay2023moose],
-with a mesh provided by a file.
+with a mesh provided by an external file.
 
 ### Heat conduction components
 
@@ -150,8 +151,9 @@ The `Closures` system allows users to create MOOSE objects (usually `Material`s)
 that specify closures for their component models. For example, a flow channel
 may require definition of quantities such as friction factors and heat transfer
 coefficients. While these definitions could be made inside a component, it is
-advantageous to have closure definitions outside. There may be a large number of
-closures choices, each with their own user parameters. In large systems of
+advantageous to have closure definitions separately both for code-reuse purposes and
+to avoid duplicating objects. There may be a large number of
+closure choices, each with their own user parameters. In large systems of
 components, `Closures` objects can be re-used when the closures apply to many
 objects.
 
@@ -168,7 +170,7 @@ hydraulic systems, which may feature various controllers in series.
 Examples of controls in THM's library include the following:
 a transient function control,
 a proportional-integral-derivative (PID) control,
-a delay control, a trip control, and a terminate control.
+a delay control, a trip control, and a termination control.
 
 ## Integrity-checking
 
@@ -236,14 +238,14 @@ The system is shown in \autoref{fig:demo}. Helium circulates in the primary loop
 Each part of the system shown in \autoref{fig:demo} is defined using the appropriate `Component` object.
 The `ControlLogic` system is used to set the pump head to match a target mass flow rate in the primary loop. The secondary side is a flow channel with water.
 The MOOSE Fluid Properties Module is used to define the fluid properties in each loop.
-This example features 2 sets of `Closures` objects. The first set is of type `Closures1PhaseTHM` and uses classic correlations for the heat transfer coefficient and friction factor; the second set is of type `Closures1PhaseNone` and allows the user to define custom relations for the closure coefficient.
+This example features 2 sets of `Closures` objects. The first set is of type `Closures1PhaseTHM` and uses classic engineering correlations for the heat transfer coefficient and friction factor; the second set is of type `Closures1PhaseNone` and allows the user to define custom relations for the closure coefficient.
 In this example, custom closures are used for the primary side of the heat exchanger, this is useful for complex geometries where experimental data can be used to set these closure coefficients. THM then calculates quantities of interest such as pressure, temperature, or mass flow rate.
 
 
 # Conclusions
 
-THM provides a flexible framework for thermal hydraulic systems simulations
-performed using the MOOSE framework.
+THM provides a flexible framework for performing thermal hydraulic systems simulations
+within the MOOSE framework.
 THM also provides many useful capabilities to the MOOSE framework that extend beyond
 the field of thermal hydraulics. The `Components` system provides an ideal structure
 for setting up large systems of connected components in MOOSE, significantly
