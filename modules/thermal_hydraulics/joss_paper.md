@@ -79,8 +79,8 @@ hides lower level MOOSE objects such as `Kernel`s, `BoundaryCondition`s, etc. Wh
 `Action`s can also be used to create a higher level syntax, components provide much more
 convenience, particularly when multiple components interact.
 
-Usually components represent some physical component in a system
-such as a pipe, a solid body, or a junction; however, they can also be abstract,
+Usually components represent physical pieces in a system
+such as pipes, solid bodies, or junctions; however, they can also be abstract,
 for example, coupling other components together, providing some
 source or boundary conditions, or just adding any other MOOSE objects
 in a convenient manner.
