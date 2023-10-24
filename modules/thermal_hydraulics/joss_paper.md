@@ -124,8 +124,8 @@ a selection of flow formulations from MOOSE's Navier-Stokes module [@lindsay2023
 with a mesh provided by an external file.
 
 The fluid properties needed by these components are defined using the MOOSE Fluid Properties module.
-For simulations with multiple loops of different fluid, a `FluidProperties` object can be created
-for each fluid and used the corresponding THM flow components.
+For simulations with multiple loops with different fluids, a `FluidProperties` object can be created
+for each fluid and used in the corresponding THM flow components.
 
 ### Heat conduction components
 
@@ -246,9 +246,8 @@ The flexibility of THM is demonstrated with a two-loop system that is typical of
 
 ![System diagram (left) and temperature distribution (right) \label{fig:demo}](demo_dia_T.png)
 
-The system is shown in \autoref{fig:demo}. Helium circulates in the primary loop (displayed in light gray color) and extracts heat from a rod (`core_hs`). Heat is transferred to a secondary system (displayed in light blue color) through a heat exchanger (`hx/*`). The cold helium then enters a pump, before flowing in the heated section again.
+The system is shown in \autoref{fig:demo}. Helium circulates in the primary loop (displayed in light gray color) and extracts heat from a rod (`core_hs`). Heat is transferred to liquid water in a secondary system (displayed in light blue color) through a heat exchanger (`hx/*`). The cold helium then enters a pump, before flowing in the heated section again.
 Each part of the system shown in \autoref{fig:demo} is defined using the appropriate `Component` object.
-The MOOSE Fluid Properties Module is used to define the fluid properties in each loop.
 The `ControlLogic` system is used to set the pump head to match a target mass flow rate in the primary loop. The secondary side is a flow channel with water.
 This example features two sets of `Closures` objects. The first set is of type `Closures1PhaseTHM` and uses classic engineering correlations for the heat transfer coefficient and friction factor; the second set is of type `Closures1PhaseNone`, used to define custom relations for the various closures
 for the primary side of the heat exchanger. THM can then calculate quantities of interest such as pressure, temperature, and mass flow rate.
