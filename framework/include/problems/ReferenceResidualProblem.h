@@ -31,13 +31,6 @@ public:
 
   virtual void addDefaultConvergence() override;
 
-  virtual bool checkRelativeConvergence(const PetscInt it,
-                                        const Real fnorm,
-                                        const Real the_residual,
-                                        const Real rtol,
-                                        const Real abstol,
-                                        std::ostringstream & oss) override;
-
   /**
    * Check the convergence by comparing the norm of each variable separately against
    * its reference variable's norm. Only consider the solution converged if all

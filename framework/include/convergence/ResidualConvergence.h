@@ -25,6 +25,14 @@ public:
 
   // static InputParameters commonParams();
 
+  /**
+   * Check the relative convergence of the nonlinear solution
+   * @param fnorm          Norm of the residual vector
+   * @param the_residual   The residual to check
+   * @param rtol           Relative tolerance
+   * @param abstol         Absolute tolerance
+   * @return               Bool signifying convergence
+   */
   virtual bool checkRelativeConvergence(const PetscInt it,
                                         const Real fnorm,
                                         const Real the_residual,

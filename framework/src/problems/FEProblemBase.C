@@ -7759,24 +7759,6 @@ FEProblemBase::getVariableNames()
   return names;
 }
 
-bool
-FEProblemBase::checkRelativeConvergence(const PetscInt /*it*/,
-                                        const Real fnorm,
-                                        const Real the_residual,
-                                        const Real rtol,
-                                        const Real /*abstol*/,
-                                        std::ostringstream & oss)
-{
-  if (_fail_next_nonlinear_convergence_check)
-    return false;
-  if (fnorm <= the_residual * rtol)
-  {
-    oss << "Converged due to function norm " << fnorm << " < relative tolerance (" << rtol << ")\n";
-    return true;
-  }
-  return false;
-}
-
 SolverParams &
 FEProblemBase::solverParams()
 {

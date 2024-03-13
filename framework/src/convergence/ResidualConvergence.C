@@ -267,7 +267,7 @@ ResidualConvergence::checkAlgebraicConvergence(int it, Real xnorm, Real snorm, R
     Real the_residual = system._compute_initial_residual_before_preset_bcs
                             ? system._initial_residual_before_preset_bcs
                             : system._initial_residual_after_preset_bcs;
-    if (_fe_problem.checkRelativeConvergence(it, fnorm, the_residual, _rtol, _atol, oss))
+    if (checkRelativeConvergence(it, fnorm, the_residual, _rtol, _atol, oss))
       reason = MooseAlgebraicConvergence::CONVERGED;
     else if (snorm < _stol * xnorm)
     {
