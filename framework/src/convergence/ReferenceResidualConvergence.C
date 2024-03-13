@@ -104,44 +104,41 @@ ReferenceResidualConvergence::validCommonReferenceResidualProblemParams()
   return params;
 }
 
-ReferenceResidualConvergence::ReferenceResidualConvergence(const InputParameters & parameters)
-  : ResidualConvergence(parameters),
+ReferenceResidualConvergence::ReferenceResidualConvergence(const InputParameters & params)
+  : ResidualConvergence(params),
     _use_group_variables(false),
-    _zero_ref_type(parameters.get<MooseEnum>("zero_reference_residual_treatment")
-                       .getEnum<ZeroReferenceType>()),
+    _zero_ref_type(
+        params.get<MooseEnum>("zero_reference_residual_treatment").getEnum<ZeroReferenceType>()),
     _reference_vector(nullptr),
     _converge_on(getParam<std::vector<NonlinearVariableName>>("converge_on")),
     _reference_vector_tag_id(Moose::INVALID_TAG_ID)
 {
-  ///The following parameters are from ReferenceResidualProblem
-
   const auto ref_problem = dynamic_cast<ReferenceResidualProblem *>(&_fe_problem);
 
-  if (parameters.isParamSetByUser("solution_variables"))
+  if (params.isParamValid("solution_variables"))
   {
-    if (parameters.isParamSetByUser("reference_vector"))
+    if (params.isParamValid("reference_vector"))
       mooseDeprecated("The `solution_variables` parameter is deprecated, has no effect when "
                       "the tagging system is used, and will be removed on January 1, 2020. "
                       "Please simply delete this parameter from your input file.");
-    _soln_var_names = parameters.get<std::vector<NonlinearVariableName>>("solution_variables");
+    _soln_var_names = params.get<std::vector<NonlinearVariableName>>("solution_variables");
   }
 
-  if (parameters.isParamSetByUser("reference_residual_variables") &&
-      parameters.isParamSetByUser("reference_vector"))
+  if (params.isParamValid("reference_residual_variables") &&
+      params.isParamValid("reference_vector"))
     mooseError(
         "For `ReferenceResidualProblem` you can specify either the `reference_residual_variables` "
         "or `reference_vector` parameter, not both. `reference_residual_variables` is deprecated "
         "so we recommend using `reference_vector`");
 
-  if (parameters.isParamSetByUser("reference_residual_variables"))
+  if (params.isParamValid("reference_residual_variables"))
   {
     mooseDeprecated(
         "The save-in method for composing reference residual quantities is deprecated "
         "and will be removed on January 1, 2020. Please use the tagging system instead; "
         "specifically, please assign a TagName to the `reference_vector` parameter");
 
-    _ref_resid_var_names =
-        parameters.get<std::vector<AuxVariableName>>("reference_residual_variables");
+    _ref_resid_var_names = params.get<std::vector<AuxVariableName>>("reference_residual_variables");
 
     if (_soln_var_names.size() != _ref_resid_var_names.size())
       mooseError("In ReferenceResidualProblem, size of solution_variables (",
@@ -150,58 +147,33 @@ ReferenceResidualConvergence::ReferenceResidualConvergence(const InputParameters
                  _ref_resid_var_names.size(),
                  ")");
   }
-
-  if (parameters.isParamSetByUser("reference_vector"))
+  else if (params.isParamValid("reference_vector"))
   {
     if (_fe_problem.numNonlinearSystems() > 1)
       paramError(
           "nl_sys_names",
           "reference residual problem does not currently support multiple nonlinear systems");
-    _reference_vector_tag_id = _fe_problem.getVectorTagID(getParam<TagName>("reference_vector"));
-    _reference_vector = &_fe_problem.getNonlinearSystemBase(0).getVector(_reference_vector_tag_id);
+    _reference_vector_tag_id = getVectorTagID(getParam<TagName>("reference_vector"));
   }
   else
-  {
-    _reference_vector_tag_id = _fe_problem.getVectorTagID(ref_problem->getReferenceVectorTag());
-    _reference_vector = &_fe_problem.getNonlinearSystemBase(0).getVector(_reference_vector_tag_id);
-  }
-
-  if (parameters.isParamValid("reference_residual_variables") ||
-      parameters.isParamValid("reference_vector"))
     mooseInfo("Neither the `reference_residual_variables` nor `reference_vector` parameter is "
               "specified for `ReferenceResidualProblem`, which means that no reference "
               "quantites are set. Because of this, the standard technique of comparing the "
               "norm of the full residual vector with its initial value will be used.");
 
-  if (parameters.isParamSetByUser("group_variables"))
+  if (params.isParamValid("group_variables"))
   {
     _group_variables =
-        parameters.get<std::vector<std::vector<NonlinearVariableName>>>("group_variables");
+        params.get<std::vector<std::vector<NonlinearVariableName>>>("group_variables");
     _use_group_variables = true;
   }
-  else
-  {
-    _group_variables = ref_problem->getGroupVars();
-    if (_group_variables.size() > 0)
-      _use_group_variables = true;
-  }
 
-  if (parameters.isParamSetByUser("acceptable_multiplier"))
-    _accept_mult = parameters.get<Real>("acceptable_multiplier");
-  else
-    _accept_mult = ref_problem->getAcceptableMultipliers();
-  if (parameters.isParamSetByUser("acceptable_iterations"))
-    _accept_iters = parameters.get<int>("acceptable_iterations");
-  else
-    _accept_iters = ref_problem->getAcceptableIterations();
+  _accept_mult = params.get<Real>("acceptable_multiplier");
+  _accept_iters = params.get<int>("acceptable_iterations");
 
-  int castEnum = ref_problem->getNormType();
-  auto norm_type_enum = NormalizationType(castEnum);
-  if (parameters.isParamSetByUser("normalization_type"))
-  {
-    norm_type_enum = parameters.get<MooseEnum>("normalization_type").getEnum<NormalizationType>();
-  }
-
+  const auto norm_type_enum =
+      params.get<MooseEnum>("normalization_type").getEnum<NormalizationType>();
+  setNormType(norm_type_enum);
   if (norm_type_enum == NormalizationType::LOCAL_L2)
   {
     _norm_type = DISCRETE_L2;
@@ -225,12 +197,12 @@ ReferenceResidualConvergence::ReferenceResidualConvergence(const InputParameters
   else
     mooseError("Internal error");
 
-  if (_local_norm && !parameters.isParamSetByUser("reference_vector"))
+  if (_local_norm && !params.isParamValid("reference_vector"))
     paramError("reference_vector", "If local norm is used, a reference_vector must be provided.");
 }
 
 void
-ReferenceResidualConvergence::setupReferenceResidual()
+ReferenceResidualConvergence::initialSetup()
 {
   NonlinearSystemBase & nonlinear_sys = _fe_problem.getNonlinearSystemBase(/*nl_sys=*/0);
   AuxiliarySystem & aux_sys = _fe_problem.getAuxiliarySystem();
@@ -439,13 +411,12 @@ ReferenceResidualConvergence::setupReferenceResidual()
         _scaling_factors[i] = nonlinear_sys.getVariable(/*tid*/ 0, _soln_vars[i]).scalingFactor();
   }
 
-  _fe_problem.initialSetup();
+  ResidualConvergence::initialSetup();
 }
 
 void
 ReferenceResidualConvergence::updateReferenceResidual()
 {
-  // mooseAssert(_current_nl_sys, "This should be non-null");
   NonlinearSystemBase & _current_nl_sys = _fe_problem.currentNonlinearSystem();
   AuxiliarySystem & aux_sys = _fe_problem.getAuxiliarySystem();
   System & s = _current_nl_sys.system();

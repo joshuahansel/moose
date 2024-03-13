@@ -564,7 +564,6 @@ public:
   virtual Convergence & getConvergence(const std::string & name, const THREAD_ID tid = 0);
   virtual bool hasConvergence(const std::string & name, const THREAD_ID tid = 0);
   virtual void addDefaultConvergence();
-  virtual void updateReferenceResidual(){};
   // virtual Convergence & getDefaultConvergence(const THREAD_ID tid = 0);
   // virtual Convergence & getActiveConvergence(const THREAD_ID tid = 0);
   /**

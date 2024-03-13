@@ -22,26 +22,7 @@ public:
 
   ReferenceResidualConvergence(const InputParameters & parameters);
 
-  void setupReferenceResidual();
-
   void updateReferenceResidual();
-
-  /**
-   * Check the convergence by comparing the norm of each variable separately against
-   * its reference variable's norm. Only consider the solution converged if all
-   * variables are converged individually using either a relative or absolute
-   * criterion.
-   * @param fnorm Function norm (norm of full residual vector)
-   * @param abstol Absolute convergence tolerance
-   * @param rtol Relative convergence tolerance
-   * @param initial_residual_before_preset_bcs Initial norm of full residual vector
-   *                                           before applying preset bcs
-   * @return true if all variables are converged
-   */
-  bool checkConvergenceIndividVars(const Real fnorm,
-                                   const Real abstol,
-                                   const Real rtol,
-                                   const Real initial_residual_before_preset_bcs);
 
   /**
    * Add a set of variables that need to be grouped together. For use in
@@ -70,6 +51,7 @@ public:
   TagID referenceVectorTagID(ReferenceVectorTagIDKey) const { return _reference_vector_tag_id; }
 
 protected:
+  virtual void initialSetup() override;
   virtual void nonlinearConvergenceSetup() override;
   virtual bool checkRelativeConvergence(const PetscInt it,
                                         const Real fnorm,
@@ -77,6 +59,23 @@ protected:
                                         const Real rtol,
                                         const Real abstol,
                                         std::ostringstream & oss) override;
+
+  /**
+   * Check the convergence by comparing the norm of each variable separately against
+   * its reference variable's norm. Only consider the solution converged if all
+   * variables are converged individually using either a relative or absolute
+   * criterion.
+   * @param fnorm Function norm (norm of full residual vector)
+   * @param abstol Absolute convergence tolerance
+   * @param rtol Relative convergence tolerance
+   * @param initial_residual_before_preset_bcs Initial norm of full residual vector
+   *                                           before applying preset bcs
+   * @return true if all variables are converged
+   */
+  bool checkConvergenceIndividVars(const Real fnorm,
+                                   const Real abstol,
+                                   const Real rtol,
+                                   const Real initial_residual_before_preset_bcs);
 
   ///@{
   /// List of solution variable names whose reference residuals will be stored,
