@@ -7,7 +7,6 @@
 //* Licensed under LGPL 2.1, please see LICENSE for details
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
-// MOOSE includes
 #include "Convergence.h"
 
 InputParameters
@@ -25,6 +24,10 @@ Convergence::validParams()
 }
 
 Convergence::Convergence(const InputParameters & parameters)
-  : MooseObject(parameters), SetupInterface(this), PerfGraphInterface(this)
+  : MooseObject(parameters),
+    SetupInterface(this),
+    PerfGraphInterface(this),
+    _perf_nonlinear(
+        registerTimedSection("checkNonlinearConvergence", 5, "Checking Nonlinear Convergence"))
 {
 }

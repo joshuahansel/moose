@@ -10,7 +10,6 @@
 #pragma once
 
 #include "Convergence.h"
-#include "PerfGraphInterface.h"
 
 // PETSc includes
 #include <petsc.h>
@@ -22,8 +21,6 @@ public:
   static InputParameters validParams();
 
   ResidualConvergence(const InputParameters & parameters);
-
-  // static InputParameters commonParams();
 
   /**
    * Check the relative convergence of the nonlinear solution
@@ -45,10 +42,6 @@ public:
 
 protected:
   FEProblemBase & _fe_problem;
-
-  PerfID _perf_nonlinear;
-
-  bool _initialized;
 
   // Variables for the convergence criteria
   Real _atol; // absolute convergence tolerance

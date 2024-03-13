@@ -108,15 +108,12 @@ ReferenceResidualConvergence::validCommonReferenceResidualProblemParams()
 ReferenceResidualConvergence::ReferenceResidualConvergence(const InputParameters & parameters)
   : Convergence(parameters),
     _fe_problem(*getCheckedPointerParam<FEProblemBase *>("_fe_problem_base")),
-    _perf_nonlinear(
-        registerTimedSection("checkNonlinearConvergence", 5, "Checking Nonlinear Convergence")),
     _use_group_variables(false),
     _zero_ref_type(parameters.get<MooseEnum>("zero_reference_residual_treatment")
                        .getEnum<ZeroReferenceType>()),
     _reference_vector(nullptr),
     _converge_on(getParam<std::vector<NonlinearVariableName>>("converge_on")),
-    _reference_vector_tag_id(Moose::INVALID_TAG_ID),
-    _initialized(false)
+    _reference_vector_tag_id(Moose::INVALID_TAG_ID)
 {
   EquationSystems & es = _fe_problem.es();
 

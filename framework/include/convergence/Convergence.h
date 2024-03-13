@@ -31,4 +31,7 @@ public:
 
   virtual MooseAlgebraicConvergence
   checkAlgebraicConvergence(int it, Real xnorm, Real snorm, Real fnorm) = 0;
+
+protected:
+  PerfID _perf_nonlinear;
 };

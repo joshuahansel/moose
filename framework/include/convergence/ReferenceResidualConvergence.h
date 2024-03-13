@@ -89,8 +89,6 @@ public:
 protected:
   FEProblemBase & _fe_problem;
 
-  PerfID _perf_nonlinear;
-
   // Variables for the convergence criteria
   Real _atol; // absolute convergence tolerance
   Real _rtol; // relative convergence tolerance
@@ -189,8 +187,6 @@ protected:
 
   /// The reference vector tag id
   TagID _reference_vector_tag_id;
-
-  bool _initialized;
 };
 
 template <typename T>
