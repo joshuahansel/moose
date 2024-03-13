@@ -2324,7 +2324,7 @@ FEProblemBase::hasConvergence(const std::string & name, const THREAD_ID tid)
 }
 
 Convergence &
-FEProblemBase::getConvergence(const std::string & name, const THREAD_ID tid)
+FEProblemBase::getConvergence(const std::string & name, const THREAD_ID tid) const
 {
   // This thread lock is necessary since this method will create functions
   // for all threads if one is missing.

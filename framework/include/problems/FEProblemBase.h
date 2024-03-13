@@ -561,7 +561,7 @@ public:
 
   virtual void
   addConvergence(const std::string & type, const std::string & name, InputParameters & parameters);
-  virtual Convergence & getConvergence(const std::string & name, const THREAD_ID tid = 0);
+  virtual Convergence & getConvergence(const std::string & name, const THREAD_ID tid = 0) const;
   virtual bool hasConvergence(const std::string & name, const THREAD_ID tid = 0);
   virtual void addDefaultConvergence();
   // virtual Convergence & getDefaultConvergence(const THREAD_ID tid = 0);
@@ -2013,7 +2013,8 @@ public:
     _set_nonlinear_convergence_name = true;
   }
 
-  const ConvergenceName getActiveConvergenceName() { return _nonlinear_convergence_name; }
+  ConvergenceName getNonlinearConvergenceName() const { return _nonlinear_convergence_name; }
+
   /**
    * Setter for whether we're computing the scaling jacobian
    */

@@ -113,8 +113,8 @@ ReferenceResidualConvergence::ReferenceResidualConvergence(const InputParameters
     _converge_on(getParam<std::vector<NonlinearVariableName>>("converge_on")),
     _reference_vector_tag_id(Moose::INVALID_TAG_ID)
 {
-  const auto ref_problem = dynamic_cast<ReferenceResidualProblem *>(&_fe_problem);
-
+  std::cout << "zero_tolerance type = " << (_zero_ref_type == ZeroReferenceType::ZERO_TOLERANCE)
+            << std::endl;
   if (params.isParamValid("solution_variables"))
   {
     if (params.isParamValid("reference_vector"))
@@ -153,7 +153,7 @@ ReferenceResidualConvergence::ReferenceResidualConvergence(const InputParameters
       paramError(
           "nl_sys_names",
           "reference residual problem does not currently support multiple nonlinear systems");
-    _reference_vector_tag_id = getVectorTagID(getParam<TagName>("reference_vector"));
+    _reference_vector_tag_id = _fe_problem.getVectorTagID(getParam<TagName>("reference_vector"));
   }
   else
     mooseInfo("Neither the `reference_residual_variables` nor `reference_vector` parameter is "
@@ -173,7 +173,6 @@ ReferenceResidualConvergence::ReferenceResidualConvergence(const InputParameters
 
   const auto norm_type_enum =
       params.get<MooseEnum>("normalization_type").getEnum<NormalizationType>();
-  setNormType(norm_type_enum);
   if (norm_type_enum == NormalizationType::LOCAL_L2)
   {
     _norm_type = DISCRETE_L2;

@@ -156,8 +156,7 @@ ResidualConvergence::checkAlgebraicConvergence(int it, Real xnorm, Real snorm, R
   nonlinearConvergenceSetup();
 
   // To check if the nonlinear iterations should abort
-  bool terminate = _fe_problem.getFailNextNonlinearConvergenceCheck();
-  if (terminate)
+  if (_fe_problem.getFailNextNonlinearConvergenceCheck())
   {
     _fe_problem.resetFailNextNonlinearConvergenceCheck();
     reason = MooseAlgebraicConvergence::DIVERGED;

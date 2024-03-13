@@ -14,7 +14,6 @@
 #include "GeneralizedPlaneStrainUOInterface.h"
 #include "MooseVariableScalar.h"
 #include "SystemBase.h"
-#include "ReferenceResidualProblem.h"
 #include "InputParameters.h"
 
 #include <algorithm>
