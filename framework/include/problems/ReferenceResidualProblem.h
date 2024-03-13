@@ -21,8 +21,6 @@ class ReferenceResidualProblem : public FEProblem
 public:
   static InputParameters validParams();
 
-  static InputParameters commonParams();
-
   ReferenceResidualProblem(const InputParameters & params);
 
   virtual void initialSetup() override;
