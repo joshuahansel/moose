@@ -27,8 +27,6 @@ public:
 
   virtual void updateReferenceResidual() override;
 
-  virtual void nonlinearConvergenceSetup() override;
-
   virtual void addDefaultConvergence() override;
 
   /**

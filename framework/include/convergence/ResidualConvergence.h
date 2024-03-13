@@ -22,6 +22,10 @@ public:
 
   ResidualConvergence(const InputParameters & parameters);
 
+  Convergence::MooseAlgebraicConvergence
+  checkAlgebraicConvergence(int it, Real xnorm, Real snorm, Real fnorm) override;
+
+protected:
   /**
    * Check the relative convergence of the nonlinear solution
    * @param fnorm          Norm of the residual vector
@@ -37,10 +41,6 @@ public:
                                         const Real abstol,
                                         std::ostringstream & oss);
 
-  Convergence::MooseAlgebraicConvergence
-  checkAlgebraicConvergence(int it, Real xnorm, Real snorm, Real fnorm) override;
-
-protected:
   FEProblemBase & _fe_problem;
 
   // Variables for the convergence criteria

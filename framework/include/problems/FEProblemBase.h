@@ -210,9 +210,6 @@ public:
   std::vector<std::pair<MooseVariableFEBase *, MooseVariableFEBase *>> &
   nonlocalCouplingEntries(const THREAD_ID tid, const unsigned int nl_sys_num);
 
-  /// Perform steps required before checking nonlinear convergence
-  virtual void nonlinearConvergenceSetup() {}
-
   virtual bool hasVariable(const std::string & var_name) const override;
   using SubProblem::getVariable;
   virtual const MooseVariableFieldBase &

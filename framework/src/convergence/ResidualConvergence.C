@@ -153,7 +153,7 @@ ResidualConvergence::checkAlgebraicConvergence(int it, Real xnorm, Real snorm, R
   MooseAlgebraicConvergence reason = MooseAlgebraicConvergence::ITERATING;
 
   // Needed by problems/residual_reference
-  _fe_problem.nonlinearConvergenceSetup();
+  nonlinearConvergenceSetup();
 
   // To check if the nonlinear iterations should abort
   bool terminate = _fe_problem.getFailNextNonlinearConvergenceCheck();
