@@ -17,6 +17,7 @@
 #include "SlepcSupport.h"
 #include "SecantSolve.h"
 #include "SteffensenSolve.h"
+#include "AndersonSolve.h"
 
 // C++ includes
 #include <vector>
@@ -77,6 +78,8 @@ Executioner::Executioner(const InputParameters & parameters)
     _fixed_point_solve = std::make_unique<SecantSolve>(*this);
   else if (_iteration_method == "steffensen")
     _fixed_point_solve = std::make_unique<SteffensenSolve>(*this);
+  else if (_iteration_method == "anderson")
+    _fixed_point_solve = std::make_unique<AndersonSolve>(*this);
 
   // Propagate the verbosity down to the problem
   if (_verbose)

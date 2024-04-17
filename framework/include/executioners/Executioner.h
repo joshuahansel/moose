@@ -151,7 +151,10 @@ public:
    * Return supported iteration methods that can work with MultiApps on timestep_begin and
    * timestep_end
    */
-  static MooseEnum iterationMethods() { return MooseEnum("picard secant steffensen", "picard"); }
+  static MooseEnum iterationMethods()
+  {
+    return MooseEnum("picard secant steffensen anderson", "picard");
+  }
 
 protected:
   /**
