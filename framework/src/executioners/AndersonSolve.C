@@ -22,37 +22,45 @@ AndersonSolve::validParams()
   return params;
 }
 
-AndersonSolve::AndersonSolve(Executioner & ex) : FixedPointSolve(ex) { allocateStorage(true); }
+AndersonSolve::AndersonSolve(Executioner & ex)
+  : FixedPointSolve(ex), _m(1), _U_tagid(_m + 1), _f_tagid(_m + 1), _g_tagid(_m + 1)
+{
+  allocateStorage(true);
+}
 
 void
 AndersonSolve::allocateStorage(const bool /*primary*/)
 {
-  _Uold_tagid = _problem.addVectorTag("anderson_Uold", Moose::VECTOR_TAG_SOLUTION);
-  _f_tagid = _problem.addVectorTag("anderson_f", Moose::VECTOR_TAG_SOLUTION);
-  _fold_tagid = _problem.addVectorTag("anderson_fold", Moose::VECTOR_TAG_SOLUTION);
-  _R_tagid = _problem.addVectorTag("anderson_R", Moose::VECTOR_TAG_SOLUTION);
-  _Rold_tagid = _problem.addVectorTag("anderson_Rold", Moose::VECTOR_TAG_SOLUTION);
+  for (unsigned int k = 0; k < _m + 1; k++)
+  {
+    const auto kstr = std::to_string(k);
+    _U_tagid[k] = _problem.addVectorTag("anderson_U" + kstr, Moose::VECTOR_TAG_SOLUTION);
+    _f_tagid[k] = _problem.addVectorTag("anderson_f" + kstr, Moose::VECTOR_TAG_SOLUTION);
+    _g_tagid[k] = _problem.addVectorTag("anderson_g" + kstr, Moose::VECTOR_TAG_SOLUTION);
 
-  _solver_sys.addVector(_Uold_tagid, false, PARALLEL);
-  _solver_sys.addVector(_f_tagid, false, PARALLEL);
-  _solver_sys.addVector(_fold_tagid, false, PARALLEL);
-  _solver_sys.addVector(_R_tagid, false, PARALLEL);
-  _solver_sys.addVector(_Rold_tagid, false, PARALLEL);
+    _solver_sys.addVector(_U_tagid[k], false, PARALLEL);
+    _solver_sys.addVector(_f_tagid[k], false, PARALLEL);
+    _solver_sys.addVector(_g_tagid[k], false, PARALLEL);
+  }
 }
 
 void
 AndersonSolve::saveVariableValues(const bool /*primary*/)
 {
-  auto & U = _solver_sys.solution();
-  auto & Uold = _solver_sys.getVector(_Uold_tagid);
-  auto & f = _solver_sys.getVector(_f_tagid);
-  auto & fold = _solver_sys.getVector(_fold_tagid);
-  auto & R = _solver_sys.getVector(_R_tagid);
-  auto & Rold = _solver_sys.getVector(_Rold_tagid);
+  for (unsigned int k = 0; k < _m; k++)
+  {
+    auto & U_old = _solver_sys.getVector(_U_tagid[k]);
+    auto & U_new = (k == _m - 1) ? _solver_sys.solution() : _solver_sys.getVector(_U_tagid[k + 1]);
+    U_old = U_new;
 
-  Uold = U;
-  fold = f;
-  Rold = R;
+    auto & f_old = _solver_sys.getVector(_f_tagid[k]);
+    auto & f_new = _solver_sys.getVector(_f_tagid[k + 1]);
+    f_old = f_new;
+
+    auto & g_old = _solver_sys.getVector(_g_tagid[k]);
+    auto & g_new = _solver_sys.getVector(_g_tagid[k + 1]);
+    g_old = g_new;
+  }
 }
 
 void
@@ -60,16 +68,16 @@ AndersonSolve::transformVariables(const std::set<dof_id_type> & /*target_dofs*/,
                                   const bool /*primary*/)
 {
   auto & U = _solver_sys.solution();
-  auto & Uold = _solver_sys.getVector(_Uold_tagid);
-  auto & R = _solver_sys.getVector(_R_tagid);
-  auto & Rold = _solver_sys.getVector(_Rold_tagid);
-  auto & f = _solver_sys.getVector(_f_tagid);
-  auto & fold = _solver_sys.getVector(_fold_tagid);
+  auto & Uold = _solver_sys.getVector(_U_tagid[0]);
+  auto & g = _solver_sys.getVector(_g_tagid[1]);
+  auto & gold = _solver_sys.getVector(_g_tagid[0]);
+  auto & f = _solver_sys.getVector(_f_tagid[1]);
+  auto & fold = _solver_sys.getVector(_f_tagid[0]);
 
   f = U;
 
-  R = Uold;
-  R -= f;
+  g = Uold;
+  g -= f;
 
   if (_fixed_point_it > 1)
   {
@@ -79,11 +87,11 @@ AndersonSolve::transformVariables(const std::set<dof_id_type> & /*target_dofs*/,
     dU.add(U);
 
     // For rest of iteration, have Rold store R-Rold
-    auto & dR = Rold;
-    dR *= -1.0;
-    dR.add(R);
+    auto & dg = gold;
+    dg *= -1.0;
+    dg.add(g);
 
-    const auto gamma = dU.dot(R) / dU.dot(dR);
+    const auto gamma = dU.dot(g) / dU.dot(dg);
     const auto alphaold = gamma;
     const auto alpha = 1.0 - alphaold;
 
