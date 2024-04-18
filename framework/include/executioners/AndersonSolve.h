@@ -32,9 +32,8 @@ private:
                                   const bool primary) override final;
   virtual void printFixedPointConvergenceHistory() override final;
 
-  TagID _Uold_tagid;
-  TagID _f_tagid;
-  TagID _fold_tagid;
-  TagID _R_tagid;
-  TagID _Rold_tagid;
+  const unsigned int _m;
+  std::vector<TagID> _U_tagid;
+  std::vector<TagID> _f_tagid;
+  std::vector<TagID> _g_tagid;
 };
