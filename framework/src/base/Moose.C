@@ -665,6 +665,7 @@ associateSyntaxInner(Syntax & syntax, ActionFactory & /*action_factory*/)
       "SetupTimeIntegratorAction", "Executioner/TimeIntegrators/*", "setup_time_integrators");
   registerSyntaxTask(
       "SetupTimeIntegratorAction", "Executioner/TimeIntegrator", "setup_time_integrator");
+  registerSyntax("AddFixedPointSolveAction", "Executioner/FixedPointSolve");
   syntax.registerSyntaxType("Executors/*", "ExecutorName");
 
   registerSyntax("SetupQuadratureAction", "Executioner/Quadrature");
