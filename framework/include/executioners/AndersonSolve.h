@@ -36,4 +36,6 @@ private:
   std::vector<TagID> _U_tagid;
   std::vector<TagID> _f_tagid;
   std::vector<TagID> _g_tagid;
+  TagID _s_tagid;
+  TagID _y_tagid;
 };
