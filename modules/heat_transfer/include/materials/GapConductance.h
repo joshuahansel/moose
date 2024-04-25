@@ -57,7 +57,24 @@ public:
                                        Point & p1,
                                        Point & p2);
 
-  /// Compute current gap radii for surface integration of gas conductance
+  /**
+   * Compute current gap radii for surface integration of gap conductance
+   *
+   * @param[in] gap_geometry_type  Enum for type of geometry
+   * @param[in] current_point  The point at which to compute gap radii
+   * @param[in] p1  For spherical geometry, the origin. For cylindrical geometry,
+   *   a point on the cylindrical axis. For plate geometry, unused.
+   * @param[in] p2  For cylindrical geometry, a different point on the cylindrical
+   *   axis. For spherical and plate geometry, unused.
+   * @param[in] gap_distance  Gap distance (negative value; positive corresponds to penetration)
+   * @param[in] current_normal  Normal vector at the current boundary
+   * @param[out] r1  "Inner" surface radius from origin (spherical) or axis (cylindrical).
+   *   For plate, set to zero.
+   * @param[out] r2  "Outer" surface radius from origin (spherical) or axis (cylindrical).
+   *   For plate, the gap distance (positive value).
+   * @param[out] radius  The current point radius from origin (spherical) or axis (cylindrical).
+   *   For plate, set to zero.
+   */
   static void computeGapRadii(const GAP_GEOMETRY gap_geometry_type,
                               const Point & current_point,
                               const Point & p1,
