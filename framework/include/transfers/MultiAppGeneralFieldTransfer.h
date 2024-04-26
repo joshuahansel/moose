@@ -30,7 +30,7 @@ class MeshDivision;
  * 3) Support higher order FEM
  * 4) Support mixed orders between source and target variables
  * 5) Support both distributed and replicated meshes
- * 6) Support both origin and target displaced meshes
+ * 6) Support both source and target displaced meshes
  * 7) Support siblings transfers
  * 8) Support multiple child apps in both the transfer source and target
  */
@@ -85,7 +85,7 @@ protected:
    * Whether all source mesh checks pass on the given points:
    * - within the source mesh bounding box
    * - inside source block restriction
-   * - inside source boundary restriction / in an element near the origin boundary restriction
+   * - inside source boundary restriction / in an element near the source boundary restriction
    * - inside source mesh division and at the same index as in the target mesh division
    * - inside app mesh (if not already known to be inside a block or near a boundary)
    * @param i_from the index of the source problem/mesh
@@ -105,7 +105,7 @@ protected:
                                Real & distance) const;
 
   /*
-   * Whether or not a given point is within the mesh of an origin (from) app
+   * Whether or not a given point is within the mesh of a source (from) app
    * @param pl locator for the mesh of the source app
    * @param pt point in the local coordinates of the source app we're considering
    */
@@ -191,7 +191,7 @@ protected:
    */
   bool closestToPosition(unsigned int pos_index, const Point & pt) const;
 
-  /// Origin array/vector variable components
+  /// Source array/vector variable components
   const std::vector<unsigned int> _from_var_components;
 
   /// Target array/vector variable components
@@ -210,7 +210,7 @@ protected:
   //       If each app are on a different rank, the second closest return a valid value, it gets
   //       used
 
-  // Positions object to use to match target points and origin points as closest to the same
+  // Positions object to use to match target points and source points as closest to the same
   // Position
   const Positions * _nearest_positions_obj;
 
@@ -218,7 +218,7 @@ protected:
   /// the bounding box is enough. If false, we can interpolate between apps
   bool _source_app_must_contain_point;
 
-  /// Origin block(s) restriction
+  /// Source block(s) restriction
   std::set<SubdomainID> _from_blocks;
 
   /// Target block(s) restriction
@@ -227,16 +227,16 @@ protected:
   /// Target boundary(ies) restriction
   std::set<BoundaryID> _to_boundaries;
 
-  /// Origin boundary(ies) restriction
+  /// Source boundary(ies) restriction
   std::set<BoundaryID> _from_boundaries;
 
-  /// Division of the origin mesh
+  /// Division of the source mesh
   std::vector<const MeshDivision *> _from_mesh_divisions;
 
   /// Division of the target mesh
   std::vector<const MeshDivision *> _to_mesh_divisions;
 
-  /// How to use the origin mesh divisions to restrict the transfer
+  /// How to use the source mesh divisions to restrict the transfer
   const MooseEnum & _from_mesh_division_behavior;
 
   /// How to use the target mesh divisions to restrict the transfer
@@ -265,7 +265,7 @@ protected:
   /// outgoing point
   bool _greedy_search;
 
-  /// Whether to look for conflicts between origin points, multiple valid values for a target point
+  /// Whether to look for conflicts between source points, multiple valid values for a target point
   bool _search_value_conflicts;
 
   /// Whether we already output the search value conflicts
@@ -289,10 +289,10 @@ protected:
    * Register a potential value conflict, e.g. two or more equidistant source points for a single
    * target point, with different values possible
    * @param problem problem ID for the point of interest.
-   *        For local conflicts, use origin problem id, for received conflicts, use target id
+   *        For local conflicts, use source problem id, for received conflicts, use target id
    * @param dof_id id id of the DoF is transferring a DoF. If not, use -1
    * @param p point where the conflict happens
-   * @param dist distance between the origin and the target
+   * @param dist distance between the source and the target
    * @param local if true, local conflict found when gathering data to send, if false,
    *        received value conflict found when receiving data from multiple source problems
    */
@@ -364,13 +364,13 @@ private:
 
   /// Keeps track of all local equidistant points to requested points, creating an indetermination
   /// in which values should be sent for that request
-  /// We keep the origin problem ID, the dof ID, the point, and the distance origin-target
-  /// If using nearest-positions the origin problem ID is not set
+  /// We keep the source problem ID, the dof ID, the point, and the distance source-target
+  /// If using nearest-positions the source problem ID is not set
   std::vector<std::tuple<unsigned int, dof_id_type, Point, Real>> _local_conflicts;
 
   /// Keeps track of all received conflicts. Multiple problems (different subapps for example)
   /// are sending values for a target point that do not match and are equally valid/distant
-  /// We keep the target problem ID, the point/dof ID, the point, and the origin-target distance.
+  /// We keep the target problem ID, the point/dof ID, the point, and the source-target distance.
   /// The distance indicates whether a potential conflict ended up materializing
   std::vector<std::tuple<unsigned int, dof_id_type, Point, Real>> _received_conflicts;
 
@@ -405,7 +405,7 @@ private:
       const std::vector<std::pair<Real, Real>> & incoming_vals,
       DofobjectToInterpValVec & dofobject_to_valsvec, // for nodal + constant monomial
       InterpCaches & interp_caches,                   // for higher order elemental values
-      InterpCaches & distance_caches);                // same but helps make origin point decisions
+      InterpCaches & distance_caches);                // same but helps make source point decisions
 
   /**
    * Remove potential value conflicts that did not materialize because another source was closer
@@ -434,7 +434,7 @@ private:
                                   const DofobjectToInterpValVec & dofobject_to_valsvec,
                                   const InterpCaches & distance_caches);
 
-  /// Report on conflicts between overlapping child apps, equidistant origin points etc
+  /// Report on conflicts between overlapping child apps, equidistant source points etc
   void outputValueConflicts(const unsigned int var_index,
                             const DofobjectToInterpValVec & dofobject_to_valsvec,
                             const InterpCaches & distance_caches);

@@ -37,8 +37,8 @@ InputParameters
 MultiAppGeneralFieldTransfer::validParams()
 {
   InputParameters params = MultiAppConservativeTransfer::validParams();
-  // Expansion default to make a node in the target mesh overlapping with a node in the origin
-  // mesh always register as being inside the origin application bounding box. The contains_point
+  // Expansion default to make a node in the target mesh overlapping with a node in the source
+  // mesh always register as being inside the source application bounding box. The contains_point
   // bounding box checks uses exact comparisons
   params.addRangeCheckedParam<Real>("bbox_factor",
                                     1.00000001,
@@ -57,7 +57,7 @@ MultiAppGeneralFieldTransfer::validParams()
   // Block restrictions
   params.addParam<std::vector<SubdomainName>>(
       "from_blocks",
-      "Subdomain restriction to transfer from (defaults to all the origin app domain)");
+      "Subdomain restriction to transfer from (defaults to all the source app domain)");
   params.addParam<std::vector<SubdomainName>>(
       "to_blocks", "Subdomain restriction to transfer to, (defaults to all the target app domain)");
 
@@ -76,7 +76,7 @@ MultiAppGeneralFieldTransfer::validParams()
 
   // Mesh division restriction
   params.addParam<MeshDivisionName>("from_mesh_division",
-                                    "Mesh division object on the origin application");
+                                    "Mesh division object on the source application");
   params.addParam<MeshDivisionName>("to_mesh_division",
                                     "Mesh division object on the target application");
   MooseEnum mesh_division_uses("spatial_restriction matching_division matching_subapp_index none",
@@ -127,8 +127,8 @@ MultiAppGeneralFieldTransfer::validParams()
   params.addParam<bool>(
       "from_app_must_contain_point",
       false,
-      "Wether on not the origin mesh must contain the point to evaluate data at. If false, this "
-      "allows for interpolation between origin app meshes. Origin app bounding boxes are still "
+      "Wether or not the source mesh must contain the point to evaluate data at. If false, this "
+      "allows for interpolation between source app meshes. Source app bounding boxes are still "
       "considered so you may want to increase them with 'fixed_bounding_box_size'");
   params.addParam<bool>("search_value_conflicts",
                         true,
@@ -423,7 +423,7 @@ MultiAppGeneralFieldTransfer::getAppInfo()
 {
   MultiAppFieldTransfer::getAppInfo();
 
-  // Create the point locators to locate evaluation points in the origin mesh(es)
+  // Create the point locators to locate evaluation points in the source mesh(es)
   _from_point_locators.resize(_from_problems.size());
   for (const auto i_from : index_range(_from_problems))
   {
@@ -868,7 +868,7 @@ MultiAppGeneralFieldTransfer::cacheIncomingInterpVals(
 
     // In the higher order elemental variable case, we receive point values, not nodal or
     // elemental. We use an InterpCache to store the values. The distance_cache is necessary to
-    // choose between multiple origin problems sending values. This code could be unified with the
+    // choose between multiple source problems sending values. This code could be unified with the
     // lower order order case by using the dofobject_to_valsvec
     if (fe_type.order > CONSTANT && !is_nodal)
     {
@@ -1028,7 +1028,7 @@ MultiAppGeneralFieldTransfer::examineReceivedValueConflicts(
     {
       auto cached_distance = distance_caches[problem_id].find(p);
       if (cached_distance == distance_caches[problem_id].end())
-        mooseError("Conflict point was not found in the map of all origin-target distances");
+        mooseError("Conflict point was not found in the map of all source-target distances");
       // Distance is still the distance when we detected a potential overlap
       if (MooseUtils::absoluteFuzzyEqual(cached_distance->second, distance))
         overlap_found = true;
@@ -1237,7 +1237,7 @@ MultiAppGeneralFieldTransfer::outputValueConflicts(
     std::string local_conflicts_string = "";
     std::string potential_reasons =
         "Are some points in target mesh equidistant from the sources "
-        "(nodes/centroids/apps/positions, depending on transfer) in origin mesh(es)?\n";
+        "(nodes/centroids/apps/positions, depending on transfer) in source mesh(es)?\n";
     if (hasFromMultiApp() && _from_problems.size() > 1)
       potential_reasons += "Are multiple subapps overlapping?\n";
     for (const auto & conflict : _local_conflicts)
@@ -1246,16 +1246,16 @@ MultiAppGeneralFieldTransfer::outputValueConflicts(
       Point p = std::get<2>(conflict);
       num_outputs++;
 
-      std::string origin_domain_message;
+      std::string source_domain_message;
       if (hasFromMultiApp() && !_nearest_positions_obj)
       {
         // NOTES:
-        // - The origin app for a conflict may not be unique.
+        // - The source app for a conflict may not be unique.
         // - The conflicts vectors only store the conflictual points, not the original one
         //   The original value found with a given distance could be retrieved from the main
         //   caches
         const auto app_id = _from_local2global_map[problem_id];
-        origin_domain_message = "In source child app " + std::to_string(app_id) + " mesh,";
+        source_domain_message = "In source child app " + std::to_string(app_id) + " mesh,";
       }
       // We can't locate the source app when considering nearest positions, so we saved the data
       // in the reference space. So we return the conflict location in the target app (parent or
@@ -1265,16 +1265,16 @@ MultiAppGeneralFieldTransfer::outputValueConflicts(
         if (_to_problems.size() == 1 || _skip_coordinate_collapsing)
         {
           p = (*_to_transforms[0])(p);
-          origin_domain_message = "In target app mesh,";
+          source_domain_message = "In target app mesh,";
         }
         else
-          origin_domain_message = "In reference (post-coordinate collapse) mesh,";
+          source_domain_message = "In reference (post-coordinate collapse) mesh,";
       }
       else
-        origin_domain_message = "In source parent app mesh,";
+        source_domain_message = "In source parent app mesh,";
 
       if (num_outputs < _search_value_conflicts_max_log)
-        local_conflicts_string += origin_domain_message + " point: (" + std::to_string(p(0)) +
+        local_conflicts_string += source_domain_message + " point: (" + std::to_string(p(0)) +
                                   ", " + std::to_string(p(1)) + ", " + std::to_string(p(2)) +
                                   "), equi-distance: " + std::to_string(std::get<3>(conflict)) +
                                   "\n";
@@ -1292,20 +1292,20 @@ MultiAppGeneralFieldTransfer::outputValueConflicts(
 
     mooseWarning("On rank " + rank_str +
                  ", multiple valid values from equidistant points were "
-                 "found in the origin mesh for source " +
+                 "found in the source mesh for source " +
                  source_str + " for " + std::to_string(_local_conflicts.size()) +
                  " target points.\n" + potential_reasons + "Conflicts detected at :\n" +
                  local_conflicts_string);
   }
 
-  // Output the conflicts discovered when receiving values from multiple origin problems
+  // Output the conflicts discovered when receiving values from multiple source problems
   if (_received_conflicts.size())
   {
     unsigned int num_outputs = 0;
     std::string received_conflicts_string = "";
     std::string potential_reasons =
         "Are some points in target mesh equidistant from the sources "
-        "(nodes/centroids/apps/positions, depending on transfer) in origin mesh(es)?\n";
+        "(nodes/centroids/apps/positions, depending on transfer) in source mesh(es)?\n";
     if (hasToMultiApp() && _to_problems.size() > 1)
       potential_reasons += "Are multiple subapps overlapping?\n";
     for (const auto & conflict : _received_conflicts)
@@ -1528,7 +1528,7 @@ MultiAppGeneralFieldTransfer::acceptPointInOriginMesh(unsigned int i_from,
       distance = (pt - nearest_position_source).norm();
     }
 
-    // Check that the app actually contains the origin point
+    // Check that the app actually contains the source point
     // We dont need to check if we already found it in a block or a boundary
     if (_from_blocks.empty() && _from_boundaries.empty() && _source_app_must_contain_point &&
         !inMesh(pl, transformed_pt))
@@ -1668,7 +1668,7 @@ MultiAppGeneralFieldTransfer::acceptPointMeshDivision(
   // If the point is not indexed in the source division
   if (!_from_mesh_divisions.empty() && source_mesh_div == MooseMeshDivision::INVALID_DIVISION_INDEX)
     return false;
-  // If the point is not the at the same index in the target and the origin meshes, reject
+  // If the point is not the at the same index in the target and the source meshes, reject
   else if ((_from_mesh_division_behavior == MeshDivisionTransferUse::MATCH_DIVISION_INDEX ||
             _to_mesh_division_behavior == MeshDivisionTransferUse::MATCH_DIVISION_INDEX) &&
            source_mesh_div != only_from_this_mesh_div)
@@ -1888,7 +1888,7 @@ MultiAppGeneralFieldTransfer::detectConflict(Real current_value,
     if (current_value != GeneralFieldTransfer::BetterOutOfMeshValue &&
         new_value != GeneralFieldTransfer::BetterOutOfMeshValue &&
         !MooseUtils::absoluteFuzzyEqual(current_value, new_value))
-      // Conflict only occurs if the origin points are equidistant
+      // Conflict only occurs if the source points are equidistant
       if (MooseUtils::absoluteFuzzyEqual(current_distance, new_distance))
         return true;
   return false;
