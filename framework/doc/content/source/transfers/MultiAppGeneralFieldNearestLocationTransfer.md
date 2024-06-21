@@ -21,15 +21,17 @@ Nearest-node algorithms are vulnerable to finite precision round-offs if multipl
 same distance. This can affect repeatability of results. Use the [!param](/Transfers/MultiAppGeneralFieldNearestLocationTransfer/search_value_conflicts)
 parameter to uncover these issues.
 
-The [!param](/Transfers/MultiAppGeneralFieldNearestLocationTransfer/num_nearest_points) allows for a
-simple geometric mixing of values of several nearest nodes to the target points. This mixing is performed
-in every origin problem independently, values from different child applications
-(or from different processes within each application) will not be mixed together.
+The [!param](/Transfers/MultiAppGeneralFieldNearestLocationTransfer/num_nearest_points)
+parameter specifies the number of nearest source locations to find for each target point.
+The target value is computed as the arithmetic mean of the source values at these nearest
+locations. This averaging is performed
+in every source problem independently; values from different child applications
+(or from different processes within each application) will not be averaged together.
 
 !alert warning
 If [!param](/Transfers/MultiAppGeneralFieldNearestLocationTransfer/num_nearest_points) is more than 1, the results
 will differ in parallel if the target locations are near the parallel process boundaries
-on the origin app mesh. Use the [!param](/Debug/SetupDebugAction/output_process_domains) parameter to examine
+on the source app mesh. Use the [!param](/Debug/SetupDebugAction/output_process_domains) parameter to examine
 process boundaries on Exodus/Nemesis output.
 
 ## Example Input File Syntax
