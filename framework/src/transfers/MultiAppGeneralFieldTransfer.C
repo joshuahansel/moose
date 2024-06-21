@@ -634,9 +634,12 @@ MultiAppGeneralFieldTransfer::locatePointReceivers(const Point point,
     }
   }
   else
-    mooseError("No algorithm were selected to find which processes may send value data "
-               "for a each target point. Please either specify using bounding boxes, "
-               "greedy search, or to_mesh_division-based parameters");
+    mooseError("No algorithm for selecting processes could be determined. Please do one of the "
+               "following:\n"
+               "- Set 'use_bounding_boxes' to 'true'\n"
+               "- Set 'greedy_search' to 'true'\n"
+               "- Add one or more entries to 'to_mesh_division' and set 'to_mesh_division_usage' "
+               "to 'matching_subapp_index'");
 
   // Error out if we could not find this point when ask us to do so
   if (!found && _error_on_miss)
