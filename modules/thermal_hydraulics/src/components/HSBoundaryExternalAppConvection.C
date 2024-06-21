@@ -21,6 +21,9 @@ HSBoundaryExternalAppConvection::validParams()
   params.addParam<VariableName>("T_ext", "T_ext", "Temperature from external application");
   params.addParam<VariableName>(
       "htc_ext", "htc_ext", "Heat transfer coefficient from external application");
+  params.addParam<bool>("add_T_ext", true, "Whether to add the external temperature variable");
+  params.addParam<bool>(
+      "add_htc_ext", true, "Whether to add the external heat transfer coefficient variable");
   params.addDeprecatedParam<PostprocessorName>(
       "scale_pp",
       "Post-processor by which to scale boundary condition",
@@ -53,10 +56,13 @@ HSBoundaryExternalAppConvection::addVariables()
   const std::vector<SubdomainName> & subdomain_names =
       hs.getGeometricalComponent().getSubdomainNames();
 
-  getTHMProblem().addSimVariable(
-      false, _T_ext_var_name, HeatConductionModel::feType(), subdomain_names);
-  getTHMProblem().addSimVariable(
-      false, _htc_ext_var_name, HeatConductionModel::feType(), subdomain_names);
+  if (getParam<bool>("add_T_ext"))
+    getTHMProblem().addSimVariable(
+        false, _T_ext_var_name, HeatConductionModel::feType(), subdomain_names);
+
+  if (getParam<bool>("add_htc_ext"))
+    getTHMProblem().addSimVariable(
+        false, _htc_ext_var_name, HeatConductionModel::feType(), subdomain_names);
 }
 
 void
