@@ -30,7 +30,7 @@ InputParameters
 ResidualConvergence::validParams()
 {
   InputParameters params = Convergence::validParams();
-  params += FEProblemSolve::residualConvergenceParams();
+  params += FEProblemSolve::feProblemDefaultConvergenceParams();
 
   params.addClassDescription(
       "Checks convergence based on absolute and relative error of the residual.");
@@ -40,65 +40,33 @@ ResidualConvergence::validParams()
 
 ResidualConvergence::ResidualConvergence(const InputParameters & parameters)
   : Convergence(parameters),
-    _fe_problem(*getCheckedPointerParam<FEProblemBase *>("_fe_problem_base"))
+    _fe_problem(*getCheckedPointerParam<FEProblemBase *>("_fe_problem_base")),
+    _nl_abs_tol(getParam<Real>("nl_abs_tol")),
+    _nl_rel_tol(getParam<Real>("nl_rel_tol")),
+    _nl_rel_step_tol(getParam<Real>("nl_rel_step_tol")),
+    _nl_abs_div_tol(getParam<Real>("nl_abs_div_tol")),
+    _nl_rel_div_tol(getParam<Real>("nl_div_tol")),
+    _div_threshold(std::numeric_limits<Real>::max()),
+    _nl_max_its(getParam<unsigned int>("nl_max_its")),
+    _nl_forced_its(getParam<unsigned int>("nl_forced_its")),
+    _nl_max_funcs(getParam<unsigned int>("nl_max_funcs")),
+    _nl_max_pingpong(getParam<unsigned int>("n_max_nonlinear_pingpong")),
+    _nl_current_pingpong(0)
 {
-  EquationSystems & es = _fe_problem.es();
-
-  _l_tol = getSharedESParam<Real>("l_tol", "linear solver tolerance", es);
-  _l_abs_tol = getSharedESParam<Real>("l_abs_tol", "linear solver absolute tolerance", es);
-  _l_max_its = getSharedESParam<unsigned int>("l_max_its", "linear solver maximum iterations", es);
-
-  _nl_max_its =
-      getSharedESParam<unsigned int>("nl_max_its", "nonlinear solver maximum iterations", es);
-  _nl_max_funcs = getSharedESParam<unsigned int>(
-      "nl_max_funcs", "nonlinear solver maximum function evaluations", es);
-  _nl_abs_tol =
-      getSharedESParam<Real>("nl_abs_tol", "nonlinear solver absolute residual tolerance", es);
-  _nl_rel_tol =
-      getSharedESParam<Real>("nl_rel_tol", "nonlinear solver relative residual tolerance", es);
-  _divtol = getSharedESParam<Real>("nl_div_tol", "nonlinear solver divergence tolerance", es);
-
-  // These two are not used at all in the check below; it appears a relative step tolerance is
-  // obtained from PETSc, which may come from 'nl_rel_step_tol' in an indirect fashion.
-  // 'nl_abs_step_tol' is used only in libMesh's own nonlinear solver.
-  _nl_abs_step_tol =
-      getSharedESParam<Real>("nl_abs_step_tol", "nonlinear solver absolute step tolerance", es);
-  _nl_rel_step_tol =
-      getSharedESParam<Real>("nl_rel_step_tol", "nonlinear solver relative step tolerance", es);
-
-  if (isParamSetByUser("nl_forced_its"))
-  {
-    _fe_problem.setNonlinearForcedIterations(getParam<unsigned int>("nl_forced_its"));
-    _nl_forced_its = getParam<unsigned int>("nl_forced_its");
-  }
-  else
-    _nl_forced_its = _fe_problem.getNonlinearForcedIterations();
-
-  if (isParamSetByUser("nl_abs_div_tol"))
-    _fe_problem.setNonlinearAbsoluteDivergenceTolerance(getParam<Real>("nl_abs_div_tol"));
-  else
-    _nl_abs_div_tol = _fe_problem.getNonlinearAbsoluteDivergenceTolerance();
-
-  if (isParamSetByUser("nl_max_nonlinear_pingpong"))
-  {
-    _fe_problem.setMaxNLPingPong(getParam<unsigned int>("n_max_nonlinear_pingpong"));
-    _n_max_nl_pingpong = getParam<unsigned int>("n_max_nonlinear_pingpong");
-  }
-  else
-    _n_max_nl_pingpong = _fe_problem.getMaxNLPingPong();
 }
 
 bool
 ResidualConvergence::checkRelativeConvergence(const PetscInt /*it*/,
                                               const Real fnorm,
                                               const Real ref_norm,
-                                              const Real rtol,
-                                              const Real /*abstol*/,
+                                              const Real rel_tol,
+                                              const Real /*abs_tol*/,
                                               std::ostringstream & oss)
 {
-  if (fnorm <= ref_norm * rtol)
+  if (fnorm <= ref_norm * rel_tol)
   {
-    oss << "Converged due to function norm " << fnorm << " < relative tolerance (" << rtol << ")\n";
+    oss << "Converged due to function norm " << fnorm << " < relative tolerance (" << rel_tol
+        << ")\n";
     return true;
   }
   else
@@ -118,42 +86,38 @@ ResidualConvergence::checkConvergence(unsigned int iter)
 
   SNES snes = system.getSNES();
 
+  PetscErrorCode ierr;
+
   // ||u||
-  ierr = SNESGetSolutionNorm(snes, &xnorm_petsc);
+  PetscReal xnorm;
+  ierr = SNESGetSolutionNorm(snes, &xnorm);
   CHKERRABORT(_fe_problem.comm().get(), ierr);
 
   // ||r||
-  ierr = SNESGetFunctionNorm(snes, &fnorm_petsc);
+  PetscReal fnorm;
+  ierr = SNESGetFunctionNorm(snes, &fnorm);
   CHKERRABORT(_fe_problem.comm().get(), ierr);
 
   // ||du||
-  ierr = SNESGetUpdateNorm(snes, &snorm_petsc);
+  PetscReal snorm;
+  ierr = SNESGetUpdateNorm(snes, &snorm);
   CHKERRABORT(_fe_problem.comm().get(), ierr);
 
-  // Ask the SNES object about its tolerances.
-  ierr = SNESGetTolerances(snes, &_atol, &_rtol, &_stol, &_maxit, &_maxf);
+  // Get current number of function evaluations done by SNES
+  PetscInt nfuncs;
+  ierr = SNESGetNumberFunctionEvals(snes, &nfuncs);
   CHKERRABORT(_fe_problem.comm().get(), ierr);
 
-  // Ask the SNES object about its divergence tolerance
-#if !PETSC_VERSION_LESS_THAN(3, 8, 0)
-  ierr = SNESGetDivergenceTolerance(snes, &_divtol);
-  CHKERRABORT(_fe_problem.comm().get(), ierr);
-#endif
-
-  // Get current number of function evaluations done by SNES.
-  ierr = SNESGetNumberFunctionEvals(snes, &_nfuncs);
-  CHKERRABORT(_fe_problem.comm().get(), ierr);
-
-  // Whether or not to force SNESSolve() take at least one iteration regardless of the initial
-  // residual norm
 #if !PETSC_VERSION_LESS_THAN(3, 8, 4)
   PetscBool force_iteration = PETSC_FALSE;
   ierr = SNESGetForceIteration(snes, &force_iteration);
   CHKERRABORT(_fe_problem.comm().get(), ierr);
 
+  // if PETSc says to force iteration, then force at least one iteration
   if (force_iteration && !(_nl_forced_its))
-    _fe_problem.setNonlinearForcedIterations(1);
+    _nl_forced_its = 1;
 
+  // if specified here to force iteration, but PETSc doesn't know, tell it
   if (!force_iteration && (_nl_forced_its))
   {
     ierr = SNESSetForceIteration(snes, PETSC_TRUE);
@@ -172,87 +136,83 @@ ResidualConvergence::checkConvergence(unsigned int iter)
 
   Real fnorm_old;
 
-  _nl_abs_div_tol = _fe_problem.getNonlinearAbsoluteDivergenceTolerance();
-
   // This is the first residual before any iterations have been done,
   // but after preset BCs (if any) have been imposed on the solution
   // vector.  We save it, and use it to detect convergence if
   // compute_initial_residual_before_preset_bcs=false.
   if (iter == 0)
   {
-    system.setInitialResidual(fnorm_petsc);
+    system.setInitialResidual(fnorm);
     // system.use_pre_SMO_residual = fnorm;
     //_initial_residual_after_preset_bcs = fnorm;
-    fnorm_old = fnorm_petsc;
-    _n_nl_pingpong = 0;
+    fnorm_old = fnorm;
+    _nl_current_pingpong = 0;
   }
   else
     fnorm_old = system._last_nl_rnorm;
 
-  // Check for nonlinear residual pingpong.
-  // Pingpong will always start from a residual increase
-  if ((_n_nl_pingpong % 2 == 1 && !(fnorm_petsc > fnorm_old)) ||
-      (_n_nl_pingpong % 2 == 0 && fnorm_petsc > fnorm_old))
-    _n_nl_pingpong += 1;
+  // Check for nonlinear residual ping-pong.
+  // Ping-pong will always start from a residual increase
+  if ((_nl_current_pingpong % 2 == 1 && !(fnorm > fnorm_old)) ||
+      (_nl_current_pingpong % 2 == 0 && fnorm > fnorm_old))
+    _nl_current_pingpong += 1;
   else
-    _n_nl_pingpong = 0;
-
-  long int _nl_forced_its = _fe_problem.getNonlinearForcedIterations();
+    _nl_current_pingpong = 0;
 
   std::ostringstream oss;
-  if (fnorm_petsc != fnorm_petsc)
+  if (fnorm != fnorm)
   {
     oss << "Failed to converge, function norm is NaN\n";
     status = MooseConvergenceStatus::DIVERGED;
   }
-  else if ((iter >= _nl_forced_its) && fnorm_petsc < _atol)
+  else if ((iter >= _nl_forced_its) && fnorm < _nl_abs_tol)
   {
-    oss << "Converged due to function norm " << fnorm_petsc << " < " << _atol << '\n';
+    oss << "Converged due to function norm " << fnorm << " < " << _nl_abs_tol << '\n';
     status = MooseConvergenceStatus::CONVERGED;
   }
-  else if (_nfuncs >= _maxf)
+  else if (nfuncs >= _nl_max_funcs)
   {
-    oss << "Exceeded maximum number of function evaluations: " << _nfuncs << " > " << _maxf << '\n';
+    oss << "Exceeded maximum number of function evaluations: " << nfuncs << " > " << _nl_max_funcs
+        << '\n';
     status = MooseConvergenceStatus::DIVERGED;
   }
-  else if ((iter >= _nl_forced_its) && iter && fnorm_petsc > system._last_nl_rnorm &&
-           fnorm_petsc >= _div_threshold)
+  else if ((iter >= _nl_forced_its) && iter && fnorm > system._last_nl_rnorm &&
+           fnorm >= _div_threshold)
   {
     oss << "Nonlinear solve was blowing up!\n";
     status = MooseConvergenceStatus::DIVERGED;
   }
   if ((iter >= _nl_forced_its) && iter && status == MooseConvergenceStatus::ITERATING)
   {
-    // Set the reference residual depending on what the user asks us to use.
-    const auto the_residual = system.referenceResidual();
-    if (checkRelativeConvergence(iter, fnorm_petsc, the_residual, _rtol, _atol, oss))
+    const auto ref_residual = system.referenceResidual();
+    if (checkRelativeConvergence(iter, fnorm, ref_residual, _nl_rel_tol, _nl_abs_tol, oss))
       status = MooseConvergenceStatus::CONVERGED;
-    else if (snorm_petsc < _stol * xnorm_petsc)
+    else if (snorm < _nl_rel_step_tol * xnorm)
     {
-      oss << "Converged due to small update length: " << snorm_petsc << " < " << _stol << " * "
-          << xnorm_petsc << '\n';
+      oss << "Converged due to small update length: " << snorm << " < " << _nl_rel_step_tol << " * "
+          << xnorm << '\n';
       status = MooseConvergenceStatus::CONVERGED;
     }
-    else if (_divtol > 0 && fnorm_petsc > the_residual * _divtol)
+    else if (_nl_rel_div_tol > 0 && fnorm > ref_residual * _nl_rel_div_tol)
     {
-      oss << "Diverged due to initial residual " << the_residual << " > divergence tolerance "
-          << _divtol << " * initial residual " << the_residual << '\n';
+      oss << "Diverged due to relative residual " << ref_residual << " > divergence tolerance "
+          << _nl_rel_div_tol << " * relative residual " << ref_residual << '\n';
       status = MooseConvergenceStatus::DIVERGED;
     }
-    else if (_nl_abs_div_tol > 0 && fnorm_petsc > _nl_abs_div_tol)
+    else if (_nl_abs_div_tol > 0 && fnorm > _nl_abs_div_tol)
     {
-      oss << "Diverged due to residual " << fnorm_petsc << " > absolute divergence tolerance "
+      oss << "Diverged due to residual " << fnorm << " > absolute divergence tolerance "
           << _nl_abs_div_tol << '\n';
       status = MooseConvergenceStatus::DIVERGED;
     }
-    else if (_n_nl_pingpong > _n_max_nl_pingpong)
+    else if (_nl_current_pingpong > _nl_max_pingpong)
     {
       oss << "Diverged due to maximum nonlinear residual pingpong achieved" << '\n';
       status = MooseConvergenceStatus::DIVERGED;
     }
   }
 
-  system._last_nl_rnorm = fnorm_petsc;
+  system._last_nl_rnorm = fnorm;
   system._current_nl_its = static_cast<unsigned int>(iter);
 
   std::string msg;
