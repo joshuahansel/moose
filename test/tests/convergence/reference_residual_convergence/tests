@@ -123,7 +123,7 @@
     type = CSVDiff
     input = no_ref.i
     csvdiff = 'zero_rel_tolerance_ref_out.csv'
-    cli_args = 'Problem/extra_tag_vectors=absref Convergence/conv/reference_vector=absref Convergence/conv/zero_reference_residual_treatment=relative_tolerance Executioner/nl_rel_tol=1e-8 Outputs/file_base=zero_rel_tolerance_ref_out'
+    cli_args = 'Problem/extra_tag_vectors=absref Convergence/conv/reference_vector=absref Convergence/conv/zero_reference_residual_treatment=relative_tolerance Convergence/conv/nl_rel_tol=1e-8 Outputs/file_base=zero_rel_tolerance_ref_out'
     requirement = 'The system shall treat convergence with a zero reference residual value as converged if the residual is below the relative tolerance, using a convergence object.'
   []
 

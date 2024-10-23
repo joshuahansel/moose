@@ -806,12 +806,6 @@ FEProblemBase::initialSetup()
 {
   TIME_SECTION("initialSetup", 2, "Performing Initial Setup");
 
-  if (_set_nonlinear_convergence_name)
-    getConvergence(_nonlinear_convergence_name).initialSetup();
-  else
-    Moose::out << "No convergence criteria specified. Using default convergence criteria."
-               << std::endl;
-
   SubProblem::initialSetup();
 
   if (_app.isRecovering() + _app.isRestarting() + bool(_app.getExReaderForRestart()) > 1)
@@ -978,6 +972,17 @@ FEProblemBase::initialSetup()
 
       adaptivity().uniformRefineWithProjection();
     }
+  }
+
+  // Convergence initial setup
+  {
+    TIME_SECTION("convergenceInitialSetup", 5, "Initializing Convergence objects");
+
+    auto conv_query = theWarehouse().query().condition<AttribSystem>("Convergence");
+    std::vector<UserObject *> conv_objs;
+    conv_query.queryInto(conv_objs);
+    for (auto conv_obj : conv_objs)
+      conv_obj->initialSetup();
   }
 
   unsigned int n_threads = libMesh::n_threads();
@@ -8758,6 +8763,15 @@ FEProblemBase::resizeMaterialData(const Moose::MaterialDataType data_type,
                                   const THREAD_ID tid)
 {
   getMaterialData(data_type, tid).resize(nqp);
+}
+
+ConvergenceName
+FEProblemBase::getNonlinearConvergenceName() const
+{
+  if (_set_nonlinear_convergence_name)
+    return _nonlinear_convergence_name;
+  else
+    mooseError("The nonlinear convergence name has not been set.");
 }
 
 void

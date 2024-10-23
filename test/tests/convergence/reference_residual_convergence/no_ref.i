@@ -90,6 +90,7 @@
 [Convergence]
   [conv]
     type = ReferenceResidualConvergence
+    nl_rel_tol = 1e-6
   []
 []
 

@@ -37,15 +37,15 @@ protected:
    * Check the relative convergence of the nonlinear solution
    * @param fnorm      Norm of the residual vector
    * @param ref_norm   Norm to use for reference value
-   * @param rtol       Relative tolerance
-   * @param abstol     Absolute tolerance
+   * @param rel_tol    Relative tolerance
+   * @param abs_tol    Absolute tolerance
    * @return           Bool signifying convergence
    */
   virtual bool checkRelativeConvergence(const PetscInt it,
                                         const Real fnorm,
                                         const Real ref_norm,
-                                        const Real rtol,
-                                        const Real abstol,
+                                        const Real rel_tol,
+                                        const Real abs_tol,
                                         std::ostringstream & oss);
 
   /**
@@ -53,72 +53,13 @@ protected:
    */
   virtual void nonlinearConvergenceSetup(){};
 
-  /**
-   * Gets a parameter if the user supplies and else takes from EquationSystems object
-   *
-   * @param[in] conv_param   Parameter name in this convergence object
-   * @param[in] es_param     Parameter name in the EquationSystems object
-   * @param[in] es           EquationSystems object
-   */
-  template <typename T>
-  T getSharedESParam(const std::string & conv_param,
-                     const std::string & es_param,
-                     EquationSystems & es) const;
-
   FEProblemBase & _fe_problem;
 
-  // Variables for the convergence criteria
-  Real _atol; // absolute convergence tolerance
-  Real _rtol; // relative convergence tolerance
-  Real _stol; // convergence (step) tolerance in terms of the norm of the change in the
-              // solution between steps
-
-  Real _div_threshold = std::numeric_limits<Real>::max();
-  /// the absolute non linear divergence tolerance
-  Real _nl_abs_div_tol = -1;
-  Real _divtol; // relative divergence tolerance
-
-  Real _nl_rel_tol;
-  Real _nl_abs_tol;
-  Real _nl_rel_step_tol;
-  Real _nl_abs_step_tol;
-
-  int _nl_forced_its = 0; // the number of forced nonlinear iterations
-  PetscInt _nfuncs = 0;
-
-  unsigned int _nl_max_its;
-  unsigned int _nl_max_funcs;
-
-  PetscInt _maxit; // maximum number of iterations
-  PetscInt _maxf;  // maximum number of function evaluations
-
-  // Linear solver convergence criteria
-  Real _l_tol;
-  Real _l_abs_tol;
-  unsigned int _l_max_its;
-
-  /// maximum number of ping-pong iterations
-  unsigned int _n_nl_pingpong = 0;
-  unsigned int _n_max_nl_pingpong = std::numeric_limits<unsigned int>::max();
-
-  PetscErrorCode ierr;
-  PetscInt it_petsc;
-  PetscReal xnorm_petsc;
-  PetscReal fnorm_petsc;
-  PetscReal snorm_petsc;
+  const Real _nl_abs_div_tol;
+  const Real _nl_rel_div_tol;
+  const Real _div_threshold;
+  unsigned int _nl_forced_its;
+  const unsigned int _nl_max_pingpong;
+  /// Current number of nonlinear ping-pong iterations for the current solve
+  unsigned int _nl_current_pingpong;
 };
-
-template <typename T>
-T
-ResidualConvergence::getSharedESParam(const std::string & conv_param,
-                                      const std::string & es_param,
-                                      EquationSystems & es) const
-{
-  if (isParamSetByUser(conv_param))
-  {
-    es.parameters.set<T>(es_param) = getParam<T>(conv_param);
-    return getParam<T>(conv_param);
-  }
-  else
-    return es.parameters.get<T>(es_param);
-}

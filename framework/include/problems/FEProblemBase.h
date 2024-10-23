@@ -2207,45 +2207,19 @@ public:
 
   bool haveDisplaced() const override final { return _displaced_problem.get(); }
 
-  /// method setting the maximum number of allowable non linear residual pingpong
-  void setMaxNLPingPong(const unsigned int n_max_nl_pingpong)
-  {
-    _n_max_nl_pingpong = n_max_nl_pingpong;
-  }
-
-  unsigned int getMaxNLPingPong() { return _n_max_nl_pingpong; }
-
-  /// method setting the minimum number of nonlinear iterations before performing divergence checks
-  void setNonlinearForcedIterations(const unsigned int nl_forced_its)
-  {
-    _nl_forced_its = nl_forced_its;
-  }
-
-  /// method returning the number of forced nonlinear iterations
-  unsigned int getNonlinearForcedIterations() const { return _nl_forced_its; }
-
-  /// method setting the absolute divergence tolerance
-  void setNonlinearAbsoluteDivergenceTolerance(const Real nl_abs_div_tol)
-  {
-    _nl_abs_div_tol = nl_abs_div_tol;
-  }
-
-  /// method returning the absolute divergence tolerance
-  Real getNonlinearAbsoluteDivergenceTolerance() const { return _nl_abs_div_tol; };
-
   /**
    * Sets the nonlinear convergence object name if there is one
    */
-  void setNonlinearConvergenceName(const ConvergenceName & convergence)
+  void setNonlinearConvergenceName(const ConvergenceName & convergence_name)
   {
-    _nonlinear_convergence_name = convergence;
+    _nonlinear_convergence_name = convergence_name;
     _set_nonlinear_convergence_name = true;
   }
 
   /**
    * Gets the nonlinear convergence object name if there is one
    */
-  ConvergenceName getNonlinearConvergenceName() const { return _nonlinear_convergence_name; }
+  ConvergenceName getNonlinearConvergenceName() const;
 
   /**
    * Setter for whether we're computing the scaling jacobian
@@ -2455,16 +2429,6 @@ protected:
   /// Flag that the nonlinear convergence name has been set
   bool _set_nonlinear_convergence_name;
   bool _set_reference_convergence_name = false;
-
-  /// maximum number
-  unsigned int _n_nl_pingpong = 0;
-  unsigned int _n_max_nl_pingpong = std::numeric_limits<unsigned int>::max();
-
-  /// the number of forced nonlinear iterations
-  int _nl_forced_its = 0;
-
-  /// the absolute non linear divergence tolerance
-  Real _nl_abs_div_tol = -1;
 
   /// The linear system names
   const std::vector<LinearSystemName> _linear_sys_names;
