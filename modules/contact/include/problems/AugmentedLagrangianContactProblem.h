@@ -34,7 +34,7 @@ public:
   virtual ~AugmentedLagrangianContactProblemTempl() {}
 
   virtual void timestepSetup() override;
-  virtual void addDefaultNonlinearConvergence() override;
+  virtual void addDefaultNonlinearConvergence(const InputParameters & params) override;
   virtual bool onlyAllowDefaultNonlinearConvergence() const override { return true; }
 
 protected:

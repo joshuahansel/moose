@@ -648,8 +648,10 @@ public:
    * Adds the default nonlinear Convergence associated with the problem
    *
    * This is called if the user does not supply 'nonlinear_convergence'.
+   *
+   * @param[in] params   Parameters to apply to Convergence parameters
    */
-  virtual void addDefaultNonlinearConvergence();
+  virtual void addDefaultNonlinearConvergence(const InputParameters & params);
   /**
    * Returns true if an error will result if the user supplies 'nonlinear_convergence'
    *

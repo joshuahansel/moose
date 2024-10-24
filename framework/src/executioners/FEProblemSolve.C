@@ -254,7 +254,7 @@ FEProblemSolve::FEProblemSolve(Executioner & ex)
     // create a single Convergence object for now. Later we may consider having
     // a Convergence per FEProblemSolve.
     if (!_problem.hasConvergence(default_name))
-      _problem.addDefaultNonlinearConvergence();
+      _problem.addDefaultNonlinearConvergence(parameters());
   }
 
   _nl.setDecomposition(_splitting);

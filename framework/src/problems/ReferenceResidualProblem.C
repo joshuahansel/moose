@@ -31,10 +31,11 @@ ReferenceResidualProblem::ReferenceResidualProblem(const InputParameters & param
 }
 
 void
-ReferenceResidualProblem::addDefaultNonlinearConvergence()
+ReferenceResidualProblem::addDefaultNonlinearConvergence(const InputParameters & params_to_apply)
 {
   const std::string class_name = "ReferenceResidualConvergence";
   InputParameters params = _factory.getValidParams(class_name);
+  params.applyParameters(params_to_apply);
   params.applyParameters(parameters());
   setNonlinearConvergenceName("reference_residual");
   addConvergence(class_name, _nonlinear_convergence_name, params);
