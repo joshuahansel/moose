@@ -19,5 +19,16 @@ SmoothTransition<is_ad>::SmoothTransition(const GenericReal<is_ad> & x_center,
 {
 }
 
+template <bool is_ad>
+void
+SmoothTransition<is_ad>::updateCenterAndWidth(const GenericReal<is_ad> & x_center,
+                                              const GenericReal<is_ad> & transition_width)
+{
+  _x_center = x_center;
+  _transition_width = transition_width;
+  _x1 = x_center - 0.5 * transition_width;
+  _x2 = x_center + 0.5 * transition_width;
+}
+
 template class SmoothTransition<false>;
 template class SmoothTransition<true>;

@@ -29,13 +29,16 @@ public:
   virtual RealVectorValue gradient(Real t, const Point & p) const;
 
 protected:
+  /// Updates the transition center and width and reinitializes
+  void updateTransition() const;
+
   /// Derivative of first function at end point
   const Real & _df1dx_end_point;
   /// Derivative of second function at end point
   const Real & _df2dx_end_point;
 
   /// Transition object
-  CubicTransition _transition;
+  mutable CubicTransition _transition;
 
 public:
   static InputParameters validParams();

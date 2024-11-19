@@ -34,6 +34,7 @@ CosineTransitionFunction::value(Real t, const Point & p) const
 {
   const Real x = _use_time ? t : p(_component);
 
+  _transition.updateCenterAndWidth(_x_center, _transition_width);
   return _transition.value(x, _function1.value(t, p), _function2.value(t, p));
 }
 

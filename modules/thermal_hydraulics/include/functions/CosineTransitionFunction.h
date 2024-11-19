@@ -30,7 +30,7 @@ public:
 
 protected:
   /// Transition object
-  const WeightedTransition _transition;
+  mutable WeightedTransition _transition;
 
 public:
   static InputParameters validParams();

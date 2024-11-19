@@ -27,6 +27,9 @@ public:
   CubicTransitionTempl(const GenericReal<is_ad> & x_center,
                        const GenericReal<is_ad> & transition_width);
 
+  virtual void updateCenterAndWidth(const GenericReal<is_ad> & x_center,
+                                    const GenericReal<is_ad> & transition_width) override;
+
   virtual GenericReal<is_ad> value(const GenericReal<is_ad> & x,
                                    const GenericReal<is_ad> & f1,
                                    const GenericReal<is_ad> & f2) const override;
@@ -65,8 +68,8 @@ protected:
   GenericReal<is_ad> _C;
   GenericReal<is_ad> _D;
 
-  /// Flag that transition has been initialized
-  bool _initialized;
+  /// Flag that \c initialize() needs to be called
+  bool _needs_init;
 };
 
 typedef CubicTransitionTempl<false> CubicTransition;

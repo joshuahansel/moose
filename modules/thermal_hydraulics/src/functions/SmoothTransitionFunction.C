@@ -22,6 +22,8 @@ SmoothTransitionFunction::validParams()
   params.addRequiredParam<Real>("transition_center", "Center position of transition");
   params.addRequiredParam<Real>("transition_width", "Width of transition");
 
+  params.declareControllable("transition_center transition_width");
+
   return params;
 }
 

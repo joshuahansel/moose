@@ -28,6 +28,15 @@ public:
                    const GenericReal<is_ad> & transition_width);
 
   /**
+   * Updates transition center, width, and dependent quantities
+   *
+   * @param[in] x_center   Center point of transition
+   * @param[in] transition_width   Width of transition
+   */
+  virtual void updateCenterAndWidth(const GenericReal<is_ad> & x_center,
+                                    const GenericReal<is_ad> & transition_width);
+
+  /**
    * Computes the transition value
    *
    * @param[in] x    Point at which to evaluate function
@@ -50,12 +59,12 @@ public:
 
 protected:
   /// Center point of transition
-  const GenericReal<is_ad> _x_center;
+  GenericReal<is_ad> _x_center;
   /// Width of transition
-  const GenericReal<is_ad> _transition_width;
+  GenericReal<is_ad> _transition_width;
 
   /// Left end point of transition
-  const GenericReal<is_ad> _x1;
+  GenericReal<is_ad> _x1;
   /// Right end point of transition
-  const GenericReal<is_ad> _x2;
+  GenericReal<is_ad> _x2;
 };

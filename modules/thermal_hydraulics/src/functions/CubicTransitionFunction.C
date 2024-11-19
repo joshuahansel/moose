@@ -32,6 +32,29 @@ CubicTransitionFunction::CubicTransitionFunction(const InputParameters & paramet
 
     _transition(_x_center, _transition_width)
 {
+}
+
+Real
+CubicTransitionFunction::value(Real t, const Point & p) const
+{
+  const Real x = _use_time ? t : p(_component);
+
+  updateTransition();
+
+  return _transition.value(x, _function1.value(t, p), _function2.value(t, p));
+}
+
+RealVectorValue
+CubicTransitionFunction::gradient(Real /*t*/, const Point & /*p*/) const
+{
+  mooseError(name(), ": ", __PRETTY_FUNCTION__, " is not implemented.");
+}
+
+void
+CubicTransitionFunction::updateTransition() const
+{
+  _transition.updateCenterAndWidth(_x_center, _transition_width);
+
   Point p1, p2;
   Real t1 = 0.0, t2 = 0.0;
   if (_use_time)
@@ -47,18 +70,4 @@ CubicTransitionFunction::CubicTransitionFunction(const InputParameters & paramet
 
   _transition.initialize(
       _function1.value(t1, p1), _function2.value(t2, p2), _df1dx_end_point, _df2dx_end_point);
-}
-
-Real
-CubicTransitionFunction::value(Real t, const Point & p) const
-{
-  const Real x = _use_time ? t : p(_component);
-
-  return _transition.value(x, _function1.value(t, p), _function2.value(t, p));
-}
-
-RealVectorValue
-CubicTransitionFunction::gradient(Real /*t*/, const Point & /*p*/) const
-{
-  mooseError(name(), ": ", __PRETTY_FUNCTION__, " is not implemented.");
 }

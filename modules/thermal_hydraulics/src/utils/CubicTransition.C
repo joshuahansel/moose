@@ -24,8 +24,17 @@ CubicTransitionTempl<is_ad>::CubicTransitionTempl(const GenericReal<is_ad> & x_c
     _C(0.0),
     _D(0.0),
 
-    _initialized(false)
+    _needs_init(true)
 {
+}
+
+template <bool is_ad>
+void
+CubicTransitionTempl<is_ad>::updateCenterAndWidth(const GenericReal<is_ad> & x_center,
+                                                  const GenericReal<is_ad> & transition_width)
+{
+  SmoothTransition<is_ad>::updateCenterAndWidth(x_center, transition_width);
+  _needs_init = true;
 }
 
 template <bool is_ad>
@@ -73,7 +82,7 @@ CubicTransitionTempl<is_ad>::initialize(const GenericReal<is_ad> & f1_end_value,
   _C = coefs(2);
   _D = coefs(3);
 
-  _initialized = true;
+  _needs_init = false;
 }
 
 template <bool is_ad>
@@ -82,7 +91,7 @@ CubicTransitionTempl<is_ad>::value(const GenericReal<is_ad> & x,
                                    const GenericReal<is_ad> & f1,
                                    const GenericReal<is_ad> & f2) const
 {
-  mooseAssert(_initialized, "initialize() must be called.");
+  mooseAssert(!_needs_init, "initialize() must be called.");
 
   if (x <= _x1)
     return f1;
@@ -98,7 +107,7 @@ CubicTransitionTempl<is_ad>::derivative(const GenericReal<is_ad> & x,
                                         const GenericReal<is_ad> & df1dx,
                                         const GenericReal<is_ad> & df2dx) const
 {
-  mooseAssert(_initialized, "initialize() must be called.");
+  mooseAssert(!_needs_init, "initialize() must be called.");
 
   if (x <= _x1)
     return df1dx;
