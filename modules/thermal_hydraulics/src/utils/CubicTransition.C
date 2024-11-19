@@ -9,12 +9,15 @@
 
 #include "CubicTransition.h"
 #include "MooseError.h"
+#include "ADReal.h"
 
-#include "libmesh/dense_matrix.h"
 #include "libmesh/dense_vector.h"
+#include "DenseMatrix.h"
 
-CubicTransition::CubicTransition(const Real & x_center, const Real & transition_width)
-  : SmoothTransition(x_center, transition_width),
+template <bool is_ad>
+CubicTransitionTempl<is_ad>::CubicTransitionTempl(const GenericReal<is_ad> & x_center,
+                                                  const GenericReal<is_ad> & transition_width)
+  : SmoothTransition<is_ad>(x_center, transition_width),
 
     _A(0.0),
     _B(0.0),
@@ -25,15 +28,16 @@ CubicTransition::CubicTransition(const Real & x_center, const Real & transition_
 {
 }
 
+template <bool is_ad>
 void
-CubicTransition::initialize(const Real & f1_end_value,
-                            const Real & f2_end_value,
-                            const Real & df1dx_end_value,
-                            const Real & df2dx_end_value)
+CubicTransitionTempl<is_ad>::initialize(const GenericReal<is_ad> & f1_end_value,
+                                        const GenericReal<is_ad> & f2_end_value,
+                                        const GenericReal<is_ad> & df1dx_end_value,
+                                        const GenericReal<is_ad> & df2dx_end_value)
 {
   // compute cubic polynomial coefficients
 
-  DenseMatrix<Real> mat(4, 4);
+  DenseMatrix<GenericReal<is_ad>> mat(4, 4);
 
   mat(0, 0) = std::pow(_x1, 3);
   mat(0, 1) = std::pow(_x1, 2);
@@ -55,13 +59,13 @@ CubicTransition::initialize(const Real & f1_end_value,
   mat(3, 2) = 1.0;
   mat(3, 3) = 0.0;
 
-  DenseVector<Real> rhs(4);
+  DenseVector<GenericReal<is_ad>> rhs(4);
   rhs(0) = f1_end_value;
   rhs(1) = f2_end_value;
   rhs(2) = df1dx_end_value;
   rhs(3) = df2dx_end_value;
 
-  DenseVector<Real> coefs(4);
+  DenseVector<GenericReal<is_ad>> coefs(4);
   mat.lu_solve(rhs, coefs);
 
   _A = coefs(0);
@@ -72,8 +76,11 @@ CubicTransition::initialize(const Real & f1_end_value,
   _initialized = true;
 }
 
-Real
-CubicTransition::value(const Real & x, const Real & f1, const Real & f2) const
+template <bool is_ad>
+GenericReal<is_ad>
+CubicTransitionTempl<is_ad>::value(const GenericReal<is_ad> & x,
+                                   const GenericReal<is_ad> & f1,
+                                   const GenericReal<is_ad> & f2) const
 {
   mooseAssert(_initialized, "initialize() must be called.");
 
@@ -85,8 +92,11 @@ CubicTransition::value(const Real & x, const Real & f1, const Real & f2) const
     return _A * std::pow(x, 3) + _B * std::pow(x, 2) + _C * x + _D;
 }
 
-Real
-CubicTransition::derivative(const Real & x, const Real & df1dx, const Real & df2dx) const
+template <bool is_ad>
+GenericReal<is_ad>
+CubicTransitionTempl<is_ad>::derivative(const GenericReal<is_ad> & x,
+                                        const GenericReal<is_ad> & df1dx,
+                                        const GenericReal<is_ad> & df2dx) const
 {
   mooseAssert(_initialized, "initialize() must be called.");
 
@@ -97,3 +107,6 @@ CubicTransition::derivative(const Real & x, const Real & df1dx, const Real & df2
   else
     return 3.0 * _A * std::pow(x, 2) + 2.0 * _B * x + _C;
 }
+
+template class CubicTransitionTempl<false>;
+template class CubicTransitionTempl<true>;

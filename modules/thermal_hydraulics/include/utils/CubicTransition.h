@@ -14,7 +14,8 @@
 /**
  *  Cubic polynomial transition between two functions of one variable
  */
-class CubicTransition : public SmoothTransition
+template <bool is_ad>
+class CubicTransitionTempl : public SmoothTransition<is_ad>
 {
 public:
   /**
@@ -23,9 +24,12 @@ public:
    * @param[in] x_center   Center point of transition
    * @param[in] transition_width   Width of transition
    */
-  CubicTransition(const Real & x_center, const Real & transition_width);
+  CubicTransitionTempl(const GenericReal<is_ad> & x_center,
+                       const GenericReal<is_ad> & transition_width);
 
-  virtual Real value(const Real & x, const Real & f1, const Real & f2) const override;
+  virtual GenericReal<is_ad> value(const GenericReal<is_ad> & x,
+                                   const GenericReal<is_ad> & f1,
+                                   const GenericReal<is_ad> & f2) const override;
 
   /**
    * Computes the derivative of the transition value
@@ -34,7 +38,9 @@ public:
    * @param[in] df1dx   First function derivative
    * @param[in] df2dx   Second function derivative
    */
-  Real derivative(const Real & x, const Real & df1dx, const Real & df2dx) const;
+  GenericReal<is_ad> derivative(const GenericReal<is_ad> & x,
+                                const GenericReal<is_ad> & df1dx,
+                                const GenericReal<is_ad> & df2dx) const;
 
   /**
    * Initializes the polynomial coefficients
@@ -44,18 +50,24 @@ public:
    * @param[in] df1dx_end_value   Value of left function derivative at left transition end point
    * @param[in] df2dx_end_value   Value of right function derivative at right transition end point
    */
-  void initialize(const Real & f1_end_value,
-                  const Real & f2_end_value,
-                  const Real & df1dx_end_value,
-                  const Real & df2dx_end_value);
+  void initialize(const GenericReal<is_ad> & f1_end_value,
+                  const GenericReal<is_ad> & f2_end_value,
+                  const GenericReal<is_ad> & df1dx_end_value,
+                  const GenericReal<is_ad> & df2dx_end_value);
 
 protected:
+  using SmoothTransition<is_ad>::_x1;
+  using SmoothTransition<is_ad>::_x2;
+
   // Polynomial coefficients
-  Real _A;
-  Real _B;
-  Real _C;
-  Real _D;
+  GenericReal<is_ad> _A;
+  GenericReal<is_ad> _B;
+  GenericReal<is_ad> _C;
+  GenericReal<is_ad> _D;
 
   /// Flag that transition has been initialized
   bool _initialized;
 };
+
+typedef CubicTransitionTempl<false> CubicTransition;
+typedef CubicTransitionTempl<true> ADCubicTransition;

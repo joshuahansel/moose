@@ -14,6 +14,7 @@
 /**
  * Base class for smooth transitions between two functions of one variable
  */
+template <bool is_ad>
 class SmoothTransition
 {
 public:
@@ -23,7 +24,8 @@ public:
    * @param[in] x_center   Center point of transition
    * @param[in] transition_width   Width of transition
    */
-  SmoothTransition(const Real & x_center, const Real & transition_width);
+  SmoothTransition(const GenericReal<is_ad> & x_center,
+                   const GenericReal<is_ad> & transition_width);
 
   /**
    * Computes the transition value
@@ -32,26 +34,28 @@ public:
    * @param[in] f1   Left function
    * @param[in] f2   Right function
    */
-  virtual Real value(const Real & x, const Real & f1, const Real & f2) const = 0;
+  virtual GenericReal<is_ad> value(const GenericReal<is_ad> & x,
+                                   const GenericReal<is_ad> & f1,
+                                   const GenericReal<is_ad> & f2) const = 0;
 
   /**
    * Returns the coordinate of the left end of the transition
    */
-  const Real & leftEnd() const { return _x1; }
+  const GenericReal<is_ad> & leftEnd() const { return _x1; }
 
   /**
    * Returns the coordinate of the right end of the transition
    */
-  const Real & rightEnd() const { return _x2; }
+  const GenericReal<is_ad> & rightEnd() const { return _x2; }
 
 protected:
   /// Center point of transition
-  const Real _x_center;
+  const GenericReal<is_ad> _x_center;
   /// Width of transition
-  const Real _transition_width;
+  const GenericReal<is_ad> _transition_width;
 
   /// Left end point of transition
-  const Real _x1;
+  const GenericReal<is_ad> _x1;
   /// Right end point of transition
-  const Real _x2;
+  const GenericReal<is_ad> _x2;
 };

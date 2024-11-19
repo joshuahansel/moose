@@ -14,7 +14,8 @@
 /**
  * Weighted transition between two functions of one variable
  */
-class WeightedTransition : public SmoothTransition
+template <bool is_ad>
+class WeightedTransitionTempl : public SmoothTransition<is_ad>
 {
 public:
   /**
@@ -23,9 +24,12 @@ public:
    * @param[in] x_center   Center point of transition
    * @param[in] transition_width   Width of transition
    */
-  WeightedTransition(const Real & x_center, const Real & transition_width);
+  WeightedTransitionTempl(const GenericReal<is_ad> & x_center,
+                          const GenericReal<is_ad> & transition_width);
 
-  virtual Real value(const Real & x, const Real & f1, const Real & f2) const override;
+  virtual GenericReal<is_ad> value(const GenericReal<is_ad> & x,
+                                   const GenericReal<is_ad> & f1,
+                                   const GenericReal<is_ad> & f2) const override;
 
   /**
    * Computes the derivative of the transition value
@@ -36,16 +40,23 @@ public:
    * @param[in] df1dx   First function derivative
    * @param[in] df2dx   Second function derivative
    */
-  Real derivative(const Real & x,
-                  const Real & f1,
-                  const Real & f2,
-                  const Real & df1dx,
-                  const Real & df2dx) const;
+  GenericReal<is_ad> derivative(const GenericReal<is_ad> & x,
+                                const GenericReal<is_ad> & f1,
+                                const GenericReal<is_ad> & f2,
+                                const GenericReal<is_ad> & df1dx,
+                                const GenericReal<is_ad> & df2dx) const;
 
   /**
    * Computes the weight of the first function
    *
    * @param[in] x   Point at which to evaluate weight
    */
-  Real weight(const Real & x) const;
+  GenericReal<is_ad> weight(const GenericReal<is_ad> & x) const;
+
+protected:
+  using SmoothTransition<is_ad>::_x1;
+  using SmoothTransition<is_ad>::_x2;
 };
+
+typedef WeightedTransitionTempl<false> WeightedTransition;
+typedef WeightedTransitionTempl<true> ADWeightedTransition;

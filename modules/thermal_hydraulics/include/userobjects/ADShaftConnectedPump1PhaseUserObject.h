@@ -11,7 +11,7 @@
 
 #include "ADVolumeJunction1PhaseUserObject.h"
 #include "ADShaftConnectableUserObjectInterface.h"
-#include "ADWeightedTransition.h"
+#include "WeightedTransition.h"
 
 class SinglePhaseFluidProperties;
 class ADNumericalFlux3EqnBase;

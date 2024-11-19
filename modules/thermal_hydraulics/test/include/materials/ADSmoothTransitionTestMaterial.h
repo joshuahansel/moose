@@ -10,8 +10,8 @@
 #pragma once
 
 #include "Material.h"
-#include "ADCubicTransition.h"
-#include "ADWeightedTransition.h"
+#include "CubicTransition.h"
+#include "WeightedTransition.h"
 
 #include "ADReal.h"
 
