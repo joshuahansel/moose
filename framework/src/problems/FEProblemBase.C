@@ -6424,6 +6424,9 @@ FEProblemBase::advanceState()
 
   _reporter_data.copyValuesBack();
 
+  for (const auto & item : getMooseApp().getChainControlDataSystem().getChainControlDataMap())
+    item.second->copyValuesBack();
+
   if (_material_props.hasStatefulProperties())
     _material_props.shift();
 
