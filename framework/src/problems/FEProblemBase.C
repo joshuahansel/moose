@@ -4879,15 +4879,21 @@ FEProblemBase::executeControls(const ExecFlagType & exec_type)
       // Make sure an item with no dependencies comes out too!
       resolver.addItem(it);
 
+      // std::cout<<it->name()<<" deps:"<<std::endl;
       std::vector<std::string> & dependent_controls = it->getDependencies();
       for (const auto & depend_name : dependent_controls)
       {
+        // std::cout<<"  "<<depend_name<<std::endl;
         if (controls_wh.hasActiveObject(depend_name))
         {
           auto dep_control = controls_wh.getActiveObject(depend_name);
           resolver.addEdge(dep_control, it);
         }
-        else
+        // It's possible that the control this one depends upon does exist but
+        // does not execute on this particular flag. It would be good to give
+        // a warning in this situation, but it should not be done here, since
+        // the warning would occur on each execution.
+        else if (!_control_warehouse.hasActiveObject(depend_name))
           mooseError("The Control \"",
                      depend_name,
                      "\" was not created, did you make a "

@@ -286,6 +286,7 @@ tot_power = 2000 # W
   [set_point]
     type = GetFunctionValueControl
     function = ${m_dot_in}
+    execute_on = 'INITIAL TIMESTEP_END'
   []
 
   [pid]
@@ -293,9 +294,10 @@ tot_power = 2000 # W
     initial_value = 0
     set_point = set_point:value
     input = m_dot_pump
-    K_p = 1.
-    K_i = 4.
+    K_p = 20
+    K_i = 1
     K_d = 0
+    execute_on = 'INITIAL TIMESTEP_END'
   []
 
   [set_pump_head]
@@ -303,6 +305,7 @@ tot_power = 2000 # W
     component = pump
     parameter = head
     value = pid:output
+    execute_on = 'INITIAL TIMESTEP_END'
   []
 []
 

@@ -49,5 +49,13 @@ PIDControl::execute()
 {
   _error = _set_point - _value;
   _integral = _integral_old + _K_i * (_error * _dt);
-  _output = _K_p * _error + _integral + _K_d * (_error - _error_old) / _dt;
+  _output = _K_p * _error + _integral;
+  // _dt = 0 on INITIAL
+  if (!MooseUtils::absoluteFuzzyEqual(_dt, 0.0))
+    _output += _K_d * (_error - _error_old) / _dt;
+  std::cout << "_error=" << _error << ", _set_point=" << _set_point << ", _value=" << _value
+            << std::endl;
+  std::cout << "_integral=" << _integral << ", _integral_old=" << _integral_old << ", _dt=" << _dt
+            << std::endl;
+  std::cout << "_output=" << _output << ", _error_old=" << _error_old << std::endl;
 }

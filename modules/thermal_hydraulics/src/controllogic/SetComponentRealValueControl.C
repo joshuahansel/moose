@@ -38,5 +38,6 @@ SetComponentRealValueControl::SetComponentRealValueControl(const InputParameters
 void
 SetComponentRealValueControl::execute()
 {
+  std::cout << "value = " << _value << std::endl;
   setControllableValueByName<Real>(_ctrl_param_name, _value);
 }

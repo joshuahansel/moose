@@ -42,6 +42,8 @@ PostprocessorAsControlAction::act()
         _action_factory.create(class_name, _name + "_copy_ctrl", params));
 
     action->getObjectParams().set<PostprocessorName>("postprocessor") = _name;
+    // action->getObjectParams().set<ExecFlagEnum>("execute_on") = {EXEC_INITIAL,
+    // EXEC_TIMESTEP_END};
 
     _awh.addActionBlock(action);
   }

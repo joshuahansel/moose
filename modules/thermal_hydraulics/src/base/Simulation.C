@@ -922,7 +922,8 @@ Simulation::controlDataIntegrityCheck()
 
   _log.emitLoggedErrors();
 
-  auto & ctrl_wh = _fe_problem.getControlWarehouse()[EXEC_TIMESTEP_BEGIN];
+  // auto & ctrl_wh = _fe_problem.getControlWarehouse()[EXEC_TIMESTEP_BEGIN];
+  auto & ctrl_wh = _fe_problem.getControlWarehouse();
 
   // initialize THM control objects
   for (auto && i : ctrl_wh.getObjects())
@@ -940,11 +941,13 @@ Simulation::controlDataIntegrityCheck()
     {
       // get its dependencies on control data
       auto & cd_deps = ctrl->getControlDataDependencies();
+      // std::cout<<"pushing back deps for "<<ctrl->name()<<std::endl;
       for (auto && cd_name : cd_deps)
       {
         ControlDataValue * cdv = _control_data[cd_name];
         // find out which control object built the control data
         std::string dep_name = cdv->getControl()->name();
+        // std::cout<<"  cd dep = "<<cd_name<<" control dep = "<<dep_name<<std::endl;
         auto & deps = ctrl->getDependencies();
         // and if it is not in its dependency list, add it
         auto it = std::find(deps.begin(), deps.end(), dep_name);

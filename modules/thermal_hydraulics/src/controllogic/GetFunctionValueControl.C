@@ -32,5 +32,6 @@ GetFunctionValueControl::GetFunctionValueControl(const InputParameters & paramet
 void
 GetFunctionValueControl::execute()
 {
+  std::cout << name() << ": function=" << _function.value(_t, Point()) << std::endl;
   _value = _function.value(_t, Point());
 }
