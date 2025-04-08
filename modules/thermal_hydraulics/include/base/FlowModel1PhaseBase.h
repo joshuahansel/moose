@@ -55,6 +55,8 @@ protected:
   // various kernels
   virtual void addMomentumAreaGradientKernel();
   virtual void addMomentumFrictionKernel();
+  virtual void addContinuumModelDragKernel();
+  virtual void addDustyGasModelDragKernel();
   virtual void addMomentumGravityKernel();
   virtual void addEnergyGravityKernel();
 

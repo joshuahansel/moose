@@ -18,6 +18,8 @@ FlowModel1PhaseBase::validParams()
   params.addRequiredParam<UserObjectName>("numerical_flux", "Numerical flux user object name");
   params.addRequiredParam<MooseEnum>("rdg_slope_reconstruction",
                                      "Slope reconstruction type for rDG");
+  MooseEnum drag_model("continuum dusty_gas", "continuum");
+  params.addParam<MooseEnum>("drag_model", drag_model, "Model for how drag is computed.");
   return params;
 }
 
@@ -249,6 +251,16 @@ FlowModel1PhaseBase::addMomentumAreaGradientKernel()
 void
 FlowModel1PhaseBase::addMomentumFrictionKernel()
 {
+  const auto drag_model = getParam<MooseEnum>("drag_model");
+  if (drag_model == "continuum")
+    addContinuumModelDragKernel();
+  else if (drag_model == "dusty_gas")
+    addDustyGasModelDragKernel();
+}
+
+void
+FlowModel1PhaseBase::addContinuumModelDragKernel()
+{
   const std::string class_name = "ADOneD3EqnMomentumFriction";
   InputParameters params = _factory.getValidParams(class_name);
   params.set<NonlinearVariableName>("variable") = THM::RHOUA;
@@ -258,6 +270,17 @@ FlowModel1PhaseBase::addMomentumFrictionKernel()
   params.set<MaterialPropertyName>("rho") = THM::DENSITY;
   params.set<MaterialPropertyName>("vel") = THM::VELOCITY;
   params.set<MaterialPropertyName>("f_D") = THM::FRICTION_FACTOR_DARCY;
+  _sim.addKernel(class_name, genName(_comp_name, "mom_friction"), params);
+}
+
+void
+FlowModel1PhaseBase::addDustyGasModelDragKernel()
+{
+  const std::string class_name = "DustyGasModelDrag";
+  InputParameters params = _factory.getValidParams(class_name);
+  params.set<NonlinearVariableName>("variable") = THM::RHOUA;
+  params.set<std::vector<SubdomainName>>("block") = _flow_channel.getSubdomainNames();
+  params.set<std::vector<VariableName>>("A") = {THM::AREA};
   _sim.addKernel(class_name, genName(_comp_name, "mom_friction"), params);
 }
 

@@ -24,6 +24,8 @@ FlowChannel1PhaseBase::validParams()
       "rdg_slope_reconstruction",
       SlopeReconstruction1DInterface<true>::getSlopeReconstructionMooseEnum("None"),
       "Slope reconstruction type for rDG spatial discretization");
+  MooseEnum drag_model("continuum dusty_gas", "continuum");
+  params.addParam<MooseEnum>("drag_model", drag_model, "Model for how drag is computed.");
 
   params.declareControllable("initial_p initial_T initial_vel D_h");
   params.addParamNamesToGroup("initial_p initial_T initial_vel", "Variable initialization");
