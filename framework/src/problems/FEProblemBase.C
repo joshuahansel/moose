@@ -410,8 +410,10 @@ FEProblemBase::FEProblemBase(const InputParameters & parameters)
     _dt_old(declareRestartableData<Real>("dt_old")),
     _set_nonlinear_convergence_names(false),
     _set_fixed_point_convergence_name(false),
+    _set_steady_convergence_name(false),
     _need_to_add_default_nonlinear_convergence(false),
     _need_to_add_default_fixed_point_convergence(false),
+    _need_to_add_default_steady_convergence(false),
     _linear_sys_names(getParam<std::vector<LinearSystemName>>("linear_sys_names")),
     _num_linear_sys(_linear_sys_names.size()),
     _linear_systems(_num_linear_sys, nullptr),
@@ -2536,6 +2538,17 @@ FEProblemBase::addDefaultFixedPointConvergence(const InputParameters & params_to
   params.applyParameters(parameters());
   params.set<bool>("added_as_default") = true;
   addConvergence(class_name, getFixedPointConvergenceName(), params);
+}
+
+void
+FEProblemBase::addDefaultSteadyConvergence(const InputParameters & params_to_apply)
+{
+  const std::string class_name = "DefaultSteadyConvergence";
+  InputParameters params = _factory.getValidParams(class_name);
+  params.applyParameters(params_to_apply);
+  params.applyParameters(parameters());
+  params.set<bool>("added_as_default") = true;
+  addConvergence(class_name, getSteadyConvergenceName(), params);
 }
 
 bool
@@ -9016,6 +9029,13 @@ FEProblemBase::setFixedPointConvergenceName(const ConvergenceName & convergence_
   _set_fixed_point_convergence_name = true;
 }
 
+void
+FEProblemBase::setSteadyConvergenceName(const ConvergenceName & convergence_name)
+{
+  _steady_convergence_name = convergence_name;
+  _set_steady_convergence_name = true;
+}
+
 std::vector<ConvergenceName>
 FEProblemBase::getNonlinearConvergenceNames() const
 {
@@ -9032,6 +9052,15 @@ FEProblemBase::getFixedPointConvergenceName() const
     return _fixed_point_convergence_name;
   else
     mooseError("The fixed point convergence name has not been set.");
+}
+
+ConvergenceName
+FEProblemBase::getSteadyConvergenceName() const
+{
+  if (_set_steady_convergence_name)
+    return _steady_convergence_name;
+  else
+    mooseError("The steady convergence name has not been set.");
 }
 
 void
