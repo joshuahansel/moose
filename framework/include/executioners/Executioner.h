@@ -59,7 +59,7 @@ public:
   /**
    * Initialize the executioner
    */
-  virtual void init() {}
+  virtual void init();
 
   /**
    * Pure virtual execute function MUST be overridden by children classes.
@@ -144,6 +144,8 @@ protected:
    */
   virtual PostprocessorValue & addAttributeReporter(const std::string & name,
                                                     Real initial_value = 0);
+
+  void checkMultiAppFixedPointParameters() const;
 
   FEProblemBase & _fe_problem;
 

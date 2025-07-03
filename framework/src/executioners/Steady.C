@@ -33,6 +33,8 @@ Steady::Steady(const InputParameters & parameters) : SteadyBase(parameters), _fe
 void
 Steady::init()
 {
+  SteadyBase::init();
+
   checkIntegrity();
   _problem.execute(EXEC_PRE_MULTIAPP_SETUP);
   _problem.initialSetup();

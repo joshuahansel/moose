@@ -213,6 +213,8 @@ TransientBase::TransientBase(const InputParameters & parameters)
 void
 TransientBase::init()
 {
+  Executioner::init();
+
   _problem.execute(EXEC_PRE_MULTIAPP_SETUP);
   _problem.initialSetup();
 
