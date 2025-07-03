@@ -137,10 +137,6 @@ Executioner::init()
 void
 Executioner::checkMultiAppFixedPointParameters() const
 {
-  // const bool executing_fp_loop = _fixed_point_solve->maxFixedPointIts() > 1;
-  // if (executing_fp_loop && !_fe_problem.hasMultiApps())
-  //   mooseError("'fixed_point_max_its' was set to be > 1, but there are no MultiApps.");
-
   const std::vector<std::string> fp_params{"accept_on_max_fixed_point_iteration",
                                            "disable_fixed_point_residual_norm_check",
                                            "fixed_point_min_its",
@@ -157,7 +153,7 @@ Executioner::checkMultiAppFixedPointParameters() const
     if (isParamSetByUser(param))
       provided_fp_params.push_back(param);
 
-  if (provided_fp_params.size() > 0 && !executing_fp_loop)
+  if (provided_fp_params.size() > 0 && _fixed_point_solve->maxFixedPointIts() <= 1)
   {
     std::ostringstream oss;
     oss << "The following MultiApp fixed point parameters were provided:\n";
