@@ -108,6 +108,14 @@ public:
    */
   virtual void allocateStorage(const bool primary) = 0;
 
+  /// True if the algorithm is storing the previous fixed point solution vector
+  virtual bool algorithmStoringPreviousFPSolution() const = 0;
+
+  /**
+   * Flip a flag that indicates that the previous MultiApp fixed point iterate needs to be stored
+   */
+  void forcePreviousFPIterationStorage() { _force_previous_fp_iteration_storage = true; }
+
   /// Whether sub-applications are automatically advanced no matter what happens during their solves
   bool autoAdvance() const;
 
@@ -220,6 +228,12 @@ protected:
   /// Status of fixed point solve
   MooseFixedPointConvergenceReason _fixed_point_status;
   ///@}
+
+  /// Vector tag ID for the previous solution variable, as a main app
+  TagID _previous_fp_solution_tag_id;
+  /// Flag to force storage of the previous fixed point iteration solution
+  bool _force_previous_fp_iteration_storage;
+
 private:
   /// Maximum number of xfem updates per step
   const unsigned int _max_xfem_update;

@@ -60,6 +60,12 @@ PicardSolve::allocateStorage(const bool primary)
   }
 }
 
+bool
+PicardSolve::algorithmStoringPreviousFPSolution() const
+{
+  return _relax_factor != 1.;
+}
+
 void
 PicardSolve::saveVariableValues(const bool primary)
 {

@@ -32,6 +32,8 @@ public:
    */
   virtual void allocateStorage(const bool primary) override final;
 
+  virtual bool algorithmStoringPreviousFPSolution() const override final;
+
   virtual void printFixedPointConvergenceHistory(
       Real initial_norm,
       const std::vector<Real> & timestep_begin_norms,

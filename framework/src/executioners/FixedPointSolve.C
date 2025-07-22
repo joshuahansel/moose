@@ -154,6 +154,9 @@ FixedPointSolve::FixedPointSolve(Executioner & ex)
     _secondary_relaxation_factor(1.0),
     _fixed_point_it(0),
     _fixed_point_status(MooseFixedPointConvergenceReason::UNSOLVED),
+    _previous_fp_solution_tag_id(
+        _problem.addVectorTag(Moose::PREVIOUS_FP_SOLUTION_TAG, Moose::VECTOR_TAG_SOLUTION)),
+    _force_previous_fp_iteration_storage(false),
     _max_xfem_update(getParam<unsigned int>("max_xfem_update")),
     _update_xfem_at_timestep_begin(getParam<bool>("update_xfem_at_timestep_begin")),
     _xfem_update_count(0),
@@ -417,6 +420,14 @@ FixedPointSolve::solveStep(const std::set<dof_id_type> & transformed_dofs)
 
   // Save the current values of variables and postprocessors, before the solve
   saveAllValues(true);
+
+  // Store the previous FP iteration solution if requested but not already stored
+  if (_force_previous_fp_iteration_storage && !algorithmStoringPreviousFPSolution())
+  {
+    NumericVector<Number> & solution = _solver_sys.solution();
+    NumericVector<Number> & solution_old = _solver_sys.getVector(_previous_fp_solution_tag_id);
+    solution_old = solution;
+  }
 
   if (_has_fixed_point_its)
     _console << COLOR_MAGENTA << "\nMain app solve:" << COLOR_DEFAULT << std::endl;
