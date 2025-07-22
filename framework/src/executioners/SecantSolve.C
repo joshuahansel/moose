@@ -44,7 +44,8 @@ SecantSolve::allocateStorage(const bool primary)
   TagID xn_m2_tagid;
   if (primary)
   {
-    xn_m1_tagid = _problem.addVectorTag("xn_m1", Moose::VECTOR_TAG_SOLUTION);
+    xn_m1_tagid =
+        _problem.addVectorTag(Moose::PREVIOUS_FP_SOLUTION_TAG, Moose::VECTOR_TAG_SOLUTION);
     fxn_m1_tagid = _problem.addVectorTag("fxn_m1", Moose::VECTOR_TAG_SOLUTION);
     xn_m2_tagid = _problem.addVectorTag("xn_m2", Moose::VECTOR_TAG_SOLUTION);
     fxn_m2_tagid = _problem.addVectorTag("fxn_m2", Moose::VECTOR_TAG_SOLUTION);

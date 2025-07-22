@@ -1195,6 +1195,7 @@ extern const TagName SOLUTION_TAG;
 extern const TagName OLD_SOLUTION_TAG;
 extern const TagName OLDER_SOLUTION_TAG;
 extern const TagName PREVIOUS_NL_SOLUTION_TAG;
+extern const TagName PREVIOUS_FP_SOLUTION_TAG;
 
 enum class FEBackend
 {
