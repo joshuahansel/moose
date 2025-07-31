@@ -113,6 +113,7 @@ Output::getDefaultExecFlagEnum()
 {
   ExecFlagEnum exec_enum = MooseUtils::getDefaultExecFlagEnum();
   exec_enum.addAvailableFlags(EXEC_FAILED);
+  exec_enum.addAvailableFlags(EXEC_MULTIAPP_FIXED_POINT_ITERATION_END);
   return exec_enum;
 }
 

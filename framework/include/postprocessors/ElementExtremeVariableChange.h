@@ -9,25 +9,20 @@
 
 #pragma once
 
+#include "ExtremeVariableChangeBase.h"
 #include "ElementVariablePostprocessor.h"
-#include "ExtremeValueBase.h"
 
-/// A postprocessor for collecting the elemental min or max value
-class ElementExtremeValue : public ExtremeValueBase<ElementVariablePostprocessor>
+/**
+ * Computes the extreme over elements of the change of a variable over a time step,
+ * nonlinear iteration, or MultiApp fixed point iteration.
+ */
+class ElementExtremeVariableChange : public ExtremeVariableChangeBase<ElementVariablePostprocessor>
 {
 public:
   static InputParameters validParams();
 
-  ElementExtremeValue(const InputParameters & parameters);
+  ElementExtremeVariableChange(const InputParameters & parameters);
 
 protected:
-  virtual std::pair<Real, Real> getProxyValuePair() override;
-
   virtual void computeQpValue() override { computeExtremeValue(); }
-
-  /**
-   * A proxy variable used to find the quadrature point at
-   * which to evaluate the variable. If not provided, defaults to the variable.
-   */
-  const VariableValue & _proxy_variable;
 };

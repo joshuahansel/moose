@@ -19,7 +19,7 @@ The following tables summarize the methods it provides.
 
 | Methods for nodal scalar field variables | Description |
 | :--- | :--- |
-`coupledNodalValue`*‡§ | Value of a coupled variable at nodes
+`coupledNodalValue`*‡§+ | Value of a coupled variable at nodes
 `coupledNodalDot`† | Time derivative of a coupled variable at nodes
 `coupledNodalDotDot`† | Second time derivative of a coupled variable at nodes
 
@@ -58,6 +58,9 @@ The following tables summarize the methods it provides.
 
 *: These methods are also provided with values from the previous Newton iteration
 by suffixing their name with `PreviousNL`, e.g. `coupledSecondPreviousNL`.
+
++: These methods are also provided with values from the previous fixed point iteration
+by suffixing their name with `PreviousFP`, e.g. `coupledValuePreviousFP`.
 
 †: These methods are also provided with values from the previous time step of a
 transient simulation by suffixing their name with `Old`, e.g. `coupledDotOld`.

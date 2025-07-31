@@ -187,6 +187,8 @@ FixedPointSolve::FixedPointSolve(Executioner & ex)
         getParam<ConvergenceName>("multiapp_fixed_point_convergence"));
   else
     _problem.setNeedToAddDefaultMultiAppFixedPointConvergence();
+
+  _solver_sys.addVector(_previous_fp_solution_tag_id, false, PARALLEL);
 }
 
 void

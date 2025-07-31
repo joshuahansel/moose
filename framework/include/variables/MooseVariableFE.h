@@ -285,6 +285,8 @@ public:
   const FieldVariableValue & slnOld() const override { return _element_data->sln(Moose::Old); }
   const FieldVariableValue & slnOlder() const override { return _element_data->sln(Moose::Older); }
   const FieldVariableValue & slnPreviousNL() const { return _element_data->sln(Moose::PreviousNL); }
+  // const FieldVariableValue & slnPreviousFP() const { return
+  // _element_data->sln(Moose::PreviousFP); }
 
   /// element gradients
   const FieldVariableGradient & gradSln() const override
@@ -416,6 +418,10 @@ public:
   {
     return _neighbor_data->sln(Moose::PreviousNL);
   }
+  // const FieldVariableValue & slnPreviousFPNeighbor() const
+  // {
+  //   return _neighbor_data->sln(Moose::PreviousFP);
+  // }
 
   /// neighbor solution gradients
   const FieldVariableGradient & gradSlnNeighbor() const override
@@ -583,10 +589,12 @@ public:
   const DoFValue & dofValuesOld() const override;
   const DoFValue & dofValuesOlder() const override;
   const DoFValue & dofValuesPreviousNL() const override;
+  // const DoFValue & dofValuesPreviousFP() const override;
   const DoFValue & dofValuesNeighbor() const override;
   const DoFValue & dofValuesOldNeighbor() const override;
   const DoFValue & dofValuesOlderNeighbor() const override;
   const DoFValue & dofValuesPreviousNLNeighbor() const override;
+  // const DoFValue & dofValuesPreviousFPNeighbor() const override;
   const DoFValue & dofValuesDot() const override;
   const DoFValue & dofValuesDotNeighbor() const override;
   const DoFValue & dofValuesDotNeighborResidual() const;

@@ -391,10 +391,12 @@ public:
 
   virtual const DoFValue & dofValuesOlder() const override;
   virtual const DoFValue & dofValuesPreviousNL() const override;
+  // virtual const DoFValue & dofValuesPreviousFP() const override;
   virtual const DoFValue & dofValuesNeighbor() const override;
   virtual const DoFValue & dofValuesOldNeighbor() const override;
   virtual const DoFValue & dofValuesOlderNeighbor() const override;
   virtual const DoFValue & dofValuesPreviousNLNeighbor() const override;
+  // virtual const DoFValue & dofValuesPreviousFPNeighbor() const override;
   [[noreturn]] virtual const DoFValue & dofValuesDot() const override;
   [[noreturn]] virtual const DoFValue & dofValuesDotNeighbor() const override;
   [[noreturn]] virtual const DoFValue & dofValuesDotOld() const override;

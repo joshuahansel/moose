@@ -17,6 +17,8 @@
 #include "MooseObject.h"
 #include "SystemBase.h"
 #include "AuxiliarySystem.h"
+// #include "Executioner.h"
+// #include "FixedPointSolve.h"
 
 #include "AuxKernel.h"
 #include "ElementUserObject.h"
@@ -1063,6 +1065,31 @@ Coupleable::coupledValuePreviousNL(const std::string & var_name, unsigned int co
     return var->slnPreviousNLNeighbor();
   }
 }
+
+// const VariableValue &
+// Coupleable::coupledValuePreviousFP(const std::string & var_name, unsigned int comp) const
+// {
+//   const auto * var = getVar(var_name, comp);
+//   if (!var)
+//     return *getDefaultValue(var_name, comp);
+//   checkFuncType(var_name, VarType::Ignore, FuncAge::Curr);
+
+//   // Specify that the previous FP iterate needs to be stored if not already
+//   _c_fe_problem.getMooseApp().getExecutioner()->fixedPointSolve().forcePreviousFPIterationStorage();
+
+//   if (!_coupleable_neighbor)
+//   {
+//     if (_c_nodal)
+//       return var->dofValuesPreviousFP();
+//     return var->slnPreviousFP();
+//   }
+//   else
+//   {
+//     if (_c_nodal)
+//       return var->dofValuesPreviousFPNeighbor();
+//     return var->slnPreviousFPNeighbor();
+//   }
+// }
 
 const VectorVariableValue &
 Coupleable::coupledVectorValueOld(const std::string & var_name, unsigned int comp) const

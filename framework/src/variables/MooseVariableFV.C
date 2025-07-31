@@ -185,6 +185,13 @@ MooseVariableFV<OutputType>::dofValuesPreviousNL() const
   return _element_data->dofValuesPreviousNL();
 }
 
+// template <typename OutputType>
+// const typename MooseVariableFV<OutputType>::DoFValue &
+// MooseVariableFV<OutputType>::dofValuesPreviousFP() const
+// {
+//   return _element_data->dofValuesPreviousFP();
+// }
+
 template <typename OutputType>
 const typename MooseVariableFV<OutputType>::DoFValue &
 MooseVariableFV<OutputType>::dofValuesNeighbor() const
@@ -212,6 +219,13 @@ MooseVariableFV<OutputType>::dofValuesPreviousNLNeighbor() const
 {
   return _neighbor_data->dofValuesPreviousNL();
 }
+
+// template <typename OutputType>
+// const typename MooseVariableFV<OutputType>::DoFValue &
+// MooseVariableFV<OutputType>::dofValuesPreviousFPNeighbor() const
+// {
+//   return _neighbor_data->dofValuesPreviousFP();
+// }
 
 template <typename OutputType>
 const typename MooseVariableFV<OutputType>::DoFValue &

@@ -356,10 +356,12 @@ public:
   virtual const DoFValue & dofValuesOld() const = 0;
   virtual const DoFValue & dofValuesOlder() const = 0;
   virtual const DoFValue & dofValuesPreviousNL() const = 0;
+  // virtual const DoFValue & dofValuesPreviousFP() const = 0;
   virtual const DoFValue & dofValuesNeighbor() const = 0;
   virtual const DoFValue & dofValuesOldNeighbor() const = 0;
   virtual const DoFValue & dofValuesOlderNeighbor() const = 0;
   virtual const DoFValue & dofValuesPreviousNLNeighbor() const = 0;
+  // virtual const DoFValue & dofValuesPreviousFPNeighbor() const = 0;
   virtual const DoFValue & dofValuesDot() const = 0;
   virtual const DoFValue & dofValuesDotNeighbor() const = 0;
   virtual const DoFValue & dofValuesDotOld() const = 0;

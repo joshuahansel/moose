@@ -241,7 +241,8 @@ enum SolutionState : int
 enum class SolutionIterationType : unsigned short
 {
   Time = 0,
-  Nonlinear
+  Nonlinear = 1,
+  FixedPoint = 2
 };
 
 // These are used by MooseVariableData and MooseVariableDataFV

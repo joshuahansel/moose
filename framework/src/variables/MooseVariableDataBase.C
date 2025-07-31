@@ -29,6 +29,7 @@ MooseVariableDataBase<OutputType>::MooseVariableDataBase(const MooseVariableFiel
     _old_solution_tag(Moose::INVALID_TAG_ID),
     _older_solution_tag(Moose::INVALID_TAG_ID),
     _previous_nl_solution_tag(Moose::INVALID_TAG_ID),
+    _previous_fp_solution_tag(Moose::INVALID_TAG_ID),
     _need_u_dot(false),
     _need_u_dotdot(false),
     _need_u_dot_old(false),
@@ -289,6 +290,13 @@ MooseVariableDataBase<OutputType>::stateToTagHelper(const Moose::SolutionState s
       return functor(_previous_nl_solution_tag);
     }
 
+      // case Moose::PreviousFP:
+      // {
+      //   _previous_fp_solution_tag = _subproblem.getVectorTagID(Moose::PREVIOUS_FP_SOLUTION_TAG);
+      //   insertSolutionTag(_previous_fp_solution_tag);
+      //   return functor(_previous_fp_solution_tag);
+      // }
+
     default:
       // We should never get here but gcc requires that we have a default. See
       // htpps://stackoverflow.com/questions/18680378/after-defining-case-for-all-enum-values-compiler-still-says-control-reaches-e
@@ -355,6 +363,13 @@ MooseVariableDataBase<OutputType>::dofValuesPreviousNL() const
 {
   return vectorTagDofValue(Moose::PreviousNL);
 }
+
+// template <typename OutputType>
+// const typename MooseVariableDataBase<OutputType>::DoFValue &
+// MooseVariableDataBase<OutputType>::dofValuesPreviousFP() const
+// {
+//   return vectorTagDofValue(Moose::PreviousFP);
+// }
 
 template <typename OutputType>
 void

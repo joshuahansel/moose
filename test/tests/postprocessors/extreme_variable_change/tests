@@ -1,0 +1,17 @@
+[Tests]
+  design = 'NodalMaxVariableChange.md'
+  issues = '#31030'
+
+  [nonlinear_iteration]
+    type = CSVDiff
+    input = 'nonlinear_iteration.i'
+    csvdiff = 'nonlinear_iteration.csv'
+    requirement = 'The system shall be able to compute the maximum change of a nodal variable over a nonlinear iteration.'
+  []
+  [time_step]
+    type = CSVDiff
+    input = 'time_step.i'
+    csvdiff = 'time_step_out.csv'
+    requirement = 'The system shall be able to compute the maximum change of a nodal variable over a time step.'
+  []
+[]

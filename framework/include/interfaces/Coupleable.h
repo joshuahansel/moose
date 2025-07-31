@@ -610,6 +610,15 @@ protected:
                                                        unsigned int comp = 0) const;
 
   /**
+   * Returns value of previous Multiapp fixed point iterate of a coupled variable
+   * @param var_name Name of coupled variable
+   * @param comp Component number for vector of coupled variables
+   * @return Reference to a VariableValue containing the previous value of the coupled variable
+   */
+  // virtual const VariableValue & coupledValuePreviousFP(const std::string & var_name,
+  //                                                      unsigned int comp = 0) const;
+
+  /**
    * Returns an old value from previous time step  of a coupled vector variable
    * @param var_name Name of coupled variable
    * @param comp Component number for vector of coupled variables

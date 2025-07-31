@@ -1382,6 +1382,8 @@ SystemBase::oldSolutionStateVectorName(const unsigned int state,
   }
   else if (iteration_type == Moose::SolutionIterationType::Nonlinear && state == 1)
     return Moose::PREVIOUS_NL_SOLUTION_TAG;
+  else if (iteration_type == Moose::SolutionIterationType::FixedPoint && state == 1)
+    return Moose::PREVIOUS_FP_SOLUTION_TAG;
 
   return "solution_state_" + std::to_string(state) + "_" + Moose::stringify(iteration_type);
 }

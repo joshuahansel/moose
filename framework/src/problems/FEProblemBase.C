@@ -695,6 +695,15 @@ FEProblemBase::createTagSolutions()
     needSolutionState(2, Moose::SolutionIterationType::Nonlinear);
   }
 
+  // if (_previous_fp_solution_required)
+  // {
+  //   // We'll populate the zeroth state of the nonlinear iterations with the current solution for
+  //   // ease of use in doing things like copying solutions backwards. We're just storing pointers in
+  //   // the solution states containers so populating the zeroth state does not cost us the memory of
+  //   // a new vector
+  //   needSolutionState(2, Moose::SolutionIterationType::Nonlinear);
+  // }
+
   auto tag = addVectorTag(Moose::SOLUTION_TAG, Moose::VECTOR_TAG_SOLUTION);
   for (auto & sys : _solver_systems)
     sys->associateVectorToTag(*sys->system().current_local_solution.get(), tag);

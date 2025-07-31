@@ -111,6 +111,7 @@ public:
   const DoFValue & dofValuesOld() const;
   const DoFValue & dofValuesOlder() const;
   const DoFValue & dofValuesPreviousNL() const;
+  // const DoFValue & dofValuesPreviousFP() const;
 
   ///////////////////////// Nodal value getters ///////////////////////////////////////////
 
@@ -212,6 +213,9 @@ protected:
 
   /// The vector tag ID corresponding to the previous nonlinear iteration's solution vector
   TagID _previous_nl_solution_tag;
+
+  /// The vector tag ID corresponding to the previous fixed point iteration's solution vector
+  TagID _previous_fp_solution_tag;
 
   /// The dof indices for the current element
   std::vector<dof_id_type> _dof_indices;
