@@ -62,26 +62,39 @@ NumericalFlux1D::getFlux(const unsigned int iside,
     _cached_flux_elem_id = ielem;
     _cached_flux_side_id = iside;
 
-    const auto UL_3d = convert1DInputTo3D(UL_1d);
-    const auto UR_3d = convert1DInputTo3D(UR_1d);
-
-    const RealVectorValue nLR(nLR_dot_d, 0, 0);
-    RealVectorValue t1, t2;
-    THM::computeOrthogonalDirections(nLR, t1, t2);
-
-    calcFlux(UL_3d, UR_3d, nLR, t1, t2, _FL_3d, _FR_3d);
-
-    transform3DFluxDirection(_FL_3d, nLR_dot_d);
-    transform3DFluxDirection(_FR_3d, nLR_dot_d);
-
-    _FL_1d = convert3DFluxTo1D(_FL_3d);
-    _FR_1d = convert3DFluxTo1D(_FR_3d);
+    calcFlux1D(UL_1d, UR_1d, nLR_dot_d, _FL_1d, _FR_1d, _FL_3d, _FR_3d);
   }
 
   if (res_side_is_left)
     return _FL_1d;
   else
     return _FR_1d;
+}
+
+void
+NumericalFlux1D::calcFlux1D(
+                         const std::vector<ADReal> & UL_1d,
+                         const std::vector<ADReal> & UR_1d,
+                         Real nLR_dot_d,
+                         std::vector<ADReal> & FL_1d,
+                         std::vector<ADReal> & FR_1d,
+                         std::vector<ADReal> & FL_3d,
+                         std::vector<ADReal> & FR_3d) const
+{
+  const auto UL_3d = convert1DInputTo3D(UL_1d);
+  const auto UR_3d = convert1DInputTo3D(UR_1d);
+
+  const RealVectorValue nLR(nLR_dot_d, 0, 0);
+  RealVectorValue t1, t2;
+  THM::computeOrthogonalDirections(nLR, t1, t2);
+
+  calcFlux(UL_3d, UR_3d, nLR, t1, t2, FL_3d, FR_3d);
+
+  transform3DFluxDirection(FL_3d, nLR_dot_d);
+  transform3DFluxDirection(FR_3d, nLR_dot_d);
+
+  FL_1d = convert3DFluxTo1D(FL_3d);
+  FR_1d = convert3DFluxTo1D(FR_3d);
 }
 
 const std::vector<ADReal> &

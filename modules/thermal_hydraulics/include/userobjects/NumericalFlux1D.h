@@ -75,6 +75,30 @@ public:
                                                 const RealVectorValue & t2) const;
 
   /**
+   * Calculates the 1D flux vectors given "left" and "right" states
+   *
+   * This function is called only if the values are not already cached.
+   *
+   * @param[in] UL_1d    vector of 1D flux inputs on the "left"
+   * @param[in] UR_1d    vector of 1D flux inputs on the "right"
+   * @param[in] nLR_dot_d   Dot product of direction from "left" to "right" with
+   *                        the flow channel direction
+   * @param[out] FL_1d   1D Flux vector to be added to "left" side
+   * @param[out] FR_1d   1D Flux vector to be added to "right" side
+   * @param[out] FL_3d   3D Flux vector to be added to "left" side
+   * @param[out] FR_3d   3D Flux vector to be added to "right" side
+   */
+                                                void
+calcFlux1D(
+                         const std::vector<ADReal> & UL_1d,
+                         const std::vector<ADReal> & UR_1d,
+                         Real nLR_dot_d,
+                         std::vector<ADReal> & FL_1d,
+                         std::vector<ADReal> & FR_1d,
+                         std::vector<ADReal> & FL_3d,
+                         std::vector<ADReal> & FR_3d) const;
+
+  /**
    * Calculates the 3D flux vectors given "left" and "right" states
    *
    * This function is called only if the values are not already cached.
