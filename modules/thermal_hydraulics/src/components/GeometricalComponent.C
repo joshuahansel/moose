@@ -75,6 +75,34 @@ GeometricalComponent::addElementQuad9(dof_id_type node0,
   return elem;
 }
 
+Elem *
+GeometricalComponent::addElementPrism6(dof_id_type node0,
+                                      dof_id_type node1,
+                                      dof_id_type node2,
+                                      dof_id_type node3,
+                                      dof_id_type node4,
+                                      dof_id_type node5)
+{
+  auto elem = mesh().addElementPrism6(node0, node1, node2, node3, node4, node5);
+  _elem_ids.push_back(elem->id());
+  return elem;
+}
+
+Elem *
+GeometricalComponent::addElementHex8(dof_id_type node0,
+                                      dof_id_type node1,
+                                      dof_id_type node2,
+                                      dof_id_type node3,
+                                      dof_id_type node4,
+                                      dof_id_type node5,
+                                      dof_id_type node6,
+                                      dof_id_type node7)
+{
+  auto elem = mesh().addElementHex8(node0, node1, node2, node3, node4, node5, node6, node7);
+  _elem_ids.push_back(elem->id());
+  return elem;
+}
+
 const FunctionName &
 GeometricalComponent::getVariableFn(const FunctionName & fn_param_name)
 {

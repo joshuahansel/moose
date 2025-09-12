@@ -27,7 +27,7 @@
   [pipe]
     type = FlowChannel1Phase
     position = '0 0 0'
-    orientation = '1 0 0'
+    orientation = '1 1 0'
     gravity_vector = '0 0 0'
     length = 1.0
     n_elems = 50
@@ -49,7 +49,51 @@
     input = 'pipe:out'
     p = 2e5
   []
+
+#   [pipe3d]
+#     type = VisualizationComponent1Dto3D
+#     position = '0 0 0'
+#     orientation = '1 0 0'
+#     length = 1.0
+#     n_elems = 50
+#     n_azimuthal_elems = 16
+#     n_radial_elems = 5
+#     radial_region_widths = 0.2
+#     radial_region_names = blah
+#   []
 []
+
+# [FunctorMaterials]
+#   [fmat]
+#     type = ParsedFunctorMaterial
+#     expression = '300'
+#     # functor_symbols = 'temp'
+#     # functor_names = 'T'
+#     property_name = booboo
+#   []
+# []
+
+# [AuxVariables]
+#   [yblah]
+#   []
+# []
+
+# [AuxKernels]
+#   [yblah_kernels]
+#     type = FunctorAux
+#     variable = yblah
+#     block = pipe3d:blah
+#     functor = booboo
+#     execute_on = 'TIMESTEP_END'
+#   []
+# []
+
+# [Problem]
+#   kernel_coverage_check = SKIP_LIST
+#   kernel_coverage_block_list = 'pipe3d:blah'
+#   material_coverage_check = SKIP_LIST
+#   material_coverage_block_list = 'pipe3d:blah'
+# []
 
 [Preconditioning]
   [pc]

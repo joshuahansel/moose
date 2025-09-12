@@ -14,6 +14,8 @@
 #include "libmesh/edge_edge3.h"
 #include "libmesh/face_quad4.h"
 #include "libmesh/face_quad9.h"
+#include "libmesh/cell_prism6.h"
+#include "libmesh/cell_hex8.h"
 
 using namespace libMesh;
 
@@ -195,6 +197,42 @@ THMMesh::addElementQuad9(dof_id_type node0,
   // center
   elem->set_node(8, _mesh->node_ptr(node8));
 
+  return elem;
+}
+
+Elem *
+THMMesh::addElementPrism6(dof_id_type node0, dof_id_type node1, dof_id_type node2, dof_id_type node3, dof_id_type node4, dof_id_type node5)
+{
+  dof_id_type elem_id = getNextElementId();
+
+  Elem * elem = new Prism6;
+  elem->set_id(elem_id);
+  _mesh->add_elem(elem);
+  elem->set_node(0, _mesh->node_ptr(node0));
+  elem->set_node(1, _mesh->node_ptr(node1));
+  elem->set_node(2, _mesh->node_ptr(node2));
+  elem->set_node(3, _mesh->node_ptr(node3));
+  elem->set_node(4, _mesh->node_ptr(node4));
+  elem->set_node(5, _mesh->node_ptr(node5));
+  return elem;
+}
+
+Elem *
+THMMesh::addElementHex8(dof_id_type node0, dof_id_type node1, dof_id_type node2, dof_id_type node3, dof_id_type node4, dof_id_type node5, dof_id_type node6, dof_id_type node7)
+{
+  dof_id_type elem_id = getNextElementId();
+
+  Elem * elem = new Hex8;
+  elem->set_id(elem_id);
+  _mesh->add_elem(elem);
+  elem->set_node(0, _mesh->node_ptr(node0));
+  elem->set_node(1, _mesh->node_ptr(node1));
+  elem->set_node(2, _mesh->node_ptr(node2));
+  elem->set_node(3, _mesh->node_ptr(node3));
+  elem->set_node(4, _mesh->node_ptr(node4));
+  elem->set_node(5, _mesh->node_ptr(node5));
+  elem->set_node(6, _mesh->node_ptr(node6));
+  elem->set_node(7, _mesh->node_ptr(node7));
   return elem;
 }
 

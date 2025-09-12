@@ -35,6 +35,20 @@ protected:
                          dof_id_type node6,
                          dof_id_type node7,
                          dof_id_type node8);
+  Elem * addElementPrism6(dof_id_type node0,
+                         dof_id_type node1,
+                         dof_id_type node2,
+                         dof_id_type node3,
+                         dof_id_type node4,
+                         dof_id_type node5);
+  Elem * addElementHex8(dof_id_type node0,
+                         dof_id_type node1,
+                         dof_id_type node2,
+                         dof_id_type node3,
+                         dof_id_type node4,
+                         dof_id_type node5,
+                         dof_id_type node6,
+                         dof_id_type node7);
 
   /**
    * Makes a constant function parameter controllable and returns its name
