@@ -9,6 +9,7 @@
 
 #include "ADDynamicViscosityMaterial.h"
 #include "SinglePhaseFluidProperties.h"
+#include "THMNames.h"
 
 registerMooseObject("ThermalHydraulicsApp", ADDynamicViscosityMaterial);
 
@@ -18,8 +19,9 @@ ADDynamicViscosityMaterial::validParams()
   InputParameters params = Material::validParams();
 
   params.addRequiredParam<MaterialPropertyName>("mu", "Dynamic viscosity property");
-  params.addRequiredParam<MaterialPropertyName>("v", "Specific volume property");
-  params.addRequiredParam<MaterialPropertyName>("e", "Specific internal energy property");
+  params.addRequiredParam<MaterialPropertyName>("v", "Specific volume property"); // TODO: remove
+  params.addRequiredParam<MaterialPropertyName>(
+      "e", "Specific internal energy property"); // TODO: remove
 
   params.addRequiredParam<UserObjectName>("fp_1phase", "Single-phase fluid properties");
 
@@ -34,9 +36,10 @@ ADDynamicViscosityMaterial::ADDynamicViscosityMaterial(const InputParameters & p
     _mu_name(getParam<MaterialPropertyName>("mu")),
     _mu(declareADProperty<Real>(_mu_name)),
 
-    _v(getADMaterialProperty<Real>("v")),
-
-    _e(getADMaterialProperty<Real>("e")),
+    // _v(getADMaterialProperty<Real>("v")),
+    // _e(getADMaterialProperty<Real>("e")),
+    _p(getADMaterialProperty<Real>(THM::PRESSURE)),
+    _T(getADMaterialProperty<Real>(THM::TEMPERATURE)),
 
     _fp_1phase(getUserObject<SinglePhaseFluidProperties>("fp_1phase"))
 {
@@ -45,5 +48,5 @@ ADDynamicViscosityMaterial::ADDynamicViscosityMaterial(const InputParameters & p
 void
 ADDynamicViscosityMaterial::computeQpProperties()
 {
-  _mu[_qp] = _fp_1phase.mu_from_v_e(_v[_qp], _e[_qp]);
+  _mu[_qp] = _fp_1phase.mu_from_p_T(_p[_qp], _T[_qp]);
 }

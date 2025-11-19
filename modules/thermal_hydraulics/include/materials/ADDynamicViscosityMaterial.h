@@ -31,10 +31,9 @@ protected:
   ADMaterialProperty<Real> & _mu;
 
   /// Specific volume
-  const ADMaterialProperty<Real> & _v;
-
+  const ADMaterialProperty<Real> & _p;
   /// Specific internal energy
-  const ADMaterialProperty<Real> & _e;
+  const ADMaterialProperty<Real> & _T;
 
   /// Single-phase fluid properties
   const SinglePhaseFluidProperties & _fp_1phase;

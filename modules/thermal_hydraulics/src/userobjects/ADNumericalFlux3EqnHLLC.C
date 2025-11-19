@@ -87,7 +87,8 @@ ADNumericalFlux3EqnHLLC::calcFlux(const std::vector<ADReal> & UL,
   const ADReal EL = rhoEAL / rhoAL;
   const ADReal eL = EL - 0.5 * uvecL * uvecL;
   const ADReal pL = _fp.p_from_v_e(vL, eL);
-  const ADReal cL = _fp.c_from_v_e(vL, eL);
+  const ADReal TL = _fp.T_from_v_e(vL, eL);
+  const ADReal cL = _fp.c_from_p_T(pL, TL);
 
   const ADReal rhoR = rhoAR / AR;
   const ADRealVectorValue uvecR(rhouAR / rhoAR, rhovAR / rhoAR, rhowAR / rhoAR);
@@ -99,7 +100,8 @@ ADNumericalFlux3EqnHLLC::calcFlux(const std::vector<ADReal> & UL,
   const ADReal ER = rhoEAR / rhoAR;
   const ADReal eR = ER - 0.5 * uvecR * uvecR;
   const ADReal pR = _fp.p_from_v_e(vR, eR);
-  const ADReal cR = _fp.c_from_v_e(vR, eR);
+  const ADReal TR = _fp.T_from_v_e(vR, eR);
+  const ADReal cR = _fp.c_from_p_T(pR, TR);
 
   // compute left and right wave speeds
   ADReal sL, sR;

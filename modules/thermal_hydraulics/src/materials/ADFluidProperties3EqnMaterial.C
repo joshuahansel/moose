@@ -55,9 +55,9 @@ ADFluidProperties3EqnMaterial::ADFluidProperties3EqnMaterial(const InputParamete
 
     _c(declareADProperty<Real>("c")),
 
-    _cp(declareADProperty<Real>("cp")),
+    // _cp(declareADProperty<Real>("cp")),
 
-    _cv(declareADProperty<Real>("cv")),
+    // _cv(declareADProperty<Real>("cv")),
 
     _k(declareADProperty<Real>("k")),
 
@@ -84,8 +84,11 @@ ADFluidProperties3EqnMaterial::computeQpProperties()
 
   _H[_qp] = _h[_qp] + 0.5 * _vel[_qp] * _vel[_qp];
 
-  _c[_qp] = _fp.c_from_v_e(_v[_qp], _e[_qp]);
-  _cp[_qp] = _fp.cp_from_v_e(_v[_qp], _e[_qp]);
-  _cv[_qp] = _fp.cv_from_v_e(_v[_qp], _e[_qp]);
-  _k[_qp] = _fp.k_from_v_e(_v[_qp], _e[_qp]);
+  // _c[_qp] = _fp.c_from_v_e(_v[_qp], _e[_qp]);
+  // _cp[_qp] = _fp.cp_from_v_e(_v[_qp], _e[_qp]);
+  // _cv[_qp] = _fp.cv_from_v_e(_v[_qp], _e[_qp]);
+  // _k[_qp] = _fp.k_from_v_e(_v[_qp], _e[_qp]);
+
+  _c[_qp] = _fp.c_from_p_T(_p[_qp], _T[_qp]);
+  _k[_qp] = _fp.k_from_p_T(_p[_qp], _T[_qp]);
 }

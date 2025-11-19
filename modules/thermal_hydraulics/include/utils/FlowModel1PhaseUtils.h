@@ -71,7 +71,7 @@ computeConservativeSolutionVector(const std::vector<GenericReal<is_ad>> & W,
   const auto n_passives = W.size() - THMVACE1D::N_PRIM_VARS;
 
   const ADReal rho = fp.rho_from_p_T(p, T);
-  const ADReal e = fp.e_from_p_rho(p, rho);
+  const ADReal e = fp.e_from_p_T(p, T);
   const ADReal E = e + 0.5 * vel * vel;
 
   std::vector<GenericReal<is_ad>> U(THMVACE1D::N_FLUX_INPUTS + n_passives);
@@ -104,7 +104,7 @@ computeFluxFromPrimitive(const std::vector<GenericReal<is_ad>> & W,
   const auto n_passives = W.size() - THMVACE1D::N_PRIM_VARS;
 
   const auto rho = fp.rho_from_p_T(p, T);
-  const auto e = fp.e_from_p_rho(p, rho);
+  const auto e = fp.e_from_p_T(p, T);
   const auto E = e + 0.5 * vel * vel;
 
   std::vector<ADReal> F(THMVACE1D::N_FLUX_OUTPUTS + n_passives, 0.0);

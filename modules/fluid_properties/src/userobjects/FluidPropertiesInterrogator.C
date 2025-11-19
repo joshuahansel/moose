@@ -233,7 +233,8 @@ FluidPropertiesInterrogator::compute1Phase(const SinglePhaseFluidProperties * co
     p = getParam<Real>("p");
     T = getParam<Real>("T");
     rho = fp_1phase->rho_from_p_T(p, T);
-    e = fp_1phase->e_from_p_rho(p, rho);
+    // e = fp_1phase->e_from_p_rho(p, rho);
+    e = fp_1phase->e_from_p_T(p, T);
     if (isParamValid("vel"))
       vel = getParam<Real>("vel");
 
@@ -268,13 +269,17 @@ FluidPropertiesInterrogator::compute1Phase(const SinglePhaseFluidProperties * co
     params.set<Real>("T") = T;
     params.set<Real>("v") = v;
     params.set<Real>("h") = fp_1phase->h_from_p_T(p, T);
-    params.set<Real>("s") = fp_1phase->s_from_v_e(v, e);
-    params.set<Real>("c") = fp_1phase->c_from_v_e(v, e);
-    params.set<Real>("mu") = fp_1phase->mu_from_v_e(v, e);
-    params.set<Real>("cp") = fp_1phase->cp_from_v_e(v, e);
-    params.set<Real>("cv") = fp_1phase->cv_from_v_e(v, e);
-    params.set<Real>("k") = fp_1phase->k_from_v_e(v, e);
-    params.set<Real>("beta") = fp_1phase->beta_from_p_T(p, T);
+    // params.set<Real>("s") = fp_1phase->s_from_v_e(v, e);
+    params.set<Real>("c") = fp_1phase->c_from_p_T(p, T);
+    params.set<Real>("mu") = fp_1phase->mu_from_p_T(p, T);
+    // params.set<Real>("cp") = fp_1phase->cp_from_v_e(v, e);
+    // params.set<Real>("cv") = fp_1phase->cv_from_v_e(v, e);
+    params.set<Real>("cp") = fp_1phase->cp_from_p_T(p, T);
+    params.set<Real>("cv") = fp_1phase->cv_from_p_T(p, T);
+    params.set<Real>("k") = fp_1phase->k_from_p_T(p, T);
+    // params.set<Real>("beta") = fp_1phase->beta_from_p_T(p, T);
+    params.set<Real>("s") = 0;
+    params.set<Real>("beta") = 0;
 
     if (isParamValid("vel") || specified["rho,rhou,rhoE"])
     {

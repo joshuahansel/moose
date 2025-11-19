@@ -57,11 +57,11 @@ protected:
   /// Sound speed
   ADMaterialProperty<Real> & _c;
 
-  /// Constant-pressure specific heat
-  ADMaterialProperty<Real> & _cp;
+  // /// Constant-pressure specific heat
+  // ADMaterialProperty<Real> & _cp;
 
-  /// Constant-volume specific heat
-  ADMaterialProperty<Real> & _cv;
+  // /// Constant-volume specific heat
+  // ADMaterialProperty<Real> & _cv;
 
   /// Thermal conductivity
   ADMaterialProperty<Real> & _k;

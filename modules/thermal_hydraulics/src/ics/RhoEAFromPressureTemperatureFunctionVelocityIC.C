@@ -43,6 +43,6 @@ RhoEAFromPressureTemperatureFunctionVelocityIC::value(const Point & p)
 {
   const Real vel = _vel.value(_t, p);
   const Real rho = _fp.rho_from_p_T(_p[_qp], _T[_qp]);
-  const Real e = _fp.e_from_p_rho(_p[_qp], rho);
+  const Real e = _fp.e_from_p_T(_p[_qp], _T[_qp]);
   return rho * (e + 0.5 * vel * vel) * _area[_qp];
 }
