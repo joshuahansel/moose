@@ -71,6 +71,8 @@ HeatConductionPhysicsBase::HeatConductionPhysicsBase(const InputParameters & par
   saveSolverVariableName(_temperature_name);
 
   // Parameter checking
+  // Ensure 'heat_source_blocks' isn't used when 'heat_source_functor' is supplied
+  checkSecondParamSetOnlyIfFirstOneSet("heat_source_var", "heat_source_blocks");
   checkVectorParamsSameLength<BoundaryName, MooseFunctorName>("heat_flux_boundaries",
                                                               "boundary_heat_fluxes");
   checkVectorParamsSameLength<BoundaryName, MooseFunctorName>("fixed_temperature_boundaries",
