@@ -64,6 +64,13 @@ public:
    */
   unsigned int getAxialElementIndex(const Point & p_center) const;
 
+  /*
+   * Gets the axial side index for a given side center point in 3-D space.
+   *
+   * @param[in] p_center   Side center point in 3-D space
+   */
+  unsigned int getAxialSideIndex(const Point & p_center) const;
+
   /**
    * Computes point in 3-D space from a point in reference space.
    *
@@ -110,9 +117,11 @@ protected:
   const Point _end_point;
 
   /// Number of elements in each axial section
-  std::vector<unsigned int> _n_elems;
+  const std::vector<unsigned int> _n_elems;
   /// Total number of axial elements
-  unsigned int _n_elem;
+  const unsigned int _n_elem;
+  /// Total number of axial sides (including external)
+  const unsigned int _n_side;
 
   /// Number of axial sections
   const unsigned int _n_sections;
@@ -121,6 +130,8 @@ protected:
 
   /// Center axial coordinate of each axial element
   std::vector<Real> _x_centers;
+  /// Center axial coordinate of each axial side
+  std::vector<Real> _x_sides;
 
   /// Direction transformation tensor
   const RealTensorValue _R;

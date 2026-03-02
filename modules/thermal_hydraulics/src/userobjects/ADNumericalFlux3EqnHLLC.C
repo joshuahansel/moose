@@ -58,12 +58,12 @@ ADNumericalFlux3EqnHLLC::calcFlux(const std::vector<ADReal> & UL_3d,
   ADReal rhoR, eR, pR, cR, unR, ut1R, ut2R, AR;
   computeREPCUA3D(UR_3d, nLR, t1, t2, rhoR, eR, pR, cR, unR, ut1R, ut2R, AR);
 
-  const auto n_passives = UL.size() - THMVACE3D::N_FLUX_INPUTS;
+  const auto n_passives = UL_3d.size() - THMVACE3D::N_FLUX_INPUTS;
   std::vector<ADReal> passivesL(n_passives, 0.0), passivesR(n_passives, 0.0);
   for (const auto i : make_range(n_passives))
   {
-    passivesL[i] = UL[THMVACE3D::N_FLUX_INPUTS + i] / AL;
-    passivesR[i] = UR[THMVACE3D::N_FLUX_INPUTS + i] / AR;
+    passivesL[i] = UL_3d[THMVACE3D::N_FLUX_INPUTS + i] / AL;
+    passivesR[i] = UR_3d[THMVACE3D::N_FLUX_INPUTS + i] / AR;
   }
 
   // compute wave speeds
@@ -160,6 +160,9 @@ ADNumericalFlux3EqnHLLC::calcFlux(const std::vector<ADReal> & UL_3d,
 
   const ADReal A_wall_R = AR - A_flow;
   FR[THMVACE3D::MOM_NORM] += pR * A_wall_R;
+
+  // std::cout<<"AL="<<AL.value()<<", AR="<<AR.value()<<", FL="<<FL[THMVACE3D::MOM_NORM].value()<<",
+  // FR="<<FR[THMVACE3D::MOM_NORM].value()<<std::endl;
 }
 
 ADReal

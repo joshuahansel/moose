@@ -133,7 +133,7 @@ public:
 
 protected:
   /// Number of sides
-  static const unsigned int _n_side;
+  static const unsigned int _sides_per_elem;
   /// Number of elemental values in stencil for computing slopes
   static const unsigned int _n_sten;
 };
@@ -165,7 +165,7 @@ SlopeReconstruction1DInterface<is_ad>::getSlopeReconstructionMooseEnum(const std
 }
 
 template <bool is_ad>
-const unsigned int SlopeReconstruction1DInterface<is_ad>::_n_side = 2;
+const unsigned int SlopeReconstruction1DInterface<is_ad>::_sides_per_elem = 2;
 
 template <bool is_ad>
 const unsigned int SlopeReconstruction1DInterface<is_ad>::_n_sten = 3;
@@ -202,7 +202,7 @@ SlopeReconstruction1DInterface<is_ad>::getNeighborPrimitiveVariables(
 {
   W_neighbor.clear();
   x_neighbor.clear();
-  for (unsigned int i_side = 0; i_side < _n_side; i_side++)
+  for (unsigned int i_side = 0; i_side < _sides_per_elem; i_side++)
   {
     auto neighbor = elem->neighbor_ptr(i_side);
     if (neighbor && (neighbor->processor_id() == _moose_object->processor_id()))

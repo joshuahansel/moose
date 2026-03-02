@@ -40,9 +40,11 @@ DiscreteLineSegmentInterface::DiscreteLineSegmentInterface(const MooseObject * m
     _end_point(_position + _dir * _length),
     _n_elems(moose_object->parameters().get<std::vector<unsigned int>>("n_elems")),
     _n_elem(std::accumulate(_n_elems.begin(), _n_elems.end(), 0)),
+    _n_side(_n_elem + 1),
     _n_sections(_lengths.size()),
     _section_end(_n_sections),
     _x_centers(_n_elem),
+    _x_sides(_n_side),
     _R(computeDirectionTransformationTensor(_dir)),
     _Rx(computeXRotationTransformationTensor(_rotation)),
     _R_inv(_R.inverse()),
@@ -57,6 +59,7 @@ DiscreteLineSegmentInterface::DiscreteLineSegmentInterface(const MooseObject * m
   // Compute the axial coordinates of the centers of each element
   unsigned int k_section_begin = 0;
   Real x_begin = 0.0;
+  _x_sides[0] = 0.0;
   _dx_min = std::numeric_limits<Real>::max();
   for (unsigned int j = 0; j < _n_sections; j++)
   {
@@ -66,6 +69,7 @@ DiscreteLineSegmentInterface::DiscreteLineSegmentInterface(const MooseObject * m
     {
       const unsigned int k = k_section_begin + i;
       _x_centers[k] = x_begin + 0.5 * dx;
+      _x_sides[k + 1] = _x_sides[k] + dx;
       x_begin += dx;
     }
     k_section_begin += _n_elems[j];
@@ -151,6 +155,17 @@ DiscreteLineSegmentInterface::getAxialElementIndex(const Point & p_center) const
       return i;
 
   mooseError("No axial element index was found.");
+}
+
+unsigned int
+DiscreteLineSegmentInterface::getAxialSideIndex(const Point & p_center) const
+{
+  const Real axial_coordinate = computeAxialCoordinate(p_center);
+  for (const auto i_side : make_range(_n_side))
+    if (MooseUtils::absoluteFuzzyEqual(axial_coordinate, _x_sides[i_side]))
+      return i_side;
+
+  mooseError("No axial side index was found.");
 }
 
 Point
