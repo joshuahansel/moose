@@ -37,11 +37,20 @@ Content:
             - source/kernels/Diffusion.md
             - source/kernels/MatDiffusion.md
             - source/materials/GenericConstantMaterial.md
+            - source/meshgenerators/AnnularMeshGenerator.md
             - source/meshgenerators/BlockDeletionGenerator.md
+            - source/meshgenerators/BoundaryDeletionGenerator.md
+            - source/meshgenerators/CombinerGenerator.md
             - source/meshgenerators/ConcentricCircleMeshGenerator.md
+            - source/meshgenerators/FileMeshGenerator.md
             - source/meshgenerators/GeneratedMeshGenerator.md
+            - source/meshgenerators/MeshExtruderGenerator.md
+            - source/meshgenerators/ParsedGenerateSideset.md
+            - source/meshgenerators/ParsedSubdomainMeshGenerator.md
             - source/meshgenerators/RenameBlockGenerator.md
             - source/meshgenerators/RenameBoundaryGenerator.md
+            - source/meshgenerators/TransformGenerator.md
+            - source/meshgenerators/StitchMeshGenerator.md
             - source/outputs/Exodus.md
     modules:
         root_dir: ${MOOSE_DIR}/modules/doc/content
