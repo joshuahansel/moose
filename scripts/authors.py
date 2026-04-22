@@ -13,6 +13,7 @@ import collections
 import argparse
 import multiprocessing
 import mooseutils
+import csv
 
 # List of available languages and an associated function for testing if a filename is that language
 LANGUAGES = collections.OrderedDict()
@@ -76,6 +77,11 @@ def get_options():
         action="store",
         help="How to sort results in the console output",
     )
+    parser.add_argument(
+        "--csv",
+        action="store_true",
+        help="Whether to output results table to a CSV file (authors.csv)"
+    )
 
     return parser.parse_args()
 
@@ -133,6 +139,15 @@ def report(counts, commits, merges):
     print("-" * n)
     print(row_format.format("TOTAL", *["{:,}".format(totals[key]) for key in titles]))
 
+# def write_csv_file():
+    with open('authors.csv', 'w') as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerow(["Name"] + titles)
+        for author, row in reversed(
+            sorted(counts.items(), key=lambda item: item[1][args.sort_by])
+        ):
+            values = [row[key] for key in titles]
+            writer.writerow([author] + values)
 
 if __name__ == "__main__":
     args = get_options()
@@ -180,3 +195,6 @@ if __name__ == "__main__":
         merges.update(mooseutils.git_committers(location, merges_args))
 
     report(counts, commits, merges)
+
+    # if args.csv:
+    #     write_csv_file()
