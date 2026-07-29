@@ -595,7 +595,8 @@ RadiationTransferAction::addHeatFluxAuxKernel() const
   const std::string class_name = "GrayLambertRadiationHeatFluxAux";
   InputParameters params = _factory.getValidParams(class_name);
   params.set<AuxVariableName>("variable") = _heat_flux_variable;
-  params.set<std::vector<BoundaryName>>("boundary") = radiationPatchBoundaryNames();
+  params.set<std::vector<BoundaryName>>("radiation_patch_boundary") = radiationPatchBoundaryNames();
+  params.set<std::vector<SubdomainName>>("block") = _heat_flux_aux_block;
   params.set<UserObjectName>("surface_radiation_object") = radiationObjectName();
   params.set<ExecFlagEnum>("execute_on") = {EXEC_INITIAL, EXEC_TIMESTEP_END};
   _problem->addAuxKernel(class_name, "radiation_heat_flux_aux_kernel", params);

@@ -26,6 +26,11 @@ public:
 protected:
   virtual Real computeValue() override;
 
+  BoundaryID getRadiationPatchBoundaryID() const;
+
   /// Surface radiation user object containing heat flux information
   const GrayLambertSurfaceRadiationBase & _glsr_uo;
+
+private:
+  std::vector<BoundaryID> _radiation_boundary_ids;
 };

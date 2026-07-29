@@ -50,6 +50,13 @@ radiation_boundary = 'inner_bottom inner_left inner_right inner_top'
     new_block = '0 0 0 0'
     input = inner_top
   []
+  [surface_block_mg]
+    type = LowerDBlockFromSidesetGenerator
+    input = rename
+    sidesets = 'inner_bottom inner_left inner_right inner_top'
+    new_block_id = 10
+    new_block_name = inner_surface_block
+  []
 []
 
 [Variables]
@@ -80,7 +87,7 @@ radiation_boundary = 'inner_bottom inner_left inner_right inner_top'
 
     add_heat_flux_aux = true
     heat_flux_variable = heat_flux
-    heat_flux_aux_block = 0
+    heat_flux_aux_block = 10
   []
 []
 
