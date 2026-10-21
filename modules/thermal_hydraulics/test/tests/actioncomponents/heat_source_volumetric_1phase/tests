@@ -1,0 +1,27 @@
+[Tests]
+  issues = '#19830 #32558'
+  design = 'HeatSourceVolumetric1PhaseAC.md'
+
+  [phy:conservation_1phase]
+    type = 'CSVDiff'
+    input = 'phy.conservation.1phase.i'
+    csvdiff = 'phy.conservation.1phase_out.csv'
+    gold_dir = '../../components/heat_source_volumetric_1phase/gold'
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall conserve energy when applying a volumetric heat source to a single-phase flow channel ActionComponent, using the same input and reference results as the classic component.'
+  []
+  [err:nonexistent_flow_channel]
+    type = 'RunException'
+    input = 'err.base.i'
+    cli_args = "ActionComponents/hs/flow_channel=asdf"
+    expect_err = "ActionComponents/hs/flow_channel: The component 'asdf' does not exist"
+    requirement = 'The system shall report an error if the flow channel a volumetric heat source ActionComponent is applied to does not exist.'
+  []
+  [err:not_a_flow_channel]
+    type = 'RunException'
+    input = 'err.base.i'
+    cli_args = "ActionComponents/hs/flow_channel=total_power"
+    expect_err = "ActionComponents/hs/flow_channel: The component 'total_power' is not of type 'FlowChannel1Phase'"
+    requirement = 'The system shall report an error if the component a volumetric heat source ActionComponent is applied to is not a single-phase flow channel.'
+  []
+[]

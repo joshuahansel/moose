@@ -83,9 +83,6 @@ ThermalHydraulicsApp::registerAll(Factory & f, ActionFactory & af, Syntax & s)
   THM::associateSyntax(s);
   THM::registerActions(s);
 
-  s.registerActionSyntax("FlowChannel1PhasePhysics",
-                         "Physics/ThermalHydraulics/FlowChannel1Phase/*");
-
   // Lets multiple Physics instances of the same kind (flow channels, heat structures, ...) share
   // bare-named variables (rhoA, A, p, T_solid, ...) across their blocks - see
   // THMVariableCoordinator. Must run after every component's variables have been requested, and
@@ -109,6 +106,21 @@ ThermalHydraulicsApp::registerAll(Factory & f, ActionFactory & af, Syntax & s)
   s.addDependency("init_component_physics", "THM:add_closures");
   s.addDependency("add_material", "THM:add_closures");
   s.addDependency("check_integrity", "THM:add_closures");
+
+  // A heat-transfer ActionComponent (HeatTransferFromHeatFlux1PhaseAC,
+  // HeatTransferFromSpecifiedTemperature1PhaseAC) registers itself with its flow channel's
+  // FlowChannel1PhasePhysics on this task (FlowChannel1PhasePhysics::addHeatTransferName), so it
+  // must run before the flow channel builds its closures materials (add_material) and before
+  // integrity checks - both of which read the connection count/temperature mode set by that
+  // registration.
+  s.registerTaskName("THM:add_heat_transfers", false);
+  // Ordered before the earliest task on which a heat-transfer component creates a MOOSE object
+  // (the shared 'P_hf' aux variable), so the single-connection guard in
+  // FlowChannel1PhasePhysics::addHeatTransferName errors before a second connection would instead
+  // trip a less clear duplicate-object error.
+  s.addDependency("add_aux_variable", "THM:add_heat_transfers");
+  s.addDependency("add_material", "THM:add_heat_transfers");
+  s.addDependency("check_integrity", "THM:add_heat_transfers");
 
   // flow models
   registerFlowModel(THM::FM_SINGLE_PHASE, FlowModelSinglePhase);

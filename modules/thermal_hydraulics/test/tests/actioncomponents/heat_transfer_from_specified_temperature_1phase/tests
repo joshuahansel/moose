@@ -1,0 +1,54 @@
+[Tests]
+  issues = '#19830 #32558'
+  design = 'HeatTransferFromSpecifiedTemperature1PhaseAC.md'
+
+  [specified_temperature]
+    type = Exodiff
+    input = 'specified_temperature.i'
+    exodiff = 'specified_temperature_out.e'
+    requirement = 'The system shall be able to apply a specified wall temperature to a single-phase '
+                  'flow channel ActionComponent through a native heat transfer ActionComponent, '
+                  'using the Closures object the flow channel uses to supply the wall heat transfer '
+                  'coefficient.'
+  []
+  [jacobian]
+    type = 'PetscJacobianTester'
+    input = 'jacobian.i'
+    ratio_tol = 7e-8
+    difference_tol = 15
+    cli_args = 'Debug/check_jacobian=true'
+    max_threads = 1
+    max_parallel = 1
+    requirement = 'The system shall have correct Jacobians for the wall heating kernel of a '
+                  'single-phase flow channel ActionComponent heated by a specified wall '
+                  'temperature.'
+  []
+
+  [phy.energy_walltemperature_ss_1phase]
+    type = 'CSVDiff'
+    input = 'phy.energy_walltemperature_ss_1phase.i'
+    csvdiff = 'phy.energy_walltemperature_ss_1phase_out.csv'
+    gold_dir = '../../components/heat_transfer_from_specified_temperature_1phase/gold'
+    abs_zero = 1e-9
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall be able to solve for heat transfer with a specified wall temperature using a native ActionComponent, with the same input and reference results as the classic component.'
+  []
+
+  [clg:Hw]
+    type = 'CSVDiff'
+    input = 'clg.Hw.i'
+    csvdiff = 'clg.Hw_out.csv'
+    gold_dir = '../../components/heat_transfer_from_specified_temperature_1phase/gold'
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall be able to dynamically control the wall heat transfer coefficient of a specified-wall-temperature heat transfer ActionComponent.'
+  []
+
+  [clg:T_wall]
+    type = 'CSVDiff'
+    input = 'clg.T_wall.i'
+    csvdiff = 'clg.T_wall_out.csv'
+    gold_dir = '../../components/heat_transfer_from_specified_temperature_1phase/gold'
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall be able to dynamically control the wall temperature of a specified-wall-temperature heat transfer ActionComponent.'
+  []
+[]

@@ -1,0 +1,22 @@
+[Tests]
+  issues = '#19830 #32558'
+  design = 'HSBoundaryExternalAppTemperatureAC.md'
+
+  [steady]
+    type = CSVDiff
+    input = 'steady.i'
+    csvdiff = 'steady_out.csv'
+    abs_zero = 1e-10
+    requirement = 'The system shall be able to set the temperature on the boundary of a heat '
+                  'structure ActionComponent from a variable computed by an external application.'
+  []
+
+  [test]
+    type = Exodiff
+    input = 'phy.parent.i'
+    exodiff = 'phy.parent_out.e phy.parent_out_thm0.e'
+    gold_dir = '../../components/hs_boundary_external_app_temperature/gold'
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall be able to simulate convection on the boundary of a heat structure ActionComponent with an external temperature transferred from an external application, using the same inputs and reference results as the classic HSBoundaryExternalAppTemperature Component.'
+  []
+[]

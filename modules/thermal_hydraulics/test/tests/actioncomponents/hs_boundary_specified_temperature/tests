@@ -1,0 +1,22 @@
+[Tests]
+  issues = '#19830 #32558'
+  design = 'HSBoundarySpecifiedTemperatureAC.md'
+
+  [steady]
+    type = CSVDiff
+    input = 'steady.i'
+    csvdiff = 'steady_out.csv'
+    abs_zero = 1e-10
+    requirement = 'The system shall be able to specify the temperature on the boundary of a heat '
+                  'structure ActionComponent.'
+  []
+  [err:no_bnd]
+    type = RunException
+    input = 'err.no_bnd.i'
+    expect_err = "The heat structure side of the heat structure 'hs' corresponding to the boundary "
+                 "name 'hs:inner' has a zero perimeter\. This can be caused by applying the "
+                 "boundary on the axis of symmetry of a cylindrical heat structure\."
+    requirement = 'The system shall report an error if a heat structure ActionComponent boundary '
+                  'condition is requested on a side of the heat structure with zero perimeter.'
+  []
+[]

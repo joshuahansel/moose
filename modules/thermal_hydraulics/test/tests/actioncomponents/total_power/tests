@@ -1,0 +1,21 @@
+[Tests]
+  issues = '#19830 #32558'
+  design = 'TotalPowerAC.md'
+
+  [phy:constant_power]
+    type = 'CSVDiff'
+    input = 'phy.constant_power.i'
+    csvdiff = 'phy.constant_power_out.csv'
+    gold_dir = '../../components/total_power/gold'
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall be able to apply a heat source in a heat structure ActionComponent from a total power ActionComponent, using the same input and reference results as the classic TotalPower Component.'
+  []
+  [clg:power]
+    type = 'CSVDiff'
+    input = 'clg.power.i'
+    csvdiff = 'clg.power_out.csv'
+    gold_dir = '../../components/total_power/gold'
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall be able to dynamically control the heat source in a heat structure ActionComponent, using the same input and reference results as the classic TotalPower Component.'
+  []
+[]

@@ -1,0 +1,103 @@
+[Tests]
+  issues = '#19830 #32558'
+  design = 'HeatStructurePlateAC.md HeatStructureCylindricalAC.md'
+
+  [phy:variable_init_t]
+    type = Exodiff
+    input = 'phy.variable_init_t.i'
+    exodiff = 'phy.variable_init_t_out.e'
+    gold_dir = '../../components/heat_structure_base/gold'
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall be able to initialize the temperature in a heat structure ActionComponent using a function, using the same input and reference results as the classic heat structure.'
+  []
+  [inner_radial_boundary]
+    type = CSVDiff
+    input = 'inner_radial_boundary.i'
+    csvdiff = 'inner_radial_boundary_out_test_vpp_0000.csv'
+    gold_dir = '../../components/heat_structure_base/gold'
+    ignore_columns = 'id' # node numbering differs from the classic heat structure
+    abs_zero = 1e-12 # classic gold has roundoff-level z values
+    recover = false
+    restep = false # Test isn't performing any timesteps
+    requirement = 'The system shall be able to discretize the inner boundary of a heat structure ActionComponent, using the same input and reference results as the classic heat structure.'
+  []
+  [err:no_T_ic]
+    type = 'RunException'
+    input = 'err.no_T_ic.i'
+    expect_err = "ActionComponents/hs/initial_T"
+    requirement = 'The system shall report an error if no initial temperature is provided for a heat structure ActionComponent.'
+  []
+  [err:incorrect_size_of_n_part_elems]
+    type = 'RunException'
+    input = 'err.no_T_ic.i'
+    cli_args = 'ActionComponents/hs/initial_T=300 ActionComponents/hs/n_part_elems=1'
+    expect_err = "ActionComponents/hs/names: 'names', 'widths' and 'n_part_elems' must all be the same size."
+    requirement = 'The system shall report an error if the number of part element entries does not match the number of region names for a heat structure ActionComponent.'
+  []
+  [err:incorrect_size_of_widths]
+    type = 'RunException'
+    input = 'err.no_T_ic.i'
+    cli_args = 'ActionComponents/hs/initial_T=300 ActionComponents/hs/widths=1'
+    expect_err = "ActionComponents/hs/names: 'names', 'widths' and 'n_part_elems' must all be the same size."
+    requirement = 'The system shall report an error if the number of widths does not match the number of region names for a heat structure ActionComponent.'
+  []
+  [err:incorrect_size_of_solid_properties]
+    type = 'RunException'
+    input = 'err.no_T_ic.i'
+    cli_args = 'ActionComponents/hs/initial_T=300 ActionComponents/hs/solid_properties=a'
+    expect_err = "ActionComponents/hs/solid_properties: 'solid_properties' and 'solid_properties_T_ref' must have as many entries as 'names'."
+    requirement = 'The system shall report an error if the number of solid properties does not match the number of region names for a heat structure ActionComponent.'
+  []
+  [axial_regions]
+    type = Exodiff
+    input = 'axial_regions.i'
+    cli_args = "ActionComponents/hs/axial_region_names='region1 region2 region3'"
+    exodiff = 'axial_regions_out.e'
+    gold_dir = '../../components/heat_structure_base/gold'
+    rel_err = 1e-5
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall be able to solve for the thermal behavior of a heat structure ActionComponent with several axial regions, using the same input and reference results as the classic heat structure.'
+  []
+  [phy:sub_discretization]
+    type = Exodiff
+    input = 'phy.sub_discretization.i'
+    exodiff = 'phy.sub_discretization_out.e'
+    gold_dir = '../../components/heat_structure_base/gold'
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall be able to solve for the thermal behavior of a heat structure ActionComponent with several axial regions with different axial discretizations, using the same input and reference results as the classic heat structure.'
+  []
+  [interior_axial_boundaries]
+    type = CSVDiff
+    input = 'interior_axial_boundaries.i'
+    csvdiff = 'interior_axial_boundaries_out.csv'
+    gold_dir = '../../components/heat_structure_base/gold'
+    recover = false
+    restep = false # Test isn't performing any timesteps
+    requirement = 'The system shall be able to create interior axial boundaries in a heat structure ActionComponent.'
+  []
+  [err:missing_axial_regions_parameter]
+    type = 'RunException'
+    input = 'axial_regions.i'
+    expect_err = "If there is more than 1 axial region, then the parameter 'axial_region_names' must be specified."
+    requirement = 'The system shall report an error if a heat structure ActionComponent has more than one axial region and the axial regions are not named.'
+  []
+  [err:incorrect_size_axial_regions_parameter]
+    type = 'RunException'
+    input = 'axial_regions.i'
+    cli_args = "ActionComponents/hs/axial_region_names='region1 region2'"
+    expect_err = "The number of entries in parameter 'axial_region_names' \(2\) must equal the number of entries of parameter 'length' \(3\)"
+    requirement = 'The system shall report an error if the number of axial region names of a heat structure ActionComponent does not match the number of axial sections.'
+  []
+  [2nd_order]
+    type = 'RunApp'
+    input = '2nd_order.i'
+    expect_out = "Solve Converged"
+    requirement = 'The system shall be able to use a second order mesh in a heat structure ActionComponent.'
+  []
+  [err:no_2nd_order_with_trap]
+    type = 'RunException'
+    input = 'err.no_2nd_order_with_trap.i'
+    expect_err = "Cannot use TRAP quadrature rule with 2nd order elements.  Use SIMPSON or GAUSS instead."
+    requirement = 'The system shall report an error if the TRAP quadrature rule is used with the 2nd order mesh of a heat structure ActionComponent.'
+  []
+[]

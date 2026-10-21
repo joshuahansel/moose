@@ -1,0 +1,40 @@
+[Tests]
+  issues = '#19830 #32558'
+  design = 'HeatTransferFromHeatFlux1PhaseAC.md'
+
+  [heat_flux]
+    type = Exodiff
+    input = 'heat_flux.i'
+    exodiff = 'heat_flux_out.e'
+    requirement = 'The system shall be able to apply a specified wall heat flux to a single-phase '
+                  'flow channel ActionComponent through a native heat transfer ActionComponent, '
+                  'using the same Closures object the flow channel uses.'
+  []
+  [jacobian]
+    type = 'PetscJacobianTester'
+    input = 'jacobian.i'
+    ratio_tol = 7e-8
+    difference_tol = 15
+    cli_args = 'Debug/check_jacobian=true'
+    max_threads = 1
+    max_parallel = 1
+    requirement = 'The system shall have correct Jacobians for the wall heat flux kernel of a '
+                  'single-phase flow channel ActionComponent heated by a specified wall heat flux.'
+  []
+  [err_multiple_connections]
+    type = 'RunException'
+    input = 'err.multiple_connections.i'
+    expect_err = 'At most one heat transfer connection is currently supported'
+    requirement = 'The system shall report an error if more than one heat transfer component is '
+                  'connected to a single-phase flow channel ActionComponent.'
+  []
+
+  [phy.energy_heatflux_ss_1phase]
+    type = 'CSVDiff'
+    input = 'phy.energy_heatflux_ss_1phase.i'
+    csvdiff = 'phy.energy_heatflux_ss_1phase_out.csv'
+    gold_dir = '../../components/heat_transfer_from_heat_flux_1phase/gold'
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall be able to apply a specified wall heat flux to a single-phase flow channel using a native ActionComponent, with the same input and reference results as the classic component.'
+  []
+[]

@@ -1,0 +1,48 @@
+[Tests]
+  issues = '#19830 #32558'
+  design = 'HSBoundaryAmbientConvectionAC.md'
+
+  [energy_conservation]
+    requirement = 'The system shall be able to simulate ambient convection on the boundary of a '
+                  'heat structure ActionComponent and show conservation of energy'
+
+    [cylindrical]
+      type = CSVDiff
+      input = 'cylindrical.i'
+      csvdiff = 'cylindrical_out.csv'
+      gold_dir = '../../components/hs_boundary_ambient_convection/gold'
+      abs_zero = 1e-6
+      restep = false # Test is prescribed to abort on failed timestep
+      detail = 'for a cylindrical heat structure, with a heat rate post-processor consistent with '
+               'the applied heat flux, and'
+    []
+    [plate]
+      type = CSVDiff
+      input = 'plate.i'
+      csvdiff = 'plate_out.csv'
+      gold_dir = '../../components/hs_boundary_ambient_convection/gold'
+      abs_zero = 1e-6
+      restep = false # Test is prescribed to abort on failed timestep
+      detail = 'for a plate heat structure.'
+    []
+  []
+  [fin_enhancement]
+    type = Exodiff
+    input = 'cylindrical_with_fins.i'
+    exodiff = 'cylindrical_with_fins_out.e'
+    gold_dir = '../../components/hs_boundary_ambient_convection/gold'
+    requirement = 'The system shall be able to enhance convective heat transfer on the boundary of a cylindrical heat structure ActionComponent using fins, with the same input and reference results as the classic heat structure.'
+  []
+
+  [energy_conservation_from_file_3d]
+    type = 'CSVDiff'
+    input = 'from_file_3d.i'
+    csvdiff = 'from_file_3d_out.csv'
+    gold_dir = '../../components/hs_boundary_ambient_convection/gold'
+    abs_zero = 1e-6
+    # because output has execute_on = 'final'
+    recover = false
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall be able to apply a convective boundary condition on the boundary of a heat structure ActionComponent created from a 3D mesh file and show conservation of energy.'
+  []
+[]

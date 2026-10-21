@@ -1,0 +1,23 @@
+[Tests]
+  issues = '#19830 #32558'
+  design = 'HeatStructureFromFile3DAC.md'
+
+  [phy:standalone]
+    type = Exodiff
+    input = 'phy.standalone.i'
+    exodiff = 'phy.standalone_out.e'
+    # The gold file is specific to the ActionComponent: it keeps the block and sideset IDs and
+    # names of the mesh file, while the classic component renumbers its blocks and sidesets.
+    # Its nodal values equal those of the classic gold file to within 1e-10.
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall be able to use an external mesh file to create a 3D heat structure ActionComponent, using the same input and reference results as the classic component.'
+  []
+
+  [err:2d_mesh]
+    type = RunException
+    input = 'phy.standalone.i'
+    cli_args = 'ActionComponents/blk/file=../../components/heat_structure_from_file_3d/square.e'
+    expect_err = "ActionComponents/blk/file: File '(.+)square\.e' does not contain a 3D mesh\."
+    requirement = 'The system shall report an error if the mesh from an external mesh file for a 3D heat structure ActionComponent is not 3D.'
+  []
+[]

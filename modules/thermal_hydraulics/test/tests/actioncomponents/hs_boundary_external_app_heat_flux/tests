@@ -1,0 +1,49 @@
+[Tests]
+  issues = '#19830 #32558'
+  design = 'HSBoundaryExternalAppHeatFluxAC.md'
+
+  [generate_mesh]
+    type = RunApp
+    input = mesh.i
+    cli_args = '--mesh-only mesh.e'
+    recover = false # No recover for --mesh-only
+    requirement = 'The system shall be able to generate a mesh for testing a heat structure '
+                  'ActionComponent imposing a heat flux from an external application.'
+  []
+
+  [test]
+    type = CSVDiff
+    prereq = 'generate_mesh'
+    input = main.i
+    csvdiff = 'main_out_sub0.csv'
+    gold_dir = '../../components/hs_boundary_external_app_heat_flux/gold'
+    abs_zero = 1e-8
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall be able to apply a heat flux from an external application to a '
+                  'cylindrical heat structure ActionComponent, accounting for the difference '
+                  'between the external and heat structure perimeters, and show conservation of '
+                  'energy.'
+  []
+
+  [error_reporting]
+    requirement = 'The system shall report an error for a heat structure ActionComponent boundary '
+                  'imposing a heat flux from an external application if'
+
+    [not_cylindrical]
+      type = RunException
+      input = sub.i
+      cli_args = "ActionComponents/hs/type=HeatStructurePlate ActionComponents/hs/depth=1"
+      expect_err = "The heat structure 'hs' must be a cylindrical heat structure"
+      detail = 'the heat structure is not cylindrical, or'
+    []
+    [not_inner_outer]
+      type = RunException
+      input = sub.i
+      cli_args = "ActionComponents/hs_boundary/boundary=hs:start"
+      expect_err = "The boundaries in 'boundary' must be of an inner/outer type, not of a "
+                   "start/end type"
+      detail = 'the heat structure boundary specified for the heat flux is not the inner or outer '
+               'boundary.'
+    []
+  []
+[]
