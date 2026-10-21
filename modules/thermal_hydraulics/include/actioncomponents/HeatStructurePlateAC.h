@@ -21,6 +21,8 @@ public:
   HeatStructurePlateAC(const InputParameters & params);
 
   virtual Real getUnitPerimeter(ExternalBoundaryType side) const override;
+  virtual Real computeRadialBoundaryArea(Real length, Real y) const override;
+  virtual Real computeAxialBoundaryArea(Real y_min, Real y_max) const override;
 
   /// Dimension of the plate in the third (depth) direction
   Real depth() const { return _depth; }

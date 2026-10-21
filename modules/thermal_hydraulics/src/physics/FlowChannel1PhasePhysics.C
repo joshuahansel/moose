@@ -72,7 +72,8 @@ FlowChannel1PhasePhysics::FlowChannel1PhasePhysics(const InputParameters & param
     _scaling_factors(getParam<std::vector<Real>>("scaling_factor_1phase")),
     _numerical_flux_name(genName(name(), "numerical_flux")),
     _coordinator(THMVariableCoordinator::findOrCreate(_awh, _action_factory)),
-    _temperature_mode(false)
+    _temperature_mode(false),
+    _T_wall_name(THM::TEMPERATURE_WALL)
 {
   if (_scaling_factors.size() != 3)
     paramError("scaling_factor_1phase", "Must have exactly 3 entries (for rhoA, rhouA, rhoEA)");
@@ -80,7 +81,8 @@ FlowChannel1PhasePhysics::FlowChannel1PhasePhysics(const InputParameters & param
 
 void
 FlowChannel1PhasePhysics::addHeatTransferName(const std::string & ht_name,
-                                              bool is_temperature_type) const
+                                              bool is_temperature_type,
+                                              const VariableName & T_wall_name) const
 {
   if (!_heat_transfer_name.empty())
     mooseError(name(),
@@ -93,6 +95,7 @@ FlowChannel1PhasePhysics::addHeatTransferName(const std::string & ht_name,
 
   _heat_transfer_name = ht_name;
   _temperature_mode = is_temperature_type;
+  _T_wall_name = T_wall_name;
 }
 
 std::vector<std::shared_ptr<ClosuresBase>>
@@ -118,7 +121,7 @@ FlowChannel1PhasePhysics::getClosuresWallTemperatureNames() const
 {
   if (_heat_transfer_name.empty() || !_temperature_mode)
     return {};
-  return {THM::TEMPERATURE_WALL};
+  return {_T_wall_name};
 }
 
 std::vector<MaterialPropertyName>

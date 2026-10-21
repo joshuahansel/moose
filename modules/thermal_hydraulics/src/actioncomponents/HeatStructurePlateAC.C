@@ -57,3 +57,15 @@ HeatStructurePlateAC::getUnitPerimeter(ExternalBoundaryType side) const
   }
   mooseError(name(), ": Unknown external boundary type.");
 }
+
+Real
+HeatStructurePlateAC::computeRadialBoundaryArea(Real length, Real /*y*/) const
+{
+  return length * _depth;
+}
+
+Real
+HeatStructurePlateAC::computeAxialBoundaryArea(Real y_min, Real y_max) const
+{
+  return (y_max - y_min) * _depth;
+}

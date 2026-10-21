@@ -1,0 +1,171 @@
+[Tests]
+  issues = '#19830 #32558'
+  design = 'HeatTransferFromHeatStructure1PhaseAC.md'
+
+  [hs_boundary]
+    type = CSVDiff
+    input = 'hs_boundary.i'
+    csvdiff = 'hs_boundary_out.csv'
+    gold_dir = '../../components/heat_transfer_from_heat_structure_1phase/gold'
+    requirement = 'The system shall be able to couple a flow channel to a named boundary of a heat structure ActionComponent, using the same input and reference results as the classic component.'
+  []
+  [jac:cylindrical_top_side_1phase]
+    type = 'PetscJacobianTester'
+    input = 'jac.1phase.i'
+    cli_args = "Debug/check_jacobian=true ActionComponents/hs/type=HeatStructureCylindrical ActionComponents/hx/hs_side=outer"
+    ratio_tol = 1e-5
+    difference_tol = 55
+    max_parallel = 1
+    requirement = 'The system shall have correct Jacobians when a flow channel is coupled to the outer side of a cylindrical heat structure ActionComponent.'
+  []
+  [jac:cylindrical_bottom_side_1phase]
+    type = 'PetscJacobianTester'
+    input = 'jac.1phase.i'
+    cli_args = "Debug/check_jacobian=true ActionComponents/pipe/position='0 0 0' ActionComponents/hs/inner_radius=0.1 ActionComponents/hs/type=HeatStructureCylindrical ActionComponents/hx/hs_side=inner"
+    ratio_tol = 1e-5
+    difference_tol = 55
+    max_parallel = 1
+    requirement = 'The system shall have correct Jacobians when a flow channel is coupled to the inner side of a cylindrical heat structure ActionComponent.'
+  []
+  [jac:plate_top_side_1phase]
+    type = 'PetscJacobianTester'
+    input = 'jac.1phase.i'
+    cli_args = "Debug/check_jacobian=true ActionComponents/hs/type=HeatStructurePlate ActionComponents/hs/depth=1 ActionComponents/hx/hs_side=outer"
+    ratio_tol = 1e-5
+    difference_tol = 55
+    max_parallel = 1
+    requirement = 'The system shall have correct Jacobians when a flow channel is coupled to the outer side of a plate heat structure ActionComponent.'
+  []
+  [jac:plate_bottom_side_1phase]
+    type = 'PetscJacobianTester'
+    input = 'jac.1phase.i'
+    cli_args = "Debug/check_jacobian=true ActionComponents/pipe/position='0 0 0' ActionComponents/hs/depth=1 ActionComponents/hs/type=HeatStructurePlate ActionComponents/hx/hs_side=inner"
+    ratio_tol = 1e-5
+    difference_tol = 55
+    max_parallel = 1
+    requirement = 'The system shall have correct Jacobians when a flow channel is coupled to the inner side of a plate heat structure ActionComponent.'
+  []
+  [phy.energy_heatstructure_ss_1phase]
+    type = 'CSVDiff'
+    input = 'phy.energy_heatstructure_ss_1phase.i'
+    csvdiff = 'phy.energy_heatstructure_ss_1phase_out.csv'
+    gold_dir = '../../components/heat_transfer_from_heat_structure_1phase/gold'
+    abs_zero = 5e-7 # same as the classic test; the conservation error is zero up to solver tolerance
+    requirement = 'The system shall conserve energy when a flow channel is coupled to a cylindrical heat structure ActionComponent, using the same input and reference results as the classic component.'
+  []
+  [phy:T_wall_transfer_3eqn_x]
+    type = Exodiff
+    input = 'phy.T_wall_transfer_3eqn_x.i'
+    exodiff = 'phy.T_wall_transfer_3eqn_x_out.e'
+    gold_dir = '../../components/heat_transfer_from_heat_structure_1phase/gold'
+    custom_cmp = 'T_wall_transfer.exodiff'
+    # The initial flow channel state is uniform and at rest, so its residual is zero up to
+    # round-off. With p_inf = 1e9 in the fluid properties, that round-off is about 1e-4 in the
+    # energy equation, above the default absolute tolerance of 1e-6, so whether the solve reaches
+    # that tolerance depends on the round-off of the particular mesh (the classic component fails
+    # for several other element counts). The solution is unaffected: it agrees with the gold file to
+    # about 1e-8 (relative) when the solve stops at the larger tolerance.
+    cli_args = 'Executioner/nl_abs_tol=1e-3'
+    requirement = 'The system shall transfer the temperature of a heat structure ActionComponent onto a flow channel with the opposite orientation, along x.'
+  []
+  [phy:T_wall_transfer_3eqn_y]
+    type = Exodiff
+    input = 'phy.T_wall_transfer_3eqn_y.i'
+    exodiff = 'phy.T_wall_transfer_3eqn_y_out.e'
+    gold_dir = '../../components/heat_transfer_from_heat_structure_1phase/gold'
+    custom_cmp = 'T_wall_transfer.exodiff'
+    # The initial flow channel state is uniform and at rest, so its residual is zero up to
+    # round-off. With p_inf = 1e9 in the fluid properties, that round-off is about 1e-4 in the
+    # energy equation, above the default absolute tolerance of 1e-6, so whether the solve reaches
+    # that tolerance depends on the round-off of the particular mesh (the classic component fails
+    # for several other element counts). The solution is unaffected: it agrees with the gold file to
+    # about 1e-8 (relative) when the solve stops at the larger tolerance.
+    cli_args = 'Executioner/nl_abs_tol=1e-3'
+    requirement = 'The system shall transfer the temperature of a heat structure ActionComponent onto a flow channel with the opposite orientation, along y.'
+  []
+  [fin_enhancement]
+    type = CSVDiff
+    input = 'fin_enhancement.i'
+    csvdiff = 'fin_enhancement_out.csv'
+    gold_dir = '../../components/heat_transfer_from_heat_structure_1phase/gold'
+    requirement = 'The system shall be able to enhance heat transfer between a flow channel and a heat structure ActionComponent using fins, with the same input and reference results as the classic component.'
+  []
+  [err:not_a_pipe]
+    type = 'RunException'
+    input = 'err.1phase.i'
+    cli_args = "ActionComponents/hx/flow_channel=inlet ActionComponents/hx/Hw=300"
+    expect_err = "ActionComponents/hx/flow_channel: The component 'inlet' is not of type 'FlowChannelBase'"
+    requirement = 'The system shall report an error if the flow channel of a heat structure heat transfer ActionComponent is not a flow channel.'
+  []
+  [err:not_a_hs]
+    type = 'RunException'
+    input = 'err.1phase.i'
+    cli_args = "ActionComponents/hx/hs=inlet ActionComponents/hx/Hw=300"
+    expect_err = "ActionComponents/hx/hs: The component 'inlet' is not of type 'HeatStructureBase'"
+    requirement = 'The system shall report an error if the heat structure of a heat structure heat transfer ActionComponent is not a heat structure.'
+  []
+  [err:wrong_hs_side]
+    type = 'RunException'
+    input = 'err.1phase.i'
+    cli_args = "ActionComponents/hx/hs_side=asdf"
+    expect_err = "Invalid option .asdf. in MooseEnum"
+    requirement = 'The system shall report an error if the heat structure side of a heat structure heat transfer ActionComponent is not valid.'
+  []
+  [err:mesh_misaligned]
+    type = 'RunException'
+    input = 'err.1phase.i'
+    cli_args = "ActionComponents/pipe/length=3 ActionComponents/hx/Hw=300"
+    expect_err = "ActionComponents/hx/flow_channel: The centers of the elements of flow channel 'pipe' do not align with the centers of the specified heat structure side"
+    requirement = 'The system shall report an error if the flow channel and the heat structure side of a heat structure heat transfer ActionComponent are not aligned.'
+  []
+  [err:zero_p_hs_radius]
+    type = 'RunException'
+    input = 'err.1phase.i'
+    cli_args = "ActionComponents/pipe/position='0 0.1 0' ActionComponents/hx/hs_side=inner ActionComponents/hx/Hw=300"
+    expect_err = "ActionComponents/hx/hs_side: 'hs_side' parameter is set to 'inner', but this side of the heat structure 'hs' has radius of zero."
+    requirement = 'The system shall report an error if a heat structure heat transfer ActionComponent is applied on a side of a cylindrical heat structure that has a radius of zero.'
+  []
+  [err:missing_hw]
+    type = 'RunException'
+    input = 'err.1phase.i'
+    expect_err = "hx: The parameter 'Hw' must be provided when using simple closures."
+    requirement = 'The system shall report an error if the wall heat transfer coefficient of a heat structure heat transfer ActionComponent is missing when using simple closures.'
+  []
+
+  [phy:conservation_1phase_plate]
+    type = CSVDiff
+    input = 'phy.conservation_1phase.i'
+    csvdiff = 'phy.conservation_1phase_plate_rdg.csv'
+    gold_dir = '../../components/heat_transfer_from_heat_structure_1phase/gold'
+    abs_zero = 1e-10
+    cli_args = "
+      ActionComponents/heat_transfer/P_hf=2
+      ActionComponents/heat_structure/type=HeatStructurePlate
+      ActionComponents/heat_structure/depth=2
+      Postprocessors/E_heat_structure/type=ADHeatStructureEnergy
+      Postprocessors/E_heat_structure/plate_depth=2
+      Outputs/file_base=phy.conservation_1phase_plate_rdg"
+    # because of output has execute_on = 'initial final'
+    recover = false
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall conserve energy when a flow channel is coupled to a plate heat structure ActionComponent.'
+  []
+  [phy:conservation_1phase_cylinder]
+    type = CSVDiff
+    input = 'phy.conservation_1phase.i'
+    csvdiff = 'phy.conservation_1phase_cylinder_rdg.csv'
+    gold_dir = '../../components/heat_transfer_from_heat_structure_1phase/gold'
+    cli_args = "
+      ActionComponents/pipe/position='0 2 0'
+      ActionComponents/heat_transfer/P_hf=1.5
+      ActionComponents/heat_structure/type=HeatStructureCylindrical
+      ActionComponents/heat_structure/inner_radius=1.0
+      Postprocessors/E_heat_structure/type=ADHeatStructureEnergy
+      Postprocessors/E_heat_structure/plate_depth=1
+      Outputs/file_base=phy.conservation_1phase_cylinder_rdg"
+    # because of output has execute_on = 'initial final'
+    recover = false
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall conserve energy when a flow channel is coupled to a cylindrical heat structure ActionComponent.'
+  []
+[]

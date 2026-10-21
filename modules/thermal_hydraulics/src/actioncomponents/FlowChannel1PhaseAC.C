@@ -8,6 +8,7 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "FlowChannel1PhaseAC.h"
+#include "FlowBoundary1PhaseAC.h"
 #include "THMUtils.h"
 #include "FlowChannel1PhasePhysics.h"
 #include "ActionFactory.h"
@@ -149,6 +150,37 @@ FlowChannel1PhaseAC::addMeshGenerators()
   _app.getMeshGeneratorSystem().addMeshGenerator(
       "RenameBoundaryGenerator", name() + "_renamed", rename_params);
   _mg_names.push_back(name() + "_renamed");
+
+  // Classic THM boundary components create a sideset named after themselves at the end of the flow
+  // channel they connect to, which inputs use to refer to the boundary (e.g. in postprocessors that
+  // look up the boundary's UserObject by this name). Create the same sidesets for the boundary
+  // components attached to this flow channel.
+  for (const auto * boundary : _awh.getActions<FlowBoundary1PhaseAC>())
+    if (boundary->connectedComponentName() == name())
+    {
+      const std::string step_name = name() + "_" + boundary->name() + "_sideset";
+      InputParameters sideset_params = _factory.getValidParams("ParsedGenerateSideset");
+      sideset_params.set<MeshGeneratorName>("input") = _mg_names.back();
+      sideset_params.set<std::vector<BoundaryName>>("included_boundaries") = {boundary->input()};
+      sideset_params.set<std::string>("combinatorial_geometry") = "1";
+      sideset_params.set<BoundaryName>("new_sideset_name") = boundary->name();
+      _app.getMeshGeneratorSystem().addMeshGenerator(
+          "ParsedGenerateSideset", step_name, sideset_params);
+      _mg_names.push_back(step_name);
+    }
+
+  // Add a nodeset with all the nodes of the flow channel, named after the component as in classic
+  // THM's Component1D. Heat transfer components use it to transfer values onto the flow channel.
+  InputParameters nodeset_params = _factory.getValidParams("ParsedGenerateNodeset");
+  nodeset_params.set<MeshGeneratorName>("input") = _mg_names.back();
+  nodeset_params.set<BoundaryName>("new_nodeset_name") = name();
+  nodeset_params.set<std::vector<SubdomainName>>("included_subdomains") = {name()};
+  nodeset_params.set<std::string>("expression") = "1";
+  // The expression does not depend on the distribution of the mesh
+  nodeset_params.set<bool>("allow_distributed_meshes") = true;
+  _app.getMeshGeneratorSystem().addMeshGenerator(
+      "ParsedGenerateNodeset", name() + "_nodeset", nodeset_params);
+  _mg_names.push_back(name() + "_nodeset");
 
   _top_mg_name = _mg_names.back();
 

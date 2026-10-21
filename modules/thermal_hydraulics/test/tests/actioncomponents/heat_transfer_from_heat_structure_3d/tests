@@ -1,0 +1,87 @@
+[Tests]
+  issues = '#19830 #32558'
+  design = 'HeatTransferFromHeatStructure3D1PhaseAC.md'
+
+  [phy:conservation]
+    type = CSVDiff
+    input = 'phy.conservation.i'
+    csvdiff = 'phy.conservation.csv'
+    gold_dir = '../../components/heat_transfer_from_heat_structure_3d/gold'
+    abs_zero = 1e-9
+    requirement = 'The system shall conserve energy when flow channels are coupled to a boundary of a 3D heat structure ActionComponent loaded from a mesh file, with the fluid at rest.'
+  []
+  [phy:conservation_ss]
+    type = CSVDiff
+    input = 'phy.conservation_ss.i'
+    csvdiff = 'phy.conservation_ss.csv'
+    gold_dir = '../../components/heat_transfer_from_heat_structure_3d/gold'
+    abs_zero = 1e-6
+    requirement = 'The system shall conserve energy after reaching steady-state when flow channels are coupled to a boundary of a 3D heat structure ActionComponent loaded from a mesh file.'
+  []
+  [phy:conservation_inv]
+    type = CSVDiff
+    input = 'phy.conservation.i'
+    csvdiff = 'phy.conservation.csv'
+    gold_dir = '../../components/heat_transfer_from_heat_structure_3d/gold'
+    cli_args = "ActionComponents/fch1/position='0 0 1' ActionComponents/fch1/orientation='0 0 -1'"
+    abs_zero = 1e-6
+    requirement = 'The system shall conserve energy when a flow channel coupled to a boundary of a 3D heat structure ActionComponent is oriented opposite to the other flow channels.'
+  []
+  [jac]
+    type = 'PetscJacobianTester'
+    input = 'jac.1phase.i'
+    ratio_tol = 1.3e-2
+    difference_tol = 35000
+    cli_args = "Debug/check_jacobian=true"
+    max_parallel = 1
+    requirement = 'The system shall have correct Jacobians when a flow channel is coupled to a boundary of a 3D heat structure ActionComponent.'
+  []
+  [err:not_a_pipe]
+    type = 'RunException'
+    input = 'phy.conservation.i'
+    cli_args = "ActionComponents/ht/flow_channels='in1'"
+    expect_err = "ActionComponents/ht/flow_channels: The component 'in1' is not of type 'FlowChannel1Phase'."
+    requirement = 'The system shall report an error if a flow channel of a 3D heat structure heat transfer ActionComponent is not a flow channel.'
+  []
+  [err:fch_orientation]
+    type = 'RunException'
+    input = 'phy.conservation.i'
+    cli_args = "ActionComponents/fch1/orientation='1 0 1'"
+    expect_err = "ActionComponents/ht/flow_channels: The flow channel 'fch1' must be aligned with the x-, y-, or z- axis."
+    requirement = 'The system shall report an error if a flow channel of a 3D heat structure heat transfer ActionComponent is not aligned with a coordinate axis.'
+  []
+  [err:not_3d_hs]
+    type = 'RunException'
+    input = 'err.not_a_3d_hs.i'
+    expect_err = "ActionComponents/ht/hs: The component 'blk' is not a HeatStructureFromFile3D component."
+    requirement = 'The system shall report an error if the heat structure of a 3D heat structure heat transfer ActionComponent is not loaded from a mesh file.'
+  []
+  [err:non_existent_boundary]
+    type = 'RunException'
+    input = 'phy.conservation.i'
+    cli_args = "ActionComponents/ht/boundary=asdf"
+    expect_err = "ActionComponents/ht/boundary: The boundary 'asdf' does not exist on the component 'blk'."
+    requirement = 'The system shall report an error if the boundary of a 3D heat structure heat transfer ActionComponent does not exist.'
+  []
+  [err:differently_aligned_channels]
+    type = 'RunException'
+    input = 'phy.conservation.i'
+    cli_args = "ActionComponents/fch1/orientation='0 0 1' ActionComponents/fch2/orientation='0 1 0'"
+    expect_err = "ActionComponents/ht/flow_channels: Flow channel 'fch2' has a different axis alignment \(1\). Make sure all flow channels are aligned with the same axis."
+    requirement = 'The system shall report an error if the flow channels of a 3D heat structure heat transfer ActionComponent are aligned with different axes.'
+  []
+  [err:different_n_elems]
+    type = 'RunException'
+    input = 'phy.conservation.i'
+    cli_args = "ActionComponents/fch1/orientation='0 0 1' ActionComponents/fch2/orientation='0 0 1' ActionComponents/fch2/n_elems=7"
+    expect_err = "ActionComponents/ht/flow_channels: Flow channel 'fch2' has 7 elements which is inconsistent with the rest of the flow channels. Make sure all flow channels have the same number of elements."
+    requirement = 'The system shall report an error if the flow channels of a 3D heat structure heat transfer ActionComponent have different numbers of elements.'
+  []
+  [err:different_lengths]
+    type = 'RunException'
+    input = 'phy.conservation.i'
+    cli_args = "ActionComponents/fch1/orientation='0 0 1' ActionComponents/fch2/orientation='0 0 1' ActionComponents/fch2/length=2"
+    expect_err = "ActionComponents/ht/flow_channels: Flow channel 'fch2' has length equal to 2 which is inconsistent with the rest of the flow channels. Make sure all flow channels have the length."
+    requirement = 'The system shall report an error if the flow channels of a 3D heat structure heat transfer ActionComponent have different lengths.'
+  []
+[]

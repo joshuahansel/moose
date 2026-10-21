@@ -14,6 +14,7 @@
 #include "ClosuresBase.h"
 #include "ClosuresRegistry.h"
 #include "THMNames.h"
+#include "THMVariableCoordinator.h"
 #include "MooseUtils.h"
 
 InputParameters
@@ -52,11 +53,25 @@ HeatTransferFrom1PhaseAC::connectedPhysics() const
   return _awh.getAction<FlowChannel1PhaseAC>(getParam<std::string>("flow_channel")).getPhysics();
 }
 
+std::vector<SubdomainName>
+HeatTransferFrom1PhaseAC::closuresBlocks() const
+{
+  std::vector<SubdomainName> blocks;
+  for (const auto * physics : connectedPhysicsList())
+    for (const auto & block : physics->getClosuresBlocks())
+      if (std::find(blocks.begin(), blocks.end(), block) == blocks.end())
+        blocks.push_back(block);
+  return blocks;
+}
+
 void
 HeatTransferFrom1PhaseAC::actOnAdditionalTasks()
 {
   if (_current_task == "THM:add_heat_transfers")
-    connectedPhysics().addHeatTransferName(name(), isTemperatureType());
+  {
+    for (const auto * physics : connectedPhysicsList())
+      physics->addHeatTransferName(name(), isTemperatureType(), wallTemperatureName());
+  }
   else if (_current_task == "add_function")
   {
     // Build the default (circular) heated perimeter function only if 'P_hf' was not provided;
@@ -71,12 +86,10 @@ HeatTransferFrom1PhaseAC::actOnAdditionalTasks()
   }
   else if (_current_task == "add_aux_variable")
   {
-    const std::string class_name = "MooseVariable";
-    InputParameters params = getFactory().getValidParams(class_name);
-    params.set<std::vector<SubdomainName>>("block") = connectedPhysics().getClosuresBlocks();
-    params.set<MooseEnum>("family") = "MONOMIAL";
-    params.set<MooseEnum>("order") = "CONSTANT";
-    getProblem().addAuxVariable(class_name, THM::HEAT_FLUX_PERIMETER, params);
+    // Shared by all the heat transfer components, each on its own flow channel
+    THMVariableCoordinator::findOrCreate(_awh, _action_factory)
+        .requestVariable(
+            false, THM::HEAT_FLUX_PERIMETER, "MONOMIAL", "CONSTANT", 1.0, closuresBlocks());
 
     addHeatTransferVariables();
   }
@@ -85,7 +98,7 @@ HeatTransferFrom1PhaseAC::actOnAdditionalTasks()
     const std::string class_name = "FunctionIC";
     InputParameters params = getFactory().getValidParams(class_name);
     params.set<VariableName>("variable") = THM::HEAT_FLUX_PERIMETER;
-    params.set<std::vector<SubdomainName>>("block") = connectedPhysics().getClosuresBlocks();
+    params.set<std::vector<SubdomainName>>("block") = closuresBlocks();
     params.set<FunctionName>("function") = _P_hf_fn_name;
     getProblem().addInitialCondition(class_name, genName(name(), "P_hf_ic"), params);
 
@@ -98,7 +111,7 @@ HeatTransferFrom1PhaseAC::actOnAdditionalTasks()
     const std::string class_name = "FunctionAux";
     InputParameters params = getFactory().getValidParams(class_name);
     params.set<AuxVariableName>("variable") = THM::HEAT_FLUX_PERIMETER;
-    params.set<std::vector<SubdomainName>>("block") = connectedPhysics().getClosuresBlocks();
+    params.set<std::vector<SubdomainName>>("block") = closuresBlocks();
     params.set<FunctionName>("function") = _P_hf_fn_name;
     ExecFlagEnum execute_on(MooseUtils::getDefaultExecFlagEnum());
     execute_on = {EXEC_TIMESTEP_BEGIN, EXEC_INITIAL};
@@ -112,23 +125,19 @@ HeatTransferFrom1PhaseAC::actOnAdditionalTasks()
 void
 HeatTransferFrom1PhaseAC::addMaterials()
 {
-  const FlowChannel1PhasePhysics & physics = connectedPhysics();
+  // The closures check comes first: the closures read parameters (e.g. 'Hw') that the check reports
+  // as missing, and the materials are added before the 'check_integrity' task
+  ClosuresRegistry & registry = ClosuresRegistry::findOrCreate(_awh, _action_factory);
+  for (const auto * physics : connectedPhysicsList())
+    for (const auto & closures : physics->getClosuresObjects())
+      closures->checkHeatTransfer(*this, *physics);
+  registry.emitLoggedMessages();
 
   // The wall heat transfer coefficient material is supplied by the flow channel's closures objects,
   // reused here exactly as classic HeatTransferBase reuses its flow channel's closures.
-  for (const auto & closures : physics.getClosuresObjects())
-    closures->addMooseObjectsHeatTransfer(*this, physics);
+  for (const auto * physics : connectedPhysicsList())
+    for (const auto & closures : physics->getClosuresObjects())
+      closures->addMooseObjectsHeatTransfer(*this, *physics);
 
   addHeatTransferMaterials();
-}
-
-void
-HeatTransferFrom1PhaseAC::checkIntegrity()
-{
-  const FlowChannel1PhasePhysics & physics = connectedPhysics();
-
-  ClosuresRegistry & registry = ClosuresRegistry::findOrCreate(_awh, _action_factory);
-  for (const auto & closures : physics.getClosuresObjects())
-    closures->checkHeatTransfer(*this, physics);
-  registry.emitLoggedMessages();
 }

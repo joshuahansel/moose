@@ -389,6 +389,64 @@ HeatStructureBaseAC::hasExternalBoundary(const BoundaryName & boundary) const
   return false;
 }
 
+bool
+HeatStructureBaseAC::hasBoundary(const BoundaryName & boundary) const
+{
+  if (hasExternalBoundary(boundary))
+    return true;
+  for (const auto i : make_range(std::size_t(1), _region_names.size()))
+    if (boundary == genName(name(), _region_names[i - 1], _region_names[i]))
+      return true;
+  if (_has_axial_regions)
+    for (const auto & region_name : _region_names)
+      for (const auto i : make_range(std::size_t(1), _axial_region_names.size()))
+        if (boundary ==
+            genName(name(), region_name, _axial_region_names[i - 1] + ":" + _axial_region_names[i]))
+          return true;
+  return false;
+}
+
+Real
+HeatStructureBaseAC::getBoundaryArea(const BoundaryName & boundary) const
+{
+  const Real total_width = totalWidth();
+  if (boundary == genName(name(), "inner"))
+    return computeRadialBoundaryArea(_length, 0.0);
+  if (boundary == genName(name(), "outer"))
+    return computeRadialBoundaryArea(_length, total_width);
+  if (boundary == genName(name(), "start") || boundary == genName(name(), "end"))
+    return computeAxialBoundaryArea(0.0, total_width);
+
+  if (_has_axial_regions)
+    for (const auto i : index_range(_axial_region_names))
+    {
+      if (boundary == genName(name(), _axial_region_names[i], "inner"))
+        return computeRadialBoundaryArea(_lengths[i], 0.0);
+      if (boundary == genName(name(), _axial_region_names[i], "outer"))
+        return computeRadialBoundaryArea(_lengths[i], total_width);
+    }
+
+  Real y_min = 0.0;
+  for (const auto j : index_range(_region_names))
+  {
+    const Real y_max = y_min + _widths[j];
+    if (boundary == genName(name(), _region_names[j], "start") ||
+        boundary == genName(name(), _region_names[j], "end"))
+      return computeAxialBoundaryArea(y_min, y_max);
+    if (j + 1 < _region_names.size() &&
+        boundary == genName(name(), _region_names[j], _region_names[j + 1]))
+      return computeRadialBoundaryArea(_length, y_max);
+    if (_has_axial_regions)
+      for (const auto i : make_range(std::size_t(1), _axial_region_names.size()))
+        if (boundary == genName(name(),
+                                _region_names[j],
+                                _axial_region_names[i - 1] + ":" + _axial_region_names[i]))
+          return computeAxialBoundaryArea(y_min, y_max);
+    y_min = y_max;
+  }
+  mooseError(name(), ": '", boundary, "' is not a boundary of this heat structure.");
+}
+
 HeatStructureBaseAC::ExternalBoundaryType
 HeatStructureBaseAC::getExternalBoundaryType(const BoundaryName & boundary) const
 {

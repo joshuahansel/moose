@@ -73,6 +73,18 @@ HeatStructureCylindricalAC::getUnitPerimeter(ExternalBoundaryType side) const
   mooseError(name(), ": Unknown external boundary type.");
 }
 
+Real
+HeatStructureCylindricalAC::computeRadialBoundaryArea(Real length, Real y) const
+{
+  return length * 2 * libMesh::pi * (_inner_radius + y);
+}
+
+Real
+HeatStructureCylindricalAC::computeAxialBoundaryArea(Real y_min, Real y_max) const
+{
+  return libMesh::pi * (std::pow(_inner_radius + y_max, 2) - std::pow(_inner_radius + y_min, 2));
+}
+
 void
 HeatStructureCylindricalAC::setupComponent()
 {
@@ -90,20 +102,36 @@ HeatStructureCylindricalAC::setupComponent()
   {
     for (const auto & block : instance->_blocks)
       all_blocks.push_back(block);
+    // The heat structure is generated along the x axis, which is its direction if no orientation
+    // is given
+    const RealVectorValue direction =
+        instance->isParamValid("orientation") ? instance->direction() : RealVectorValue(1, 0, 0);
     all_axes.insert(all_axes.end(),
                     instance->_blocks.size(),
-                    std::make_pair(instance->translation(), instance->direction()));
+                    std::make_pair(instance->translation(), direction));
   }
 
+  // Every subdomain of the mesh is listed, with RZ for the cylindrical heat structure blocks and
+  // XYZ for the others (e.g. flow channels): MooseMesh::setCoordSystem() applies a single
+  // coordinate system to all of the subdomains if only one block is given, and requires every
+  // subdomain to be listed otherwise.
+  //
   // Note: MultiMooseEnum's single-string constructor sets the *valid options* list, not the
   // selected value - the two-argument form is required to actually select a value, and the valid
   // Moose::CoordinateSystemType strings are "XYZ"/"RZ"/"RSPHERICAL" (see Conversion.C), not the
-  // C++ enumerator names themselves. One "RZ" per block selects the precise, per-block code path
-  // in setCoordSystem() rather than the single-value one, which would (harmlessly, here, since
-  // covering every block at once, but worth avoiding regardless) mark every mesh subdomain RZ.
-  std::string rz_per_block;
-  for (unsigned int i = 0; i < all_blocks.size(); i++)
-    rz_per_block += (i == 0 ? "" : " ") + std::string("RZ");
-  _awh.getMesh()->setCoordSystem(all_blocks, MultiMooseEnum("RZ", rz_per_block));
-  _awh.getMesh()->setGeneralAxisymmetricCoordAxes(all_blocks, all_axes);
+  // C++ enumerator names themselves.
+  auto & mesh = *_awh.getMesh();
+  std::vector<SubdomainName> mesh_blocks;
+  std::string coord_systems;
+  for (const auto subdomain_id : mesh.meshSubdomains())
+  {
+    SubdomainName block = mesh.getSubdomainName(subdomain_id);
+    if (block.empty())
+      block = std::to_string(subdomain_id);
+    const bool is_rz = std::find(all_blocks.begin(), all_blocks.end(), block) != all_blocks.end();
+    mesh_blocks.push_back(block);
+    coord_systems += (coord_systems.empty() ? "" : " ") + std::string(is_rz ? "RZ" : "XYZ");
+  }
+  mesh.setCoordSystem(mesh_blocks, MultiMooseEnum("XYZ RZ", coord_systems));
+  mesh.setGeneralAxisymmetricCoordAxes(all_blocks, all_axes);
 }

@@ -14,6 +14,9 @@
   [test]
     type = Exodiff
     input = 'phy.parent.i'
+    # The parent is included from the classic directory, so its sub-app input is the classic one
+    # unless it is overridden
+    cli_args = 'MultiApps/thm/input_files=../../actioncomponents/hs_boundary_external_app_temperature/phy.child.i'
     exodiff = 'phy.parent_out.e phy.parent_out_thm0.e'
     gold_dir = '../../components/hs_boundary_external_app_temperature/gold'
     restep = false # Test is prescribed to abort on failed timestep

@@ -35,7 +35,12 @@ public:
   static InputParameters validParams();
   HeatStructureCylindricalAC(const InputParameters & params);
 
+  /// Inner radius of the heat structure
+  Real innerRadius() const { return _inner_radius; }
+
   virtual Real getUnitPerimeter(ExternalBoundaryType side) const override;
+  virtual Real computeRadialBoundaryArea(Real length, Real y) const override;
+  virtual Real computeAxialBoundaryArea(Real y_min, Real y_max) const override;
 
 protected:
   virtual Real yOffset() const override { return _inner_radius; }

@@ -15,6 +15,9 @@
     type = CSVDiff
     prereq = 'generate_mesh'
     input = main.i
+    # The main app is included from the classic directory, so its sub-app input is the classic one
+    # unless it is overridden
+    cli_args = 'MultiApps/sub/input_files=../../actioncomponents/hs_boundary_external_app_heat_flux/sub.i'
     csvdiff = 'main_out_sub0.csv'
     gold_dir = '../../components/hs_boundary_external_app_heat_flux/gold'
     abs_zero = 1e-8

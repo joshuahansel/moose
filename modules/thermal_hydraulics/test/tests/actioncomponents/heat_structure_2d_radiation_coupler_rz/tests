@@ -1,0 +1,37 @@
+[Tests]
+  issues = '#19830 #32558'
+  design = 'HeatStructure2DRadiationCouplerRZAC.md'
+
+  [physics]
+    type = CSVDiff
+    input = 'heat_structure_2d_radiation_coupler_rz.i'
+    csvdiff = 'heat_structure_2d_radiation_coupler_rz.csv'
+    gold_dir = '../../components/heat_structure_2d_radiation_coupler_rz/gold'
+    abs_zero = 1e-5
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall be able to couple two 2D cylindrical heat structure ActionComponents via radiation and conserve energy, using the same input and reference results as the classic component.'
+  []
+  [error_reporting]
+    [missing_boundary]
+      type = RunException
+      input = 'heat_structure_2d_radiation_coupler_rz.i'
+      cli_args = "ActionComponents/hs_coupler/primary_boundary=fake_boundary"
+      expect_err = "The heat structure 'hs1' does not have the boundary 'fake_boundary'"
+      requirement = 'The system shall report an error if the boundary of a heat structure coupled by a radiation coupler ActionComponent does not exist.'
+    []
+    [invalid_hs_type]
+      type = RunException
+      input = 'heat_structure_2d_radiation_coupler_rz.i'
+      cli_args = "ActionComponents/hs1/type=HeatStructurePlate ActionComponents/hs1/depth=1.0"
+      expect_err = "The primary and secondary heat structures must be of a type inherited from 'HeatStructureCylindricalBase'"
+      requirement = 'The system shall report an error if a heat structure coupled by a radiation coupler ActionComponent is not cylindrical.'
+    []
+    [mesh_not_aligned]
+      type = RunException
+      input = 'heat_structure_2d_radiation_coupler_rz.i'
+      cli_args = "ActionComponents/hs1/position='0.1 0.1 0'"
+      expect_err = "The primary and secondary boundaries must be aligned"
+      requirement = 'The system shall report an error if the boundaries coupled by a radiation coupler ActionComponent are not aligned.'
+    []
+  []
+[]

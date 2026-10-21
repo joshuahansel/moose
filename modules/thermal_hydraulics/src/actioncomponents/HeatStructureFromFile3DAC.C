@@ -96,6 +96,15 @@ HeatStructureFromFile3DAC::hasRegion(const std::string & region) const
   return std::find(_region_names.begin(), _region_names.end(), region) != _region_names.end();
 }
 
+bool
+HeatStructureFromFile3DAC::hasBoundary(const BoundaryName & boundary) const
+{
+  for (const auto & file_boundary_name : _file_boundary_names)
+    if (boundary == genName(name(), file_boundary_name))
+      return true;
+  return false;
+}
+
 void
 HeatStructureFromFile3DAC::addMeshGenerators()
 {

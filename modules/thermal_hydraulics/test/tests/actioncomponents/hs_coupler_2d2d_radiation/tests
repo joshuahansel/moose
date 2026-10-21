@@ -1,0 +1,47 @@
+[Tests]
+  issues = '#19830 #32558'
+  design = 'HSCoupler2D2DRadiationAC.md'
+
+  [test]
+    [concentric_cylinders]
+      type = CSVDiff
+      input = 'concentric_cylinders.i'
+      csvdiff = 'concentric_cylinders.csv'
+      gold_dir = '../../components/hs_coupler_2d2d_radiation/gold'
+      abs_zero = 1e-7
+      restep = false # Test is prescribed to abort on failed timestep
+      requirement = 'The system shall be able to couple two concentric cylindrical heat structure ActionComponents via radiation with the same heat fluxes as the radiation coupler between two heat structures.'
+    []
+    [adjacent_cylinders]
+      type = Exodiff
+      input = 'adjacent_cylinders.i'
+      exodiff = 'adjacent_cylinders.e'
+      gold_dir = '../../components/hs_coupler_2d2d_radiation/gold'
+      restep = false # Test is prescribed to abort on failed timestep
+      requirement = 'The system shall be able to couple two adjacent cylindrical heat structure ActionComponents and an environment via radiation.'
+    []
+    [energy_conservation]
+      type = CSVDiff
+      input = 'energy_conservation.i'
+      csvdiff = 'energy_conservation.csv'
+      gold_dir = '../../components/hs_coupler_2d2d_radiation/gold'
+      abs_zero = 1e-6
+      restep = false # Test is prescribed to abort on failed timestep
+      requirement = 'The system shall be able to couple an arbitrary number of cylindrical heat structure ActionComponents via radiation and conserve energy.'
+    []
+    [invalid_view_factor_size]
+      type = RunException
+      input = 'concentric_cylinders.i'
+      cli_args = "ActionComponents/hs_couplerA/view_factors='0 1; 1'"
+      expect_err = "The parameter 'view_factors' must be a square matrix"
+      requirement = 'The system shall report an error if the view factor matrix of a radiation coupler ActionComponent is not square.'
+    []
+    [invalid_view_factor_row_sum]
+      type = RunException
+      input = 'concentric_cylinders.i'
+      cli_args = "ActionComponents/hs_couplerA/view_factors='0 0.5; 1 0'"
+      expect_err = "All rows in 'view_factors' must sum to one"
+      requirement = 'The system shall report an error if a row of the view factor matrix of a radiation coupler ActionComponent does not sum to one.'
+    []
+  []
+[]

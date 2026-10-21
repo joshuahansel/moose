@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <numeric>
+
 #include "ActionComponent.h"
 #include "ComponentMeshTransformHelper.h"
 #include "NamingInterface.h"
@@ -64,9 +66,23 @@ public:
   bool hasExternalBoundary(const BoundaryName & boundary) const;
   /// Type of the external boundary \p boundary; errors if it is not an external boundary
   ExternalBoundaryType getExternalBoundaryType(const BoundaryName & boundary) const;
+  /// Whether \p boundary is a boundary of this heat structure, external or interior
+  bool hasBoundary(const BoundaryName & boundary) const;
+  /// Area of the boundary \p boundary of one unit of the heat structure, mirroring classic THM's
+  /// Component2D::getBoundaryArea()
+  Real getBoundaryArea(const BoundaryName & boundary) const;
+  /// Total width of the heat structure
+  Real totalWidth() const { return std::accumulate(_widths.begin(), _widths.end(), 0.0); }
+
   /// Perimeter of one unit of the heat structure on the given side (NaN for the start/end sides,
   /// which have no well-defined perimeter), mirroring HeatStructureBase::getUnitPerimeter()
   virtual Real getUnitPerimeter(ExternalBoundaryType side) const = 0;
+  /// Area of a boundary of the given \p length and at the distance \p y from the inner side of the
+  /// heat structure, whose normal is in the transverse direction
+  virtual Real computeRadialBoundaryArea(Real length, Real y) const = 0;
+  /// Area of a boundary between the distances \p y_min and \p y_max from the inner side of the heat
+  /// structure, whose normal is in the axial direction
+  virtual Real computeAxialBoundaryArea(Real y_min, Real y_max) const = 0;
 
 protected:
   virtual void addMeshGenerators() override;

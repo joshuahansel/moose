@@ -31,6 +31,8 @@ public:
   HeatStructureFromFile3DAC(const InputParameters & params);
 
   virtual bool hasRegion(const std::string & region) const override;
+  /// Whether \p boundary is one of the sidesets of the mesh file (by its name in the simulation)
+  bool hasBoundary(const BoundaryName & boundary) const;
   /// A mesh from a file represents a single unit
   virtual Real numberOfUnits() const override { return 1.0; }
   /// Without a notion of length, a unit length is used to normalize a uniform power shape

@@ -14,6 +14,7 @@
 #include "NamingInterface.h"
 #include "THMVariableCoordinator.h"
 #include "FlowChannelClosuresInterface.h"
+#include "THMNames.h"
 
 class ClosuresBase;
 
@@ -57,7 +58,10 @@ public:
   /// FlowChannelBase::addHeatTransferName(). Const with mutable members because it is called on the
   /// const reference a heat-transfer ActionComponent gets from FlowChannel1PhaseAC::getPhysics().
   /// At most one connection is currently supported; a second is an error.
-  void addHeatTransferName(const std::string & ht_name, bool is_temperature_type) const;
+  /// @param T_wall_name Name of the wall temperature variable of a temperature-type connection
+  void addHeatTransferName(const std::string & ht_name,
+                           bool is_temperature_type,
+                           const VariableName & T_wall_name = THM::TEMPERATURE_WALL) const;
 
   /// The closures objects named by this flow channel's 'closures' parameter, resolved from the
   /// ClosuresRegistry - shared with any heat-transfer connection, exactly as classic THM's
@@ -146,4 +150,7 @@ private:
   /// Whether the connected heat-transfer component specifies a wall temperature (as opposed to a
   /// heat flux). Mutable for the same reason as _heat_transfer_name.
   mutable bool _temperature_mode;
+  /// Name of the wall temperature variable of the connection, if it is temperature type. Mutable
+  /// for the same reason as _heat_transfer_name.
+  mutable VariableName _T_wall_name;
 };

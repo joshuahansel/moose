@@ -38,6 +38,11 @@ public:
   /// look up this flow channel's fluid properties/numerical flux user object names
   const FlowChannel1PhasePhysics & getPhysics() const;
 
+  /// Length of the flow channel
+  Real length() const { return _length; }
+  /// Number of elements along the flow channel
+  unsigned int numElems() const { return _n_elems; }
+
 protected:
   virtual void addMeshGenerators() override;
   virtual void addPhysics() override;

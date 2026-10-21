@@ -1,0 +1,71 @@
+[Tests]
+  issues = '#19830 #32558'
+  design = 'HeatStructure2DCouplerAC.md'
+
+  [cylindrical]
+    type = Exodiff
+    input = 'heat_structure_2d_coupler.i'
+    cli_args = "
+      ActionComponents/hs3/inner_radius=0.7"
+    exodiff = 'cylindrical.e'
+    gold_dir = '../../components/heat_structure_2d_coupler/gold'
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall couple cylindrical heat structure ActionComponents via a heat transfer coefficient, using the same input and reference results as the classic component.'
+  []
+  [plate]
+    type = Exodiff
+    input = 'heat_structure_2d_coupler.i'
+    cli_args = "
+      ActionComponents/hs1/type=HeatStructurePlate
+      ActionComponents/hs2/type=HeatStructurePlate
+      ActionComponents/hs3/type=HeatStructurePlate
+      ActionComponents/hs1/depth=1.0
+      ActionComponents/hs2/depth=1.0
+      ActionComponents/hs3/depth=1.0
+      ActionComponents/hs3/position='0.5 0.7 0'
+      Outputs/file_base=plate"
+    exodiff = 'plate.e'
+    gold_dir = '../../components/heat_structure_2d_coupler/gold'
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall couple plate heat structure ActionComponents via a heat transfer coefficient, using the same input and reference results as the classic component.'
+  []
+  [separated]
+    type = CSVDiff
+    input = 'separated.i'
+    csvdiff = 'separated_out.csv'
+    gold_dir = '../../components/heat_structure_2d_coupler/gold'
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall couple heat structure ActionComponents whose boundaries are separated by a gap, with no heat transfer when the coupling heat transfer coefficient is zero.'
+  []
+
+  [error_reporting]
+    [missing_boundary]
+      type = RunException
+      input = 'heat_structure_2d_coupler.i'
+      cli_args = "ActionComponents/hs3/inner_radius=0.7 ActionComponents/hs_coupling_1_2/secondary_boundary=hs3:inner"
+      expect_err = "ActionComponents/hs_coupling_1_2/secondary_boundary: The heat structure 'hs1' does not have the boundary 'hs3:inner'"
+      requirement = 'The system shall report an error if the boundary of a heat structure coupled by a heat structure coupler ActionComponent does not exist.'
+    []
+    [type_mismatch]
+      type = RunException
+      input = 'heat_structure_2d_coupler.i'
+      cli_args = "ActionComponents/hs3/inner_radius=0.7 ActionComponents/hs1/type=HeatStructurePlate ActionComponents/hs1/depth=1.0"
+      expect_err = 'The coupled heat structures must have the same type'
+      requirement = 'The system shall report an error if the types of the heat structures coupled by a heat structure coupler ActionComponent do not match.'
+    []
+    [invalid_hs_type]
+      type = RunException
+      input = 'heat_structure_2d_coupler.i'
+      cli_args = "ActionComponents/hs3/inner_radius=0.7 ActionComponents/hs4/type=HeatStructureFromFile3D ActionComponents/hs4/file=../../components/heat_structure_from_file_3d/box.e ActionComponents/hs4/position='0 0 0' ActionComponents/hs4/initial_T=300 Materials/mat/type=ADGenericConstantMaterial Materials/mat/block='hs4:brick' Materials/mat/prop_names='density specific_heat thermal_conductivity' Materials/mat/prop_values='1 1 1' ActionComponents/hs_coupling_1_2/primary_heat_structure=hs4"
+      expect_err = "The component 'hs4' is not of type 'HeatStructureBase'"
+      requirement = 'The system shall report an error if a heat structure coupled by a heat structure coupler ActionComponent is not a 2D heat structure.'
+    []
+    [mesh_mismatch]
+      type = RunException
+      input = 'heat_structure_2d_coupler.i'
+      cli_args = "ActionComponents/hs1/orientation='1 1 0' ActionComponents/hs3/inner_radius=0.8"
+      expect_err = "The primary and secondary boundaries must be aligned"
+      requirement = 'The system shall report an error if the boundaries coupled by a heat structure coupler ActionComponent are not aligned.'
+    []
+  []
+[]

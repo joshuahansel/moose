@@ -17,6 +17,9 @@
   [energy_conservation_plate]
     type = Exodiff
     input = 'plate.parent.i'
+    # The parent is included from the classic directory, so its sub-app input is the classic one
+    # unless it is overridden
+    cli_args = 'MultiApps/thm/input_files=../../actioncomponents/hs_boundary_external_app_convection/plate.i'
     exodiff = 'plate.parent_out.e plate.parent_out_thm0.e'
     gold_dir = '../../components/hs_boundary_external_app_convection/gold'
     restep = false # Test is prescribed to abort on failed timestep

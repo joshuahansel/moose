@@ -1,0 +1,7 @@
+# The nodal values agree with the classic gold file to about 1e-8 (relative); the node and side
+# sets differ in numbering from the classic component.
+COORDINATES
+TIME STEPS
+NODAL VARIABLES relative 1e-6 floor 1.e-6
+	T_solid
+	T_wall

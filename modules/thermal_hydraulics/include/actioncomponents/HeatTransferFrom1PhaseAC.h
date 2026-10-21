@@ -13,6 +13,7 @@
 #include "NamingInterface.h"
 #include "HeatTransferClosuresInterface.h"
 #include "MooseTypes.h"
+#include "THMNames.h"
 
 class FlowChannel1PhasePhysics;
 
@@ -72,16 +73,27 @@ public:
 protected:
   virtual void actOnAdditionalTasks() override;
   virtual void addMaterials() override;
-  virtual void checkIntegrity() override;
 
   /// Whether this connection specifies a wall temperature (true) or a wall heat flux (false).
   /// Mirrors HeatTransferBase::isTemperatureType(); drives the flow channel's temperature mode.
   virtual bool isTemperatureType() const = 0;
 
+  /// Name of the wall temperature variable of a temperature-type connection
+  virtual VariableName wallTemperatureName() const { return THM::TEMPERATURE_WALL; }
+
   /// Physics of the connected flow channel component, looked up by name lazily so that
   /// 'flow_channel' may name a component declared before or after this one (mirrors
   /// FlowBoundary1PhaseAC::connectedPhysics()).
   const FlowChannel1PhasePhysics & connectedPhysics() const;
+
+  /// Physics of all the flow channels this component connects to. Derived classes that connect
+  /// several flow channels override this; the tasks of this class are applied to each of them.
+  virtual std::vector<const FlowChannel1PhasePhysics *> connectedPhysicsList() const
+  {
+    return {&connectedPhysics()};
+  }
+  /// Union of the flow channel blocks of all the connected flow channels
+  std::vector<SubdomainName> closuresBlocks() const;
 
   // Source-specific hooks for leaves (all no-ops by default) ----
   /// Add source-specific variables (e.g. the wall temperature variable)

@@ -1,0 +1,113 @@
+[Tests]
+  issues = '#19830 #32558'
+  design = 'HSCoupler2D3DAC.md'
+
+  [test]
+    [conduction_plus_radiation]
+      type = Exodiff
+      input = 'hs_coupler_2d3d.i'
+      cli_args = "ActionComponents/hs_coupler/include_radiation=true ActionComponents/hs_coupler/emissivity_2d=0.4 ActionComponents/hs_coupler/emissivity_3d=0.6 Outputs/file_base=conduction_plus_radiation"
+      exodiff = 'conduction_plus_radiation.e'
+      gold_dir = '../../components/hs_coupler_2d3d/gold'
+      restep = false # Test is prescribed to abort on failed timestep
+      requirement = 'The system shall couple a 2D and a 3D heat structure ActionComponent with gap conduction and radiation.'
+    []
+    [conduction_only]
+      type = Exodiff
+      input = 'hs_coupler_2d3d.i'
+      cli_args = "Outputs/file_base=conduction_only"
+      exodiff = 'conduction_only.e'
+      gold_dir = '../../components/hs_coupler_2d3d/gold'
+      restep = false # Test is prescribed to abort on failed timestep
+      requirement = 'The system shall couple a 2D and a 3D heat structure ActionComponent with gap conduction only.'
+    []
+    [convection_only]
+      type = Exodiff
+      input = 'hs_coupler_2d3d.i'
+      cli_args = "ActionComponents/hs_coupler/gap_thermal_conductivity=0 ActionComponents/hs_coupler/gap_htc=100 Outputs/file_base=convection_only"
+      exodiff = 'convection_only.e'
+      gold_dir = '../../components/hs_coupler_2d3d/gold'
+      restep = false # Test is prescribed to abort on failed timestep
+      requirement = 'The system shall couple a 2D and a 3D heat structure ActionComponent with a gap heat transfer coefficient only.'
+    []
+  []
+
+  [symmetry_reduction]
+    [quarter_explicit]
+      type = Exodiff
+      input = 'hs_coupler_2d3d.i'
+      cli_args = "ActionComponents/hs3d/file=../../components/hs_coupler_2d3d/mesh/mesh_quarter.e ActionComponents/hs_coupler/symmetry_factor=4 Outputs/file_base=quarter_explicit"
+      exodiff = 'quarter_explicit.e'
+      gold_dir = '../../components/hs_coupler_2d3d/gold'
+      restep = false
+      requirement = 'The system shall couple a 2D heat structure ActionComponent to a 3D heat structure ActionComponent covering a fraction of the azimuthal range, using a symmetry factor.'
+    []
+  []
+
+  [error_reporting]
+    [nonexistent_hs2d_component]
+      type = RunException
+      input = 'hs_coupler_2d3d.i'
+      cli_args = "ActionComponents/hs_coupler/heat_structure_2d=foo"
+      expect_err = "There is no 2D cylindrical heat structure with the name 'foo'"
+      requirement = 'The system shall report an error if the 2D heat structure of a 2D-3D heat structure coupler ActionComponent does not exist.'
+    []
+    [nonexistent_hs3d_component]
+      type = RunException
+      input = 'hs_coupler_2d3d.i'
+      cli_args = "ActionComponents/hs_coupler/heat_structure_3d=foo"
+      expect_err = "There is no 3D heat structure with the name 'foo'"
+      requirement = 'The system shall report an error if the 3D heat structure of a 2D-3D heat structure coupler ActionComponent does not exist.'
+    []
+    [nonexistent_hs2d_boundary]
+      type = RunException
+      input = 'hs_coupler_2d3d.i'
+      cli_args = "ActionComponents/hs_coupler/boundary_2d=foo"
+      expect_err = "The heat structure 'hs2d' does not have the boundary 'foo'"
+      requirement = 'The system shall report an error if the 2D boundary of a 2D-3D heat structure coupler ActionComponent does not exist.'
+    []
+    [nonexistent_hs3d_boundary]
+      type = RunException
+      input = 'hs_coupler_2d3d.i'
+      cli_args = "ActionComponents/hs_coupler/boundary_3d=foo"
+      expect_err = "The heat structure 'hs3d' does not have the boundary 'foo'"
+      requirement = 'The system shall report an error if the 3D boundary of a 2D-3D heat structure coupler ActionComponent does not exist.'
+    []
+    [misaligned_meshes]
+      type = RunException
+      input = 'hs_coupler_2d3d.i'
+      cli_args = "ActionComponents/hs2d/orientation='1 0 0'"
+      expect_err = "The meshes of the heat structures are not aligned"
+      requirement = 'The system shall report an error if the meshes of the heat structures of a 2D-3D heat structure coupler ActionComponent are not aligned.'
+    []
+    [zero_gap_size]
+      type = RunException
+      input = 'hs_coupler_2d3d.i'
+      cli_args = "ActionComponents/hs_coupler/gap_thickness=0"
+      expect_err = "Gap thickness must be > 0."
+      requirement = 'The system shall report an error if the gap thickness of a 2D-3D heat structure coupler ActionComponent is not positive.'
+    []
+    [radiation_missing_emissivities]
+      type = RunException
+      input = 'hs_coupler_2d3d.i'
+      cli_args = "ActionComponents/hs_coupler/include_radiation=true"
+      expect_err = "If 'include_radiation' is 'true', then 'emissivity_2d' and 'emissivity_3d' are required."
+      requirement = 'The system shall report an error if radiation is included in a 2D-3D heat structure coupler ActionComponent without emissivities.'
+    []
+    [no_radiation_but_provided_emissivity]
+      type = RunException
+      input = 'hs_coupler_2d3d.i'
+      cli_args = "ActionComponents/hs_coupler/emissivity_2d=0.4"
+      expect_err = "If 'include_radiation' is 'false', then neither 'emissivity_2d' nor 'emissivity_3d' can be specified."
+      requirement = 'The system shall report an error if emissivities are given to a 2D-3D heat structure coupler ActionComponent without radiation.'
+    []
+    [exceeded_max_ad_container_size]
+      type = RunException
+      input = 'hs_coupler_2d3d.i'
+      cli_args = "ActionComponents/hs3d/file=../../components/hs_coupler_2d3d/mesh/mesh_fine.e"
+      expect_err = 'MOOSE must be configured with a larger AD container size'
+      capabilities = 'ad_size<=55'
+      requirement = 'The system shall report an error if the AD container size is too small for the number of elements coupled by a 2D-3D heat structure coupler ActionComponent.'
+    []
+  []
+[]

@@ -28,6 +28,11 @@ public:
   static InputParameters validParams();
   FlowBoundary1PhaseAC(const InputParameters & params);
 
+  /// The boundary this component attaches to, e.g. 'pipe:out'
+  const BoundaryName & input() const { return _input; }
+  /// Name of the connected flow channel component
+  const std::string & connectedComponentName() const { return _connected_component_name; }
+
 public:
   virtual std::vector<UserObjectName> dependsOnUserObjects() const override
   {
