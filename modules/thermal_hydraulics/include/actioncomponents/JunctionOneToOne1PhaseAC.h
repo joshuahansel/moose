@@ -45,6 +45,8 @@ protected:
 
   /// Returns the physics of the i-th connected flow channel component (looked up by name, lazily)
   const FlowChannel1PhasePhysics & connectedPhysics(unsigned int i) const;
+  /// Adds a sideset named after the junction with the sides at the connected flow channel ends
+  void addJunctionSideset();
   /// Adds one boundary condition per solution variable per connected boundary
   void addWeakBCs();
   /// Adds the junction's user object, after the sparsity map has been built. Derived classes with

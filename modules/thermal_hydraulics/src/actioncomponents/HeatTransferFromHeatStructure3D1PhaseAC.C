@@ -239,7 +239,7 @@ HeatTransferFromHeatStructure3D1PhaseAC::addHeatTransferVariables()
   // heat structure temperature over the layer next to it. 'T_wall' holds the same quantity under
   // the name that closures that read the wall temperature expect.
   THMVariableCoordinator::findOrCreate(_awh, _action_factory)
-      .requestVariable(false, THM::TEMPERATURE_WALL, "MONOMIAL", "CONSTANT", 1.0, closuresBlocks());
+      .requestVariable(false, wallTemperatureName(), "MONOMIAL", "CONSTANT", 1.0, closuresBlocks());
 }
 
 void
@@ -251,7 +251,7 @@ HeatTransferFromHeatStructure3D1PhaseAC::addHeatTransferICs()
 
   const std::string class_name = "FunctionIC";
   InputParameters params = getFactory().getValidParams(class_name);
-  params.set<VariableName>("variable") = THM::TEMPERATURE_WALL;
+  params.set<VariableName>("variable") = wallTemperatureName();
   params.set<std::vector<SubdomainName>>("block") = closuresBlocks();
   params.set<FunctionName>("function") = hs().getParam<FunctionName>("initial_T");
   getProblem().addInitialCondition(class_name, genName(name(), "T_wall_ic"), params);
@@ -286,8 +286,8 @@ HeatTransferFromHeatStructure3D1PhaseAC::addUserObjects()
     InputParameters params = getFactory().getValidParams(class_name);
     params.set<std::vector<SubdomainName>>("block") = closuresBlocks();
     params.set<MeshAlignment1D3D *>("_mesh_alignment") = &meshAlignment();
-    params.set<std::vector<VariableName>>("P_hf") = {THM::HEAT_FLUX_PERIMETER};
-    params.set<MaterialPropertyName>("Hw") = THM::HEAT_TRANSFER_COEFFICIENT_WALL;
+    params.set<std::vector<VariableName>>("P_hf") = {heatedPerimeterName()};
+    params.set<MaterialPropertyName>("Hw") = wallHeatTransferCoefficientName();
     params.set<MaterialPropertyName>("T") = FlowModelSinglePhase::TEMPERATURE;
     params.set<ExecFlagEnum>("execute_on") = execute_on;
     getProblem().addUserObject(class_name, _heat_transfer_uo_name, params);
@@ -303,7 +303,7 @@ HeatTransferFromHeatStructure3D1PhaseAC::addHeatTransferAuxKernels()
   const std::string class_name = "SpatialUserObjectAux";
   InputParameters params = getFactory().getValidParams(class_name);
   params.set<std::vector<SubdomainName>>("block") = closuresBlocks();
-  params.set<AuxVariableName>("variable") = THM::TEMPERATURE_WALL;
+  params.set<AuxVariableName>("variable") = wallTemperatureName();
   params.set<ExecFlagEnum>("execute_on") = execute_on;
   params.set<UserObjectName>("user_object") = _T_wall_avg_uo_name;
   getProblem().addAuxKernel(class_name, genName(name(), "T_wall_transfer"), params);
@@ -316,8 +316,8 @@ HeatTransferFromHeatStructure3D1PhaseAC::addHeatTransferKernels()
     const std::string class_name = "ADOneD3EqnEnergyHeatFluxFromHeatStructure3D";
     InputParameters params = getFactory().getValidParams(class_name);
     params.set<std::vector<SubdomainName>>("block") = closuresBlocks();
-    params.set<std::vector<VariableName>>("P_hf") = {THM::HEAT_FLUX_PERIMETER};
-    params.set<MaterialPropertyName>("Hw") = THM::HEAT_TRANSFER_COEFFICIENT_WALL;
+    params.set<std::vector<VariableName>>("P_hf") = {heatedPerimeterName()};
+    params.set<MaterialPropertyName>("Hw") = wallHeatTransferCoefficientName();
     params.set<UserObjectName>("user_object") = _T_wall_avg_uo_name;
     params.set<MaterialPropertyName>("T") = FlowModelSinglePhase::TEMPERATURE;
     params.set<NonlinearVariableName>("variable") = THM::RHOEA;

@@ -38,6 +38,11 @@ FlowChannel1PhaseAC::validParams()
   params.addClassDescription(
       "A 1D single-phase flow channel, with its mesh generated through the MeshGenerator system.");
 
+  params.addParam<bool>("name_multiple_ht_by_index",
+                        true,
+                        "If true, when there are multiple heat transfer components connected to "
+                        "this flow channel, use their index for naming related quantities; "
+                        "otherwise, use the name of the heat transfer component.");
   params.addRequiredRangeCheckedParam<Real>("length", "length > 0", "Length of the flow channel");
   params.addRequiredRangeCheckedParam<unsigned int>(
       "n_elems", "n_elems > 0", "Number of elements along the flow channel");
@@ -123,6 +128,8 @@ FlowChannel1PhaseAC::FlowChannel1PhaseAC(const InputParameters & params)
     physics_params.set<FunctionName>("D_h") = getParam<FunctionName>("D_h");
   physics_params.set<Real>("roughness") = getParam<Real>("roughness");
   physics_params.set<Real>("PoD") = getParam<Real>("PoD");
+  physics_params.set<bool>("name_multiple_ht_by_index") =
+      getParam<bool>("name_multiple_ht_by_index");
   physics_params.set<MooseEnum>("rdg_slope_reconstruction") =
       getParam<MooseEnum>("rdg_slope_reconstruction");
 

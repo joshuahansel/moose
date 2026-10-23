@@ -25,6 +25,10 @@ registerMooseActionAliased("ThermalHydraulicsApp",
                            JunctionOneToOne1PhaseAC,
                            "JunctionOneToOne1Phase",
                            "add_bc");
+registerMooseActionAliased("ThermalHydraulicsApp",
+                           JunctionOneToOne1PhaseAC,
+                           "JunctionOneToOne1Phase",
+                           "append_mesh_generator");
 registerActionComponentAliased("ThermalHydraulicsApp",
                                JunctionOneToOne1PhaseAC,
                                "JunctionOneToOne1Phase");
@@ -60,6 +64,7 @@ JunctionOneToOne1PhaseAC::JunctionOneToOne1PhaseAC(const InputParameters & param
 
   addRequiredTask("add_user_object");
   addRequiredTask("add_bc");
+  addRequiredTask("append_mesh_generator");
 }
 
 const FlowChannel1PhasePhysics &
@@ -155,6 +160,23 @@ JunctionOneToOne1PhaseAC::actOnAdditionalTasks()
 {
   if (_current_task == "add_bc")
     addWeakBCs();
+  else if (_current_task == "append_mesh_generator")
+    addJunctionSideset();
+}
+
+void
+JunctionOneToOne1PhaseAC::addJunctionSideset()
+{
+  // Classic THM junctions create a sideset named after themselves with the sides of all the
+  // connected component ends, which inputs use to refer to the junction (e.g. in postprocessors).
+  // It is added once the meshes of the components are combined, since each flow channel would
+  // otherwise create a sideset of the same name with a different ID.
+  InputParameters params = _factory.getValidParams("ParsedGenerateSideset");
+  params.set<std::vector<BoundaryName>>("included_boundaries") = _connections;
+  params.set<std::string>("combinatorial_geometry") = "1";
+  params.set<BoundaryName>("new_sideset_name") = name();
+  _app.getMeshGeneratorSystem().appendMeshGenerator(
+      "ParsedGenerateSideset", genName(name(), "sideset"), params);
 }
 
 void

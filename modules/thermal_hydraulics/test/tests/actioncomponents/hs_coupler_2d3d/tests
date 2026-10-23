@@ -2,6 +2,14 @@
   issues = '#19830 #32558'
   design = 'HSCoupler2D3DAC.md'
 
+  [check_input_mesh]
+    type = RunApp
+    input = mesh.i
+    cli_args = '--mesh-only mesh.e'
+    recover = False # No recover for --mesh-only
+    requirement = 'The system shall have correct input for the HSCoupler2D3DAC test mesh.'
+  []
+
   [test]
     [conduction_plus_radiation]
       type = Exodiff
@@ -33,6 +41,17 @@
   []
 
   [symmetry_reduction]
+    requirement = 'The system shall correctly scale heat flux when the 3D mesh covers only a '
+                  'fraction of the full azimuthal range'
+    [check_input_mesh_quarter]
+      type = RunApp
+      input = mesh.i
+      cli_args = '--mesh-only mesh_quarter.e
+                  n_elems_azimuthal=5
+                  Mesh/ring/dmax=90'
+      recover = False
+      detail = 'and the quarter-cylinder mesh input is valid.'
+    []
     [quarter_explicit]
       type = Exodiff
       input = 'hs_coupler_2d3d.i'
@@ -40,7 +59,7 @@
       exodiff = 'quarter_explicit.e'
       gold_dir = '../../components/hs_coupler_2d3d/gold'
       restep = false
-      requirement = 'The system shall couple a 2D heat structure ActionComponent to a 3D heat structure ActionComponent covering a fraction of the azimuthal range, using a symmetry factor.'
+      detail = 'using a quarter-cylinder 3D mesh with explicit symmetry_factor=4.'
     []
   []
 

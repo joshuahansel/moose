@@ -53,6 +53,41 @@ HeatTransferFrom1PhaseAC::connectedPhysics() const
   return _awh.getAction<FlowChannel1PhaseAC>(getParam<std::string>("flow_channel")).getPhysics();
 }
 
+std::string
+HeatTransferFrom1PhaseAC::suffix() const
+{
+  // The wall quantities are shared by all the connected flow channels, so they must be numbered
+  // the same way in all of them
+  std::string suffix;
+  bool first = true;
+  for (const auto * physics : connectedPhysicsList())
+  {
+    const auto flow_channel_suffix = physics->heatTransferSuffix(name());
+    if (!first && flow_channel_suffix != suffix)
+      paramError("flow_channel",
+                 "The flow channels connected by this component have a different number of heat "
+                 "transfer connections, so the names of its quantities are not consistent.");
+    suffix = flow_channel_suffix;
+    first = false;
+  }
+  return suffix;
+}
+
+VariableName
+HeatTransferFrom1PhaseAC::wallTemperatureName() const
+{
+  if (const auto specified = specifiedWallTemperatureName())
+    return *specified;
+  return THM::TEMPERATURE_WALL + suffix();
+}
+
+const MaterialPropertyName &
+HeatTransferFrom1PhaseAC::getClosuresWallHeatTransferCoefficient1PhaseName() const
+{
+  _Hw_name = wallHeatTransferCoefficientName();
+  return _Hw_name;
+}
+
 std::vector<SubdomainName>
 HeatTransferFrom1PhaseAC::closuresBlocks() const
 {
@@ -70,7 +105,7 @@ HeatTransferFrom1PhaseAC::actOnAdditionalTasks()
   if (_current_task == "THM:add_heat_transfers")
   {
     for (const auto * physics : connectedPhysicsList())
-      physics->addHeatTransferName(name(), isTemperatureType(), wallTemperatureName());
+      physics->addHeatTransferName(name(), isTemperatureType(), specifiedWallTemperatureName());
   }
   else if (_current_task == "add_function")
   {
@@ -86,10 +121,9 @@ HeatTransferFrom1PhaseAC::actOnAdditionalTasks()
   }
   else if (_current_task == "add_aux_variable")
   {
-    // Shared by all the heat transfer components, each on its own flow channel
     THMVariableCoordinator::findOrCreate(_awh, _action_factory)
         .requestVariable(
-            false, THM::HEAT_FLUX_PERIMETER, "MONOMIAL", "CONSTANT", 1.0, closuresBlocks());
+            false, heatedPerimeterName(), "MONOMIAL", "CONSTANT", 1.0, closuresBlocks());
 
     addHeatTransferVariables();
   }
@@ -97,7 +131,7 @@ HeatTransferFrom1PhaseAC::actOnAdditionalTasks()
   {
     const std::string class_name = "FunctionIC";
     InputParameters params = getFactory().getValidParams(class_name);
-    params.set<VariableName>("variable") = THM::HEAT_FLUX_PERIMETER;
+    params.set<VariableName>("variable") = heatedPerimeterName();
     params.set<std::vector<SubdomainName>>("block") = closuresBlocks();
     params.set<FunctionName>("function") = _P_hf_fn_name;
     getProblem().addInitialCondition(class_name, genName(name(), "P_hf_ic"), params);
@@ -110,7 +144,7 @@ HeatTransferFrom1PhaseAC::actOnAdditionalTasks()
   {
     const std::string class_name = "FunctionAux";
     InputParameters params = getFactory().getValidParams(class_name);
-    params.set<AuxVariableName>("variable") = THM::HEAT_FLUX_PERIMETER;
+    params.set<AuxVariableName>("variable") = heatedPerimeterName();
     params.set<std::vector<SubdomainName>>("block") = closuresBlocks();
     params.set<FunctionName>("function") = _P_hf_fn_name;
     ExecFlagEnum execute_on(MooseUtils::getDefaultExecFlagEnum());

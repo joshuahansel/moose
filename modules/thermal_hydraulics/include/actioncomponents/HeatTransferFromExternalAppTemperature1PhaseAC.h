@@ -35,5 +35,5 @@ protected:
   virtual void addHeatTransferKernels() override;
 
   /// Name of the wall temperature variable
-  virtual VariableName wallTemperatureName() const override;
+  virtual std::optional<VariableName> specifiedWallTemperatureName() const override;
 };

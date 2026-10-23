@@ -51,4 +51,11 @@
     restep = false # Test is prescribed to abort on failed timestep
     requirement = 'The system shall be able to dynamically control the wall temperature of a specified-wall-temperature heat transfer ActionComponent.'
   []
+
+  [err:no_phf]
+    type = RunException
+    input = 'err.no_phf.i'
+    expect_err = "ActionComponents/hx/hs_side: The specified boundary 'hs:start' of the heat structure 'hs' is either START and END boundary, which may not be used"
+    requirement = 'The system shall report an error if an invalid side is specified for setting a heat structure ActionComponent on a flow channel ActionComponent.'
+  []
 []

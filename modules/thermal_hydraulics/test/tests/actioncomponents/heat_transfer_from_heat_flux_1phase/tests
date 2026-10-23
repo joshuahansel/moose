@@ -21,12 +21,22 @@
     requirement = 'The system shall have correct Jacobians for the wall heat flux kernel of a '
                   'single-phase flow channel ActionComponent heated by a specified wall heat flux.'
   []
-  [err_multiple_connections]
-    type = 'RunException'
-    input = 'err.multiple_connections.i'
-    expect_err = 'At most one heat transfer connection is currently supported'
-    requirement = 'The system shall report an error if more than one heat transfer component is '
-                  'connected to a single-phase flow channel ActionComponent.'
+  [phy:q_wall_multiple_3eqn]
+    type = 'CSVDiff'
+    input = 'phy.q_wall_multiple_3eqn.i'
+    csvdiff = 'phy.q_wall_multiple_3eqn_out.csv'
+    gold_dir = '../../components/heat_transfer_from_heat_flux_1phase/gold'
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall allow application of multiple heat fluxes to a single-phase flow channel ActionComponent.'
+  []
+  [naming_for_multiple_ht]
+    type = RunApp
+    input = 'phy.q_wall_multiple_3eqn.i'
+    cli_args = "
+      ActionComponents/pipe/name_multiple_ht_by_index=false
+      Postprocessors/q_wall_name_check/mat_prop=q_wall:ht2"
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall allow heat transfer names to be named with the heat transfer object as a suffix when there are multiple heat fluxes applied to a single-phase flow channel ActionComponent.'
   []
 
   [phy.energy_heatflux_ss_1phase]

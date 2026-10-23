@@ -45,7 +45,7 @@ HeatTransferFromSpecifiedTemperature1PhaseAC::addHeatTransferVariables()
 
   THMVariableCoordinator::findOrCreate(_awh, _action_factory)
       .requestVariable(false,
-                       THM::TEMPERATURE_WALL,
+                       wallTemperatureName(),
                        nodal ? "LAGRANGE" : "MONOMIAL",
                        nodal ? "FIRST" : "CONSTANT",
                        1.0,
@@ -57,7 +57,7 @@ HeatTransferFromSpecifiedTemperature1PhaseAC::addHeatTransferICs()
 {
   const std::string class_name = "FunctionIC";
   InputParameters params = getFactory().getValidParams(class_name);
-  params.set<VariableName>("variable") = THM::TEMPERATURE_WALL;
+  params.set<VariableName>("variable") = wallTemperatureName();
   params.set<std::vector<SubdomainName>>("block") = connectedPhysics().getClosuresBlocks();
   params.set<FunctionName>("function") = getParam<FunctionName>("T_wall");
   getProblem().addInitialCondition(class_name, genName(name(), "T_wall_ic"), params);
@@ -68,7 +68,7 @@ HeatTransferFromSpecifiedTemperature1PhaseAC::addHeatTransferAuxKernels()
 {
   const std::string class_name = "FunctionAux";
   InputParameters params = getFactory().getValidParams(class_name);
-  params.set<AuxVariableName>("variable") = THM::TEMPERATURE_WALL;
+  params.set<AuxVariableName>("variable") = wallTemperatureName();
   params.set<std::vector<SubdomainName>>("block") = connectedPhysics().getClosuresBlocks();
   params.set<FunctionName>("function") = getParam<FunctionName>("T_wall");
   ExecFlagEnum execute_on(MooseUtils::getDefaultExecFlagEnum());
@@ -84,9 +84,9 @@ HeatTransferFromSpecifiedTemperature1PhaseAC::addHeatTransferKernels()
   InputParameters params = getFactory().getValidParams(class_name);
   params.set<NonlinearVariableName>("variable") = THM::RHOEA;
   params.set<std::vector<SubdomainName>>("block") = connectedPhysics().getClosuresBlocks();
-  params.set<std::vector<VariableName>>("T_wall") = {THM::TEMPERATURE_WALL};
-  params.set<MaterialPropertyName>("Hw") = THM::HEAT_TRANSFER_COEFFICIENT_WALL;
-  params.set<std::vector<VariableName>>("P_hf") = {THM::HEAT_FLUX_PERIMETER};
+  params.set<std::vector<VariableName>>("T_wall") = {wallTemperatureName()};
+  params.set<MaterialPropertyName>("Hw") = wallHeatTransferCoefficientName();
+  params.set<std::vector<VariableName>>("P_hf") = {heatedPerimeterName()};
   params.set<MaterialPropertyName>("T") = FlowModelSinglePhase::TEMPERATURE;
   getProblem().addKernel(class_name, genName(name(), "wall_heat_transfer"), params);
 }

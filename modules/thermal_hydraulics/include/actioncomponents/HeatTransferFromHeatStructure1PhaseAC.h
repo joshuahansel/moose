@@ -74,7 +74,10 @@ private:
   /// Name of the user object computing the heat flux
   const UserObjectName _heat_flux_uo_name;
   /// Name of the material property holding the heat structure temperature on the flow channel
-  const MaterialPropertyName _T_wall_coupled_name;
+  MaterialPropertyName coupledWallTemperatureName() const
+  {
+    return wallTemperatureName() + "_coupled";
+  }
 
   /// Alignment of the flow channel and the heat structure boundary
   std::unique_ptr<MeshAlignment> _mesh_alignment;

@@ -115,9 +115,7 @@ ThermalHydraulicsApp::registerAll(Factory & f, ActionFactory & af, Syntax & s)
   // registration.
   s.registerTaskName("THM:add_heat_transfers", false);
   // Ordered before the earliest task on which a heat-transfer component creates a MOOSE object
-  // (the shared 'P_hf' aux variable), so the single-connection guard in
-  // FlowChannel1PhasePhysics::addHeatTransferName errors before a second connection would instead
-  // trip a less clear duplicate-object error.
+  // (its 'P_hf' aux variable), whose name depends on how many connections the flow channel has.
   s.addDependency("add_aux_variable", "THM:add_heat_transfers");
   s.addDependency("add_material", "THM:add_heat_transfers");
   s.addDependency("check_integrity", "THM:add_heat_transfers");

@@ -15,6 +15,8 @@
 #include "MooseTypes.h"
 #include "THMNames.h"
 
+#include <optional>
+
 class FlowChannel1PhasePhysics;
 
 /// Registers a HeatTransferFrom1PhaseAC-derived component to all the tasks it acts on
@@ -65,10 +67,7 @@ public:
     return getParam<FunctionName>("Hw");
   }
   virtual const MaterialPropertyName &
-  getClosuresWallHeatTransferCoefficient1PhaseName() const override
-  {
-    return _Hw_name;
-  }
+  getClosuresWallHeatTransferCoefficient1PhaseName() const override;
 
 protected:
   virtual void actOnAdditionalTasks() override;
@@ -78,8 +77,25 @@ protected:
   /// Mirrors HeatTransferBase::isTemperatureType(); drives the flow channel's temperature mode.
   virtual bool isTemperatureType() const = 0;
 
-  /// Name of the wall temperature variable of a temperature-type connection
-  virtual VariableName wallTemperatureName() const { return THM::TEMPERATURE_WALL; }
+  /// Name of the wall temperature variable of a temperature-type connection if it is not created by
+  /// the flow channel's naming (e.g. it is created by another application)
+  virtual std::optional<VariableName> specifiedWallTemperatureName() const { return std::nullopt; }
+
+  /// Suffix of the names of this connection's wall quantities, which is not empty if there is more
+  /// than one heat transfer connection to the flow channel. Only valid after the task
+  /// THM:add_heat_transfers, once all the connections are known.
+  std::string suffix() const;
+  /// Name of the heated perimeter variable of this connection
+  VariableName heatedPerimeterName() const { return THM::HEAT_FLUX_PERIMETER + suffix(); }
+  /// Name of the wall temperature variable of this connection
+  VariableName wallTemperatureName() const;
+  /// Name of the wall heat flux of this connection
+  std::string wallHeatFluxName() const { return THM::HEAT_FLUX_WALL + suffix(); }
+  /// Name of the wall heat transfer coefficient of this connection
+  MaterialPropertyName wallHeatTransferCoefficientName() const
+  {
+    return THM::HEAT_TRANSFER_COEFFICIENT_WALL + suffix();
+  }
 
   /// Physics of the connected flow channel component, looked up by name lazily so that
   /// 'flow_channel' may name a component declared before or after this one (mirrors
@@ -110,6 +126,7 @@ protected:
   /// The heated perimeter function name: the 'P_hf' parameter if given, otherwise the name of a
   /// GeneralizedCircumference function this component builds from the flow channel area
   const FunctionName _P_hf_fn_name;
-  /// Wall heat transfer coefficient material property name (bare, since at most one connection)
-  const MaterialPropertyName _Hw_name;
+  /// Wall heat transfer coefficient material property name, updated when it is requested because
+  /// the suffix is not known until all the connections are
+  mutable MaterialPropertyName _Hw_name;
 };

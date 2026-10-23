@@ -56,7 +56,6 @@ HeatTransferFromHeatStructure1PhaseAC::HeatTransferFromHeatStructure1PhaseAC(
     HeatTransferFrom1PhaseAC(params),
     _hs_boundary_type(HeatStructureBaseAC::ExternalBoundaryType::OUTER),
     _heat_flux_uo_name(genName(name(), "heat_flux_uo")),
-    _T_wall_coupled_name(THM::TEMPERATURE_WALL + "_coupled"),
     _rm_added(false)
 {
   if (isParamValid("hs_side") == isParamValid("hs_boundary"))
@@ -190,7 +189,7 @@ HeatTransferFromHeatStructure1PhaseAC::addHeatTransferVariables()
 {
   THMVariableCoordinator::findOrCreate(_awh, _action_factory)
       .requestVariable(false,
-                       THM::TEMPERATURE_WALL,
+                       wallTemperatureName(),
                        "LAGRANGE",
                        "FIRST",
                        1.0,
@@ -206,7 +205,7 @@ HeatTransferFromHeatStructure1PhaseAC::addHeatTransferICs()
 
   const std::string class_name = "FunctionIC";
   InputParameters params = getFactory().getValidParams(class_name);
-  params.set<VariableName>("variable") = THM::TEMPERATURE_WALL;
+  params.set<VariableName>("variable") = wallTemperatureName();
   params.set<std::vector<SubdomainName>>("block") = connectedPhysics().getClosuresBlocks();
   params.set<FunctionName>("function") = hs().getParam<FunctionName>("initial_T");
   getProblem().addInitialCondition(class_name, genName(name(), "T_wall_ic"), params);
@@ -222,9 +221,9 @@ HeatTransferFromHeatStructure1PhaseAC::addUserObjects()
   InputParameters params = getFactory().getValidParams(class_name);
   params.set<std::vector<SubdomainName>>("block") = connectedPhysics().getClosuresBlocks();
   params.set<MeshAlignment *>("_mesh_alignment") = &meshAlignment();
-  params.set<MaterialPropertyName>("T_wall") = _T_wall_coupled_name;
-  params.set<std::vector<VariableName>>("P_hf") = {THM::HEAT_FLUX_PERIMETER};
-  params.set<MaterialPropertyName>("Hw") = THM::HEAT_TRANSFER_COEFFICIENT_WALL;
+  params.set<MaterialPropertyName>("T_wall") = coupledWallTemperatureName();
+  params.set<std::vector<VariableName>>("P_hf") = {heatedPerimeterName()};
+  params.set<MaterialPropertyName>("Hw") = wallHeatTransferCoefficientName();
   params.set<MaterialPropertyName>("T") = FlowModelSinglePhase::TEMPERATURE;
   params.set<MooseFunctorName>("scale") = getParam<MooseFunctorName>("scale");
   params.set<ExecFlagEnum>("execute_on") = execute_on;
@@ -267,7 +266,7 @@ HeatTransferFromHeatStructure1PhaseAC::addHeatTransferMaterials()
   const std::string class_name = "MeshAlignmentVariableTransferMaterial";
   InputParameters params = getFactory().getValidParams(class_name);
   params.set<std::vector<SubdomainName>>("block") = connectedPhysics().getClosuresBlocks();
-  params.set<MaterialPropertyName>("property_name") = _T_wall_coupled_name;
+  params.set<MaterialPropertyName>("property_name") = coupledWallTemperatureName();
   params.set<std::string>("paired_variable") =
       hs().getPhysics().getParam<VariableName>("temperature_name");
   params.set<MeshAlignment *>("_mesh_alignment") = &meshAlignment();
@@ -281,7 +280,7 @@ HeatTransferFromHeatStructure1PhaseAC::addHeatTransferAuxKernels()
   // visualization
   const std::string class_name = "VariableValueTransferAux";
   InputParameters params = getFactory().getValidParams(class_name);
-  params.set<AuxVariableName>("variable") = THM::TEMPERATURE_WALL;
+  params.set<AuxVariableName>("variable") = wallTemperatureName();
   params.set<std::vector<BoundaryName>>("boundary") = {getParam<std::string>("flow_channel")};
   params.set<BoundaryName>("paired_boundary") = _hs_boundary;
   params.set<std::vector<VariableName>>("paired_variable") = {

@@ -168,4 +168,19 @@
     restep = false # Test is prescribed to abort on failed timestep
     requirement = 'The system shall conserve energy when a flow channel is coupled to a cylindrical heat structure ActionComponent.'
   []
+
+  [phy:heat_structure_multiple_3eqn]
+    type = 'CSVDiff'
+    input = 'phy.heat_structure_multiple_3eqn.i'
+    csvdiff = 'phy.heat_structure_multiple_3eqn_rdg_out.csv'
+    gold_dir = '../../components/heat_transfer_from_heat_structure_1phase/gold'
+    cli_args = "
+      Outputs/file_base=phy.heat_structure_multiple_3eqn_rdg_out"
+    abs_zero = 1e-5
+    rel_err = 0
+    max_time = 6000
+    recover = false
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall conserve energy when a flow channel ActionComponent is coupled to several heat structure ActionComponents.'
+  []
 []

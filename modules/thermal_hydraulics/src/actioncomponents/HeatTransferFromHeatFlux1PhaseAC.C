@@ -37,7 +37,7 @@ HeatTransferFromHeatFlux1PhaseAC::addHeatTransferMaterials()
   const std::string class_name = "ADGenericFunctionMaterial";
   InputParameters params = getFactory().getValidParams(class_name);
   params.set<std::vector<SubdomainName>>("block") = connectedPhysics().getClosuresBlocks();
-  params.set<std::vector<std::string>>("prop_names") = {THM::HEAT_FLUX_WALL};
+  params.set<std::vector<std::string>>("prop_names") = {wallHeatFluxName()};
   params.set<std::vector<FunctionName>>("prop_values") = {getParam<FunctionName>("q_wall")};
   getProblem().addMaterial(class_name, genName(name(), "q_wall_material"), params);
 }
@@ -49,7 +49,7 @@ HeatTransferFromHeatFlux1PhaseAC::addHeatTransferKernels()
   InputParameters params = getFactory().getValidParams(class_name);
   params.set<NonlinearVariableName>("variable") = THM::RHOEA;
   params.set<std::vector<SubdomainName>>("block") = connectedPhysics().getClosuresBlocks();
-  params.set<MaterialPropertyName>("q_wall") = THM::HEAT_FLUX_WALL;
-  params.set<std::vector<VariableName>>("P_hf") = {THM::HEAT_FLUX_PERIMETER};
+  params.set<MaterialPropertyName>("q_wall") = wallHeatFluxName();
+  params.set<std::vector<VariableName>>("P_hf") = {heatedPerimeterName()};
   getProblem().addKernel(class_name, genName(name(), "wall_heat"), params);
 }

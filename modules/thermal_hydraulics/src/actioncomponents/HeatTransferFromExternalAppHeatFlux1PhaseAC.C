@@ -38,7 +38,7 @@ void
 HeatTransferFromExternalAppHeatFlux1PhaseAC::addHeatTransferVariables()
 {
   THMVariableCoordinator::findOrCreate(_awh, _action_factory)
-      .requestVariable(false, THM::HEAT_FLUX_WALL, "MONOMIAL", "CONSTANT", 1.0, closuresBlocks());
+      .requestVariable(false, wallHeatFluxName(), "MONOMIAL", "CONSTANT", 1.0, closuresBlocks());
 }
 
 void
@@ -46,7 +46,7 @@ HeatTransferFromExternalAppHeatFlux1PhaseAC::addHeatTransferICs()
 {
   const std::string class_name = "ConstantIC";
   InputParameters params = getFactory().getValidParams(class_name);
-  params.set<VariableName>("variable") = THM::HEAT_FLUX_WALL;
+  params.set<VariableName>("variable") = wallHeatFluxName();
   params.set<std::vector<SubdomainName>>("block") = closuresBlocks();
   params.set<Real>("value") = 0;
   getProblem().addInitialCondition(class_name, genName(name(), "q_wall_ic"), params);
@@ -58,8 +58,8 @@ HeatTransferFromExternalAppHeatFlux1PhaseAC::addHeatTransferMaterials()
   const std::string class_name = "ADCoupledVariableValueMaterial";
   InputParameters params = getFactory().getValidParams(class_name);
   params.set<std::vector<SubdomainName>>("block") = closuresBlocks();
-  params.set<MaterialPropertyName>("prop_name") = THM::HEAT_FLUX_WALL;
-  params.set<std::vector<VariableName>>("coupled_variable") = {THM::HEAT_FLUX_WALL};
+  params.set<MaterialPropertyName>("prop_name") = wallHeatFluxName();
+  params.set<std::vector<VariableName>>("coupled_variable") = {wallHeatFluxName()};
   getProblem().addMaterial(class_name, genName(name(), "q_wall_material"), params);
 }
 
@@ -70,7 +70,7 @@ HeatTransferFromExternalAppHeatFlux1PhaseAC::addHeatTransferKernels()
   InputParameters params = getFactory().getValidParams(class_name);
   params.set<NonlinearVariableName>("variable") = THM::RHOEA;
   params.set<std::vector<SubdomainName>>("block") = closuresBlocks();
-  params.set<MaterialPropertyName>("q_wall") = THM::HEAT_FLUX_WALL;
-  params.set<std::vector<VariableName>>("P_hf") = {THM::HEAT_FLUX_PERIMETER};
+  params.set<MaterialPropertyName>("q_wall") = wallHeatFluxName();
+  params.set<std::vector<VariableName>>("P_hf") = {heatedPerimeterName()};
   getProblem().addKernel(class_name, genName(name(), "wall_heat"), params);
 }

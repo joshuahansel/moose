@@ -16,6 +16,8 @@
 #include "FlowChannelClosuresInterface.h"
 #include "THMNames.h"
 
+#include <optional>
+
 class ClosuresBase;
 
 /**
@@ -28,10 +30,10 @@ class ClosuresBase;
  *
  * A heat-transfer-to-flow-channel ActionComponent (HeatTransferFromHeatFlux1PhaseAC,
  * HeatTransferFromSpecifiedTemperature1PhaseAC) registers itself here via addHeatTransferName(),
- * the same way classic HeatTransferBase registers with FlowChannelBase. Unlike classic THM, at most
- * one heat-transfer connection is currently supported (mirroring the single-flow-channel
- * restriction below); a second connection is an error. With one connection the per-connection name
- * suffix is always empty, so the bare THM:: wall-quantity names are used directly.
+ * the same way classic HeatTransferBase registers with FlowChannelBase. With a single connection
+ * the bare THM:: wall-quantity names are used; with several, each connection's quantities get a
+ * suffix (its index, or its name if 'name_multiple_ht_by_index' is false) and the flow channel
+ * combines them into the bare names.
  *
  * This class is currently only meant to be attached to a single flow channel component; using it
  * on more than one component would incorrectly apply one component's fluid properties/area/initial
@@ -57,11 +59,15 @@ public:
   /// Registers a heat-transfer connection with this flow channel, mirroring
   /// FlowChannelBase::addHeatTransferName(). Const with mutable members because it is called on the
   /// const reference a heat-transfer ActionComponent gets from FlowChannel1PhaseAC::getPhysics().
-  /// At most one connection is currently supported; a second is an error.
-  /// @param T_wall_name Name of the wall temperature variable of a temperature-type connection
+  /// @param T_wall_name Name of the wall temperature variable of a temperature-type connection, if
+  ///                    it is not the default one that this flow channel names
   void addHeatTransferName(const std::string & ht_name,
                            bool is_temperature_type,
-                           const VariableName & T_wall_name = THM::TEMPERATURE_WALL) const;
+                           const std::optional<VariableName> & T_wall_name = std::nullopt) const;
+
+  /// Suffix of the names of the wall quantities of a heat transfer connection (empty if it is the
+  /// only one), mirroring FlowChannelBase::getHeatTransferNamesSuffix()
+  std::string heatTransferSuffix(const std::string & ht_name) const;
 
   /// The closures objects named by this flow channel's 'closures' parameter, resolved from the
   /// ClosuresRegistry - shared with any heat-transfer connection, exactly as classic THM's
@@ -74,7 +80,7 @@ public:
   virtual bool getClosuresTemperatureMode() const override { return _temperature_mode; }
   virtual unsigned int getClosuresNumberOfHeatTransferConnections() const override
   {
-    return _heat_transfer_name.empty() ? 0 : 1;
+    return _heat_transfers.size();
   }
   virtual std::vector<VariableName> getClosuresHeatedPerimeterNames() const override;
   virtual std::vector<VariableName> getClosuresWallTemperatureNames() const override;
@@ -144,13 +150,25 @@ private:
   /// variables (rhoA, A, ...) into single MOOSE variables spanning the union of their blocks
   THMVariableCoordinator & _coordinator;
 
-  /// Name of the single connected heat-transfer component (empty if none). Mutable because
-  /// addHeatTransferName() is called through a const reference (see that method).
-  mutable std::string _heat_transfer_name;
-  /// Whether the connected heat-transfer component specifies a wall temperature (as opposed to a
-  /// heat flux). Mutable for the same reason as _heat_transfer_name.
+  /// A connected heat-transfer component
+  struct HeatTransferConnection
+  {
+    /// Name of the heat-transfer component
+    std::string _name;
+    /// Whether it specifies a wall temperature (as opposed to a heat flux)
+    bool _temperature_type;
+    /// Name of its wall temperature variable, if it is not the one named by this flow channel
+    std::optional<VariableName> _T_wall_name;
+  };
+  /// Suffix of the names of the wall quantities of the i-th heat transfer connection
+  std::string connectionSuffix(unsigned int i) const;
+  /// Names of the wall quantities of all the heat transfer connections, with the connection suffix
+  std::vector<std::string> connectionNames(const std::string & base_name) const;
+
+  /// The connected heat-transfer components. Mutable because addHeatTransferName() is called
+  /// through a const reference (see that method).
+  mutable std::vector<HeatTransferConnection> _heat_transfers;
+  /// Whether any connected heat-transfer component specifies a wall temperature. Mutable for the
+  /// same reason as _heat_transfers.
   mutable bool _temperature_mode;
-  /// Name of the wall temperature variable of the connection, if it is temperature type. Mutable
-  /// for the same reason as _heat_transfer_name.
-  mutable VariableName _T_wall_name;
 };

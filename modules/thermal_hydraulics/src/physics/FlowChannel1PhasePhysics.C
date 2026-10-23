@@ -58,6 +58,11 @@ FlowChannel1PhasePhysics::validParams()
   params.addParam<FunctionName>("D_h", "Hydraulic diameter [m]");
   params.addParam<Real>("roughness", 0.0, "Roughness [m]");
   params.addParam<Real>("PoD", 1, "Pitch-to-diameter ratio for parallel bundle heat transfer [-]");
+  params.addParam<bool>("name_multiple_ht_by_index",
+                        true,
+                        "If true, when there are multiple heat transfer components connected to "
+                        "this flow channel, use their index for naming related quantities; "
+                        "otherwise, use the name of the heat transfer component.");
   params.addParam<MooseEnum>(
       "rdg_slope_reconstruction",
       SlopeReconstruction1DInterface<true>::getSlopeReconstructionMooseEnum("None"),
@@ -77,8 +82,7 @@ FlowChannel1PhasePhysics::FlowChannel1PhasePhysics(const InputParameters & param
     _scaling_factors(getParam<std::vector<Real>>("scaling_factor_1phase")),
     _numerical_flux_name(genName(name(), "numerical_flux")),
     _coordinator(THMVariableCoordinator::findOrCreate(_awh, _action_factory)),
-    _temperature_mode(false),
-    _T_wall_name(THM::TEMPERATURE_WALL)
+    _temperature_mode(false)
 {
   if (_scaling_factors.size() != 3)
     paramError("scaling_factor_1phase", "Must have exactly 3 entries (for rhoA, rhouA, rhoEA)");
@@ -87,20 +91,44 @@ FlowChannel1PhasePhysics::FlowChannel1PhasePhysics(const InputParameters & param
 void
 FlowChannel1PhasePhysics::addHeatTransferName(const std::string & ht_name,
                                               bool is_temperature_type,
-                                              const VariableName & T_wall_name) const
+                                              const std::optional<VariableName> & T_wall_name) const
 {
-  if (!_heat_transfer_name.empty())
+  if (!_heat_transfers.empty() && _heat_transfers.front()._temperature_type != is_temperature_type)
     mooseError(name(),
-               ": At most one heat transfer connection is currently supported for a native "
-               "ActionComponent flow channel, but both '",
-               _heat_transfer_name,
-               "' and '",
-               ht_name,
-               "' connect to it.");
+               ": Heat sources for a flow channel must be all of temperature type or all of heat "
+               "flux type");
 
-  _heat_transfer_name = ht_name;
+  _heat_transfers.push_back({ht_name, is_temperature_type, T_wall_name});
   _temperature_mode = is_temperature_type;
-  _T_wall_name = T_wall_name;
+}
+
+std::string
+FlowChannel1PhasePhysics::connectionSuffix(unsigned int i) const
+{
+  // The connections are only numbered if there is more than one
+  if (_heat_transfers.size() <= 1)
+    return "";
+  return ":" + (getParam<bool>("name_multiple_ht_by_index") ? std::to_string(i + 1)
+                                                            : _heat_transfers[i]._name);
+}
+
+std::string
+FlowChannel1PhasePhysics::heatTransferSuffix(const std::string & ht_name) const
+{
+  for (const auto i : index_range(_heat_transfers))
+    if (_heat_transfers[i]._name == ht_name)
+      return connectionSuffix(i);
+  mooseError(
+      "Heat transfer component '", ht_name, "' was not added to flow channel '", name(), "'");
+}
+
+std::vector<std::string>
+FlowChannel1PhasePhysics::connectionNames(const std::string & base_name) const
+{
+  std::vector<std::string> names;
+  for (const auto i : index_range(_heat_transfers))
+    names.push_back(base_name + connectionSuffix(i));
+  return names;
 }
 
 std::vector<std::shared_ptr<ClosuresBase>>
@@ -116,25 +144,27 @@ FlowChannel1PhasePhysics::getClosuresObjects() const
 std::vector<VariableName>
 FlowChannel1PhasePhysics::getClosuresHeatedPerimeterNames() const
 {
-  if (_heat_transfer_name.empty())
-    return {};
-  return {THM::HEAT_FLUX_PERIMETER};
+  const auto names = connectionNames(THM::HEAT_FLUX_PERIMETER);
+  return {names.begin(), names.end()};
 }
 
 std::vector<VariableName>
 FlowChannel1PhasePhysics::getClosuresWallTemperatureNames() const
 {
-  if (_heat_transfer_name.empty() || !_temperature_mode)
-    return {};
-  return {_T_wall_name};
+  std::vector<VariableName> names;
+  if (_temperature_mode)
+    for (const auto i : index_range(_heat_transfers))
+      names.push_back(_heat_transfers[i]._T_wall_name
+                          ? *_heat_transfers[i]._T_wall_name
+                          : VariableName(THM::TEMPERATURE_WALL + connectionSuffix(i)));
+  return names;
 }
 
 std::vector<MaterialPropertyName>
 FlowChannel1PhasePhysics::getClosuresWallHTCNames() const
 {
-  if (_heat_transfer_name.empty())
-    return {};
-  return {THM::HEAT_TRANSFER_COEFFICIENT_WALL};
+  const auto names = connectionNames(THM::HEAT_TRANSFER_COEFFICIENT_WALL);
+  return {names.begin(), names.end()};
 }
 
 void
@@ -219,6 +249,11 @@ FlowChannel1PhasePhysics::addAuxiliaryVariables()
   addFlowVariable(false, THM::SPECIFIC_INTERNAL_ENERGY);
   addFlowVariable(false, THM::TEMPERATURE);
   addFlowVariable(false, THM::SPECIFIC_TOTAL_ENTHALPY);
+
+  // total heated perimeter of several heat transfer connections; with one connection, the
+  // connection's own variable is the total
+  if (_heat_transfers.size() > 1)
+    addFlowVariable(false, THM::HEAT_FLUX_PERIMETER);
 }
 
 void
@@ -276,6 +311,18 @@ FlowChannel1PhasePhysics::addInitialConditions()
   addFunctionIC(THM::PRESSURE, _initial_p_fn);
   addFunctionIC(THM::TEMPERATURE, _initial_T_fn);
   addFunctionIC(THM::VELOCITY, _initial_vel_fn);
+
+  // total heated perimeter of several heat transfer connections
+  if (_heat_transfers.size() > 1 && !_app.isRestarting())
+  {
+    const std::string class_name = "SumIC";
+    InputParameters params = getFactory().getValidParams(class_name);
+    params.set<VariableName>("variable") = THM::HEAT_FLUX_PERIMETER;
+    assignBlocks(params, _blocks);
+    const auto P_hf_names = connectionNames(THM::HEAT_FLUX_PERIMETER);
+    params.set<std::vector<VariableName>>("values") = {P_hf_names.begin(), P_hf_names.end()};
+    getProblem().addInitialCondition(class_name, genName(name(), "P_hf_ic"), params);
+  }
 
   {
     const std::string class_name = "VariableProductIC";
@@ -487,6 +534,21 @@ FlowChannel1PhasePhysics::addMaterials()
     getProblem().addMaterial(class_name, genName(name(), "rdg_3eqn_mat"), params);
   }
 
+  // weighted average wall heat flux of several heat flux connections
+  if (!_temperature_mode && _heat_transfers.size() > 1)
+  {
+    const std::string class_name = "ADWeightedAverageMaterial";
+    InputParameters params = getFactory().getValidParams(class_name);
+    params.set<MaterialPropertyName>("prop_name") = THM::HEAT_FLUX_WALL;
+    assignBlocks(params, _blocks);
+    const auto q_wall_names = connectionNames(THM::HEAT_FLUX_WALL);
+    const auto P_hf_names = connectionNames(THM::HEAT_FLUX_PERIMETER);
+    params.set<std::vector<MaterialPropertyName>>("values") = {q_wall_names.begin(),
+                                                               q_wall_names.end()};
+    params.set<std::vector<VariableName>>("weights") = {P_hf_names.begin(), P_hf_names.end()};
+    getProblem().addMaterial(class_name, genName(name(), THM::HEAT_FLUX_WALL, "w_avg_mat"), params);
+  }
+
   const auto & closures_names = getParam<std::vector<std::string>>("closures");
   if (!closures_names.empty())
   {
@@ -607,5 +669,18 @@ FlowChannel1PhasePhysics::addAuxiliaryKernels()
     params.set<std::vector<VariableName>>("A") = {THM::AREA};
     params.set<ExecFlagEnum>("execute_on") = state_execute_on;
     getProblem().addAuxKernel(class_name, genName(name(), "H_auxkernel"), params);
+  }
+
+  // total heated perimeter of several heat transfer connections
+  if (_heat_transfers.size() > 1)
+  {
+    const std::string class_name = "SumAux";
+    InputParameters params = getFactory().getValidParams(class_name);
+    params.set<AuxVariableName>("variable") = THM::HEAT_FLUX_PERIMETER;
+    assignBlocks(params, _blocks);
+    const auto P_hf_names = connectionNames(THM::HEAT_FLUX_PERIMETER);
+    params.set<std::vector<VariableName>>("values") = {P_hf_names.begin(), P_hf_names.end()};
+    params.set<ExecFlagEnum>("execute_on") = {EXEC_INITIAL, EXEC_LINEAR};
+    getProblem().addAuxKernel(class_name, genName(name(), "P_hf_auxkernel"), params);
   }
 }
