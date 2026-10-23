@@ -70,7 +70,7 @@
   [err.missing_ics]
     type = 'RunException'
     input = 'err.missing_ics.i'
-    expect_err = "missing required parameter 'ActionComponents/junction/initial_T'"
+    expect_err = "ActionComponents/junction/initial_p: The following initial condition parameters are missing: initial_p initial_T initial_vel_x initial_vel_y initial_vel_z"
     requirement = 'The system shall report an error if no initial conditions were set in a parallel junction ActionComponent.'
   []
   [err.non_parallel_channels]

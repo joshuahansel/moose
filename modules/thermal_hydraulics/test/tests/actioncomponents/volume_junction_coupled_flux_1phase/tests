@@ -1,0 +1,12 @@
+[Tests]
+  issues = '#19830 #32558'
+  design = 'VolumeJunctionCoupledFlux1PhaseAC.md'
+
+  [test]
+    type = CSVDiff
+    input = 'main.i'
+    csvdiff = 'main_out.csv main_out_child0.csv'
+    gold_dir = '../../components/volume_junction_coupled_flux_1phase/gold'
+    requirement = 'The system shall be able to couple a single-phase volume junction ActionComponent to an external application.'
+  []
+[]

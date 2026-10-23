@@ -46,6 +46,16 @@ public:
 
   virtual std::vector<UserObjectName> dependsOnUserObjects() const override;
 
+  /// Name of the junction's flux/residual user object
+  const UserObjectName & junctionUserObjectName() const { return _junction_uo_name; }
+  /// Name of the numerical flux user object of the i-th connected flow channel
+  UserObjectName numericalFluxName(unsigned int i) const
+  {
+    return connectedPhysics(i).numericalFluxUserObjectName();
+  }
+  /// Name of the fluid properties user object shared by all the connected flow channels
+  UserObjectName junctionFluidPropertiesName() const { return fluidPropertiesName(); }
+
 protected:
   virtual void addMeshGenerators() override;
   virtual void addSolverVariables() override;

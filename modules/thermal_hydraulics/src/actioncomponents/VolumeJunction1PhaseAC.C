@@ -8,6 +8,8 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "VolumeJunction1PhaseAC.h"
+
+#include <sstream>
 #include "FlowChannel1PhaseAC.h"
 #include "THMNames.h"
 #include "THMUtils.h"
@@ -73,11 +75,11 @@ VolumeJunction1PhaseAC::validParams()
   params.addRequiredParam<Real>("volume", "Volume of the junction [m^3]");
   params.addRequiredParam<Point>("position", "Spatial position of the center of the junction [m]");
 
-  params.addRequiredParam<FunctionName>("initial_p", "Initial pressure [Pa]");
-  params.addRequiredParam<FunctionName>("initial_T", "Initial temperature [K]");
-  params.addRequiredParam<FunctionName>("initial_vel_x", "Initial velocity in x-direction [m/s]");
-  params.addRequiredParam<FunctionName>("initial_vel_y", "Initial velocity in y-direction [m/s]");
-  params.addRequiredParam<FunctionName>("initial_vel_z", "Initial velocity in z-direction [m/s]");
+  params.addParam<FunctionName>("initial_p", "Initial pressure [Pa]");
+  params.addParam<FunctionName>("initial_T", "Initial temperature [K]");
+  params.addParam<FunctionName>("initial_vel_x", "Initial velocity in x-direction [m/s]");
+  params.addParam<FunctionName>("initial_vel_y", "Initial velocity in y-direction [m/s]");
+  params.addParam<FunctionName>("initial_vel_z", "Initial velocity in z-direction [m/s]");
 
   params.addParam<Real>("scaling_factor_rhoV", 1.0, "Scaling factor for rho*V [-]");
   params.addParam<Real>("scaling_factor_rhouV", 1.0, "Scaling factor for rho*u*V [-]");
@@ -129,6 +131,25 @@ VolumeJunction1PhaseAC::VolumeJunction1PhaseAC(const InputParameters & params)
   THM::informExperimental(*this);
   if (_connections.size() == 0)
     paramError("connections", "There must be at least one connection.");
+
+  // Note: 'A_ref' can be required by derived classes
+  if (!params.isParamRequired("A_ref") && params.isParamSetByUser("A_ref") &&
+      !params.isParamSetByUser("K"))
+    mooseWarning("Parameter 'A_ref' is specified, but 'K' is not specified, so the junction will "
+                 "behave as if there were no form loss.");
+
+  // The initial conditions are all required, but are checked here to list the missing ones, as
+  // classic VolumeJunction1Phase does
+  {
+    const std::vector<std::string> ic_params{
+        "initial_p", "initial_T", "initial_vel_x", "initial_vel_y", "initial_vel_z"};
+    std::ostringstream oss;
+    for (const auto & ic_param : ic_params)
+      if (!isParamValid(ic_param))
+        oss << " " << ic_param;
+    if (!oss.str().empty() && !_app.isRestarting())
+      paramError("initial_p", "The following initial condition parameters are missing:", oss.str());
+  }
 
   for (const auto & connection : _connections)
   {
