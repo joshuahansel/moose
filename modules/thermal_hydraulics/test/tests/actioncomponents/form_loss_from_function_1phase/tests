@@ -1,0 +1,13 @@
+[Tests]
+  issues = '#19830 #32558'
+  design = 'FormLossFromFunction1PhaseAC.md'
+
+  [phy:form_loss_1phase]
+    type = CSVDiff
+    input = 'phy.form_loss_1phase.i'
+    csvdiff = 'phy.form_loss_1phase_out.csv'
+    gold_dir = '../../components/form_loss_from_function_1phase/gold'
+    rel_err = 1e-3
+    requirement = 'The system shall be able to compute a form loss in a flow channel ActionComponent using coefficients computed from a function, including constants defined in the input file.'
+  []
+[]

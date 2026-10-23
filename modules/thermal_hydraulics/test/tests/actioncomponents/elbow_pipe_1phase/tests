@@ -1,0 +1,13 @@
+[Tests]
+  issues = '#19830 #32558'
+  design = 'ElbowPipe1PhaseAC.md'
+
+  [phy:position]
+    type = 'Exodiff'
+    input = 'phy.position.i'
+    exodiff = 'phy.position_out.e'
+    gold_dir = '../../components/elbow_pipe_1phase/gold'
+    custom_cmp = '../../components/elbow_pipe_1phase/phy.position.exodiff'
+    requirement = 'The system shall be able to model flow through a 1D elbow pipe ActionComponent.'
+  []
+[]

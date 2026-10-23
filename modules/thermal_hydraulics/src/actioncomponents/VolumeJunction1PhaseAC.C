@@ -283,17 +283,33 @@ VolumeJunction1PhaseAC::addUserObjects()
     }
   }
 
+  buildVolumeJunctionUserObject();
+}
+
+ExecFlagEnum
+VolumeJunction1PhaseAC::junctionUserObjectExecFlags()
+{
   ExecFlagEnum execute_on(MooseUtils::getDefaultExecFlagEnum());
   execute_on = {EXEC_INITIAL, EXEC_LINEAR, EXEC_NONLINEAR};
+  return execute_on;
+}
 
+subdomain_id_type
+VolumeJunction1PhaseAC::junctionSubdomainID() const
+{
+  return _awh.getMesh()->getSubdomainID(name());
+}
+
+InputParameters
+VolumeJunction1PhaseAC::junctionUserObjectParameters(const std::string & class_name) const
+{
   std::vector<UserObjectName> numerical_flux_names;
   for (unsigned int i = 0; i < _connected_component_names.size(); i++)
     numerical_flux_names.push_back(connectedPhysics(i).numericalFluxUserObjectName());
 
-  const std::string class_name = "ADVolumeJunction1PhaseUserObject";
   InputParameters params = _factory.getValidParams(class_name);
   params.set<bool>("use_scalar_variables") = false;
-  params.set<subdomain_id_type>("junction_subdomain_id") = junction_subdomain_id;
+  params.set<subdomain_id_type>("junction_subdomain_id") = junctionSubdomainID();
   params.set<std::vector<BoundaryName>>("boundary") = _connections;
   params.set<std::vector<Real>>("normals") = _normals;
   params.set<std::vector<UserObjectName>>("numerical_flux_names") = numerical_flux_names;
@@ -310,8 +326,16 @@ VolumeJunction1PhaseAC::addUserObjects()
   params.set<Real>("K") = _K;
   params.set<Real>("A_ref") = _A_ref;
   params.set<UserObjectName>("fp") = fluidPropertiesName();
+  params.set<ExecFlagEnum>("execute_on") = junctionUserObjectExecFlags();
+  return params;
+}
+
+void
+VolumeJunction1PhaseAC::buildVolumeJunctionUserObject()
+{
+  const std::string class_name = "ADVolumeJunction1PhaseUserObject";
+  InputParameters params = junctionUserObjectParameters(class_name);
   params.set<bool>("apply_velocity_scaling") = _apply_velocity_scaling;
-  params.set<ExecFlagEnum>("execute_on") = execute_on;
   getProblem().addUserObject(class_name, _junction_uo_name, params);
   THM::connectComponentControllableParam(*this, "K", class_name, _junction_uo_name);
 }

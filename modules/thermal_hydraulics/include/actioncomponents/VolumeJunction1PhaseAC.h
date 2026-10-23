@@ -60,6 +60,15 @@ protected:
   /// if they do not all use the same one
   UserObjectName fluidPropertiesName() const;
 
+  /// Adds the junction's user object. Derived classes with other junction physics override this.
+  virtual void buildVolumeJunctionUserObject();
+  /// Parameters shared by the junction user objects: everything but the class-specific ones
+  InputParameters junctionUserObjectParameters(const std::string & class_name) const;
+  /// Execution flags of the junction user objects
+  static ExecFlagEnum junctionUserObjectExecFlags();
+  /// Name of the junction's own subdomain's ID, once the mesh exists
+  subdomain_id_type junctionSubdomainID() const;
+
   /// Requests the junction's auxiliary variables (p, T, vel) from the THMVariableCoordinator
   void addAuxiliaryVariables();
   /// Adds a VolumeJunction1PhaseIC for each junction variable

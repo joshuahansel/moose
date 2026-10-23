@@ -1,0 +1,91 @@
+[Tests]
+  issues = '#19830 #32558'
+  design = 'JunctionParallelChannels1PhaseAC.md'
+
+  [equal_area_x_direction]
+    type = 'CSVDiff'
+    input = 'equal_area_with_junction.i'
+    csvdiff = 'equal_area_with_junction_out.csv'
+    gold_dir = '../../components/junction_parallel_channels_1phase/gold'
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall be able to connect an arbitrary number of parallel flow channel ActionComponents to another flow component.'
+  []
+  [phy:unequal_area]
+    type = 'CSVDiff'
+    input = 'phy.unequal_area.i'
+    csvdiff = 'phy.unequal_area_out.csv'
+    gold_dir = '../../components/junction_parallel_channels_1phase/gold'
+    abs_zero = 5e-5
+    rel_err = 0
+    recover = false
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall be able to connect an arbitrary number of single phase parallel flow channel ActionComponents with different flow areas to another flow component.'
+  []
+  [phy:shower_syntax]
+    type = 'RunApp'
+    input = 'phy.shower.i'
+    check_input = true
+    recover = false
+    max_threads = 1
+    requirement = 'The system shall be able to check the syntax for connecting two parallel flow channel ActionComponents with different single phase fluid temperatures and mix the flows.'
+  []
+  [phy:shower]
+    type = 'CSVDiff'
+    input = 'phy.shower.i'
+    csvdiff = 'phy.shower_out.csv'
+    gold_dir = '../../components/junction_parallel_channels_1phase/gold'
+    abs_zero = 8e-8
+    rel_err = 0
+    heavy = true
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall be able to connect two parallel flow channel ActionComponents with different single phase fluid temperatures and mix the flows.'
+  []
+  [calorically_imperfect_gas]
+    type = 'CSVDiff'
+    input = 'junction_with_calorifically_imperfect_gas.i'
+    csvdiff = 'junction_with_calorifically_imperfect_gas_out.csv'
+    gold_dir = '../../components/junction_parallel_channels_1phase/gold'
+    abs_zero = 4e-5
+    rel_err = 1e-5
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall be able to connect an arbitrary number of parallel flow channel ActionComponents to another flow component, with a calorifically imperfect gas fluid.'
+  []
+  [conservation_1phase]
+    type = 'CSVDiff'
+    input = 'conservation.i'
+    csvdiff = 'conservation_out.csv'
+    gold_dir = '../../components/junction_parallel_channels_1phase/gold'
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall be able to show conservation of mass and energy when connecting parallel flow channel ActionComponents.'
+  []
+  [conservation_1phase_K_crtl]
+    type = 'CSVDiff'
+    input = 'conservation.i'
+    cli_args = "ChainControls/active='K_crtl_fn K_crtl' Outputs/file_base=conservation_K Outputs/out/show='dp_junction'"
+    csvdiff = 'conservation_K.csv'
+    gold_dir = '../../components/junction_parallel_channels_1phase/gold'
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall be able to show conservation of mass and energy when connecting parallel flow channel ActionComponents and leveraging the control system to dynamically control the simulation.'
+  []
+  [err.missing_ics]
+    type = 'RunException'
+    input = 'err.missing_ics.i'
+    expect_err = "missing required parameter 'ActionComponents/junction/initial_T'"
+    requirement = 'The system shall report an error if no initial conditions were set in a parallel junction ActionComponent.'
+  []
+  [err.non_parallel_channels]
+    type = 'RunException'
+    input = 'equal_area_with_junction.i'
+    cli_args = "--error ActionComponents/junction/volume=1.0 ActionComponents/pipe2/orientation='0 1 0'"
+    expect_err = "junction: Connected flow channels are not parallel, use VolumeJunction1Phase component instead."
+    requirement = 'The system shall report an error if a parallel junction ActionComponent is set to connect non-parallel flow channels.'
+  []
+  [jac:test]
+    type = 'PetscJacobianTester'
+    input = 'jac.test.i'
+    cli_args = 'Debug/check_jacobian=true'
+    ratio_tol = 3e-8
+    difference_tol = 0.1
+    requirement = 'The system shall have correct Jacobians for a parallel junction ActionComponent.'
+  []
+[]

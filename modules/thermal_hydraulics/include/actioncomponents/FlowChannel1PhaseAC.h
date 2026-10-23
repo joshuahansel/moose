@@ -47,8 +47,13 @@ protected:
   virtual void addMeshGenerators() override;
   virtual void addPhysics() override;
 
+  /// Adds mesh generators that modify the straight mesh of the flow channel, which is generated
+  /// along the x axis and has the name of the last mesh generator in _mg_names. Derived classes
+  /// that are not straight override this; it is called before the rotation and the translation.
+  virtual void addShapeMeshGenerators() {}
+
   /// Length of the flow channel
-  const Real _length;
+  Real _length;
   /// Number of elements along the flow channel
   const unsigned int _n_elems;
 

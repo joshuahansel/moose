@@ -45,8 +45,14 @@ protected:
 
   /// Returns the physics of the i-th connected flow channel component (looked up by name, lazily)
   const FlowChannel1PhasePhysics & connectedPhysics(unsigned int i) const;
-  /// Adds one ADJunctionOneToOne1PhaseBC per solution variable per connected boundary
+  /// Adds one boundary condition per solution variable per connected boundary
   void addWeakBCs();
+  /// Adds the junction's user object, after the sparsity map has been built. Derived classes with
+  /// other junction physics override this.
+  virtual void buildJunctionUserObject();
+  /// Adds the boundary condition of the i-th connection for the solution variable \p var. Derived
+  /// classes with other junction physics override this.
+  virtual void addWeakBC(unsigned int i, const NonlinearVariableName & var);
 
   /// The two flow channel boundaries to connect, e.g. 'pipeA:out' and 'pipeB:in'
   const std::vector<BoundaryName> _connections;

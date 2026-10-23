@@ -8,6 +8,7 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "FlowChannel1PhaseAC.h"
+#include "SlopeReconstruction1DInterface.h"
 #include "FlowBoundary1PhaseAC.h"
 #include "THMUtils.h"
 #include "FlowChannel1PhasePhysics.h"
@@ -66,6 +67,10 @@ FlowChannel1PhaseAC::validParams()
   params.addParam<FunctionName>("D_h", "Hydraulic diameter [m]");
   params.addParam<Real>("roughness", 0.0, "Roughness [m]");
   params.addParam<Real>("PoD", 1, "Pitch-to-diameter ratio for parallel bundle heat transfer [-]");
+  params.addParam<MooseEnum>(
+      "rdg_slope_reconstruction",
+      SlopeReconstruction1DInterface<true>::getSlopeReconstructionMooseEnum("None"),
+      "Slope reconstruction type for rDG spatial discretization");
 
   // Use THM's classic naming for the flow channel's orientation, instead of
   // ComponentMeshTransformHelper's generic 'direction'. InputParameters::renameParam() redirects
@@ -118,6 +123,8 @@ FlowChannel1PhaseAC::FlowChannel1PhaseAC(const InputParameters & params)
     physics_params.set<FunctionName>("D_h") = getParam<FunctionName>("D_h");
   physics_params.set<Real>("roughness") = getParam<Real>("roughness");
   physics_params.set<Real>("PoD") = getParam<Real>("PoD");
+  physics_params.set<MooseEnum>("rdg_slope_reconstruction") =
+      getParam<MooseEnum>("rdg_slope_reconstruction");
 
   auto physics_action = _action_factory.create(physics_type, name() + "_physics", physics_params);
   _physics = dynamic_cast<FlowChannel1PhasePhysics *>(physics_action.get());
@@ -150,6 +157,8 @@ FlowChannel1PhaseAC::addMeshGenerators()
   _app.getMeshGeneratorSystem().addMeshGenerator(
       "RenameBoundaryGenerator", name() + "_renamed", rename_params);
   _mg_names.push_back(name() + "_renamed");
+
+  addShapeMeshGenerators();
 
   // Classic THM boundary components create a sideset named after themselves at the end of the flow
   // channel they connect to, which inputs use to refer to the boundary (e.g. in postprocessors that

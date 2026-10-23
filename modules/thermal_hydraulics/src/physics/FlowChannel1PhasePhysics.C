@@ -8,6 +8,7 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "FlowChannel1PhasePhysics.h"
+#include "SlopeReconstruction1DInterface.h"
 #include "THMNames.h"
 #include "THMUtils.h"
 #include "MooseUtils.h"
@@ -57,6 +58,10 @@ FlowChannel1PhasePhysics::validParams()
   params.addParam<FunctionName>("D_h", "Hydraulic diameter [m]");
   params.addParam<Real>("roughness", 0.0, "Roughness [m]");
   params.addParam<Real>("PoD", 1, "Pitch-to-diameter ratio for parallel bundle heat transfer [-]");
+  params.addParam<MooseEnum>(
+      "rdg_slope_reconstruction",
+      SlopeReconstruction1DInterface<true>::getSlopeReconstructionMooseEnum("None"),
+      "Slope reconstruction type for rDG spatial discretization");
 
   return params;
 }
@@ -466,11 +471,10 @@ FlowChannel1PhasePhysics::addMaterials()
     getProblem().addMaterial(class_name, genName(name(), "mu_mat"), params);
   }
   {
-    // No slope reconstruction (piecewise-constant / first-order) for now - see class documentation
     const std::string class_name = "ADRDG3EqnMaterial";
     InputParameters params = getFactory().getValidParams(class_name);
     assignBlocks(params, _blocks);
-    params.set<MooseEnum>("scheme") = "None";
+    params.set<MooseEnum>("scheme") = getParam<MooseEnum>("rdg_slope_reconstruction");
     params.set<std::vector<VariableName>>("A_elem") = {THM::AREA};
     params.set<std::vector<VariableName>>("A_linear") = {THM::AREA_LINEAR};
     params.set<std::vector<VariableName>>("rhoA") = {THM::RHOA};

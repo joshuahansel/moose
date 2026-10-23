@@ -1,0 +1,16 @@
+[Tests]
+  issues = '#19830 #32558'
+  design = 'FormLossFromExternalApp1PhaseAC.md'
+
+  [phy:form_loss_1phase]
+    type = Exodiff
+    input = 'phy.form_loss_1phase.parent.i'
+    exodiff = 'phy.form_loss_1phase.parent_out_child0.e'
+    gold_dir = '../../components/form_loss_from_external_app_1phase/gold'
+    # The parent is included from the classic directory, so its sub-app input is the classic one
+    # unless it is overridden
+    cli_args = 'MultiApps/child/input_files=../../actioncomponents/form_loss_from_external_app_1phase/phy.form_loss_1phase.child.i'
+    rel_err = 1e-10
+    requirement = 'The system shall be able to compute a form loss in a flow channel ActionComponent using coefficients computed by an external application.'
+  []
+[]

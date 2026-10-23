@@ -96,6 +96,12 @@ JunctionOneToOne1PhaseAC::addUserObjects()
     _elem_map[connected_elem_ids[1]].push_back(connected_elem_ids[0]);
   }
 
+  buildJunctionUserObject();
+}
+
+void
+JunctionOneToOne1PhaseAC::buildJunctionUserObject()
+{
   ExecFlagEnum execute_on(MooseUtils::getDefaultExecFlagEnum());
   execute_on = {EXEC_INITIAL, EXEC_LINEAR, EXEC_NONLINEAR};
 
@@ -124,21 +130,24 @@ JunctionOneToOne1PhaseAC::addWeakBCs()
 {
   for (std::size_t i = 0; i < _connections.size(); i++)
     for (const auto & var : {THM::RHOA, THM::RHOUA, THM::RHOEA})
-    {
-      const std::string class_name = "ADJunctionOneToOne1PhaseBC";
-      InputParameters params = _factory.getValidParams(class_name);
-      params.set<std::vector<BoundaryName>>("boundary") = {_connections[i]};
-      params.set<Real>("normal") = _normals[i];
-      params.set<NonlinearVariableName>("variable") = var;
-      params.set<UserObjectName>("junction_uo") = _junction_uo_name;
-      params.set<unsigned int>("connection_index") = i;
-      params.set<std::vector<VariableName>>("rhoA") = {THM::RHOA};
-      params.set<std::vector<VariableName>>("rhouA") = {THM::RHOUA};
-      params.set<std::vector<VariableName>>("rhoEA") = {THM::RHOEA};
-      params.set<bool>("implicit") = THM::implicitTimeIntegrationFlag(_app);
-      getProblem().addBoundaryCondition(
-          class_name, genName(name(), i, var + ":junction_bc"), params);
-    }
+      addWeakBC(i, var);
+}
+
+void
+JunctionOneToOne1PhaseAC::addWeakBC(unsigned int i, const NonlinearVariableName & var)
+{
+  const std::string class_name = "ADJunctionOneToOne1PhaseBC";
+  InputParameters params = _factory.getValidParams(class_name);
+  params.set<std::vector<BoundaryName>>("boundary") = {_connections[i]};
+  params.set<Real>("normal") = _normals[i];
+  params.set<NonlinearVariableName>("variable") = var;
+  params.set<UserObjectName>("junction_uo") = _junction_uo_name;
+  params.set<unsigned int>("connection_index") = i;
+  params.set<std::vector<VariableName>>("rhoA") = {THM::RHOA};
+  params.set<std::vector<VariableName>>("rhouA") = {THM::RHOUA};
+  params.set<std::vector<VariableName>>("rhoEA") = {THM::RHOEA};
+  params.set<bool>("implicit") = THM::implicitTimeIntegrationFlag(_app);
+  getProblem().addBoundaryCondition(class_name, genName(name(), i, var + ":junction_bc"), params);
 }
 
 void
