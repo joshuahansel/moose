@@ -49,6 +49,9 @@ HeatStructurePhysics::addInitialConditions()
 {
   if (getParam<bool>("initialize_variables_from_mesh_file"))
     return;
+  // The initial temperature is not given when the simulation is restarted
+  if (!isParamSetByUser("initial_temperature") && _app.isRestarting())
+    return;
 
   const std::string class_name = "FunctionIC";
   InputParameters params = getFactory().getValidParams(class_name);

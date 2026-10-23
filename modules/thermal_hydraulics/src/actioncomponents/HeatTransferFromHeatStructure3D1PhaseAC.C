@@ -245,6 +245,10 @@ HeatTransferFromHeatStructure3D1PhaseAC::addHeatTransferVariables()
 void
 HeatTransferFromHeatStructure3D1PhaseAC::addHeatTransferICs()
 {
+  // The heat structure has no initial temperature when the simulation is restarted
+  if (!hs().isParamValid("initial_T"))
+    return;
+
   const std::string class_name = "FunctionIC";
   InputParameters params = getFactory().getValidParams(class_name);
   params.set<VariableName>("variable") = THM::TEMPERATURE_WALL;

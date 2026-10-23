@@ -1,0 +1,85 @@
+[Tests]
+  issues = '#19830 #32558'
+  design = 'Pump1PhaseAC.md'
+
+  [phy:pump_mass_energy_conservation]
+    type = 'CSVDiff'
+    input = 'pump_mass_energy_conservation.i'
+    csvdiff = 'pump_mass_energy_conservation_out.csv'
+    gold_dir = '../../components/pump_1phase/gold'
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall conserve mass and energy through a pump ActionComponent.'
+  []
+  [phy:pump_mass_energy_conservation_orientation]
+    type = 'CSVDiff'
+    input = 'pump_mass_energy_conservation.i'
+    cli_args = "ActionComponents/pipe1/orientation='1 1 1' Outputs/file_base=pump_mass_energy_conservation_out_orientation Outputs/out/show='E_change'"
+    csvdiff = 'pump_mass_energy_conservation_out_orientation.csv'
+    gold_dir = '../../components/pump_1phase/gold'
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall conserve mass and energy through a pump ActionComponent connected to a flow channel that is not aligned with an axis.'
+  []
+  [phy:pressure_check]
+    type = 'CSVDiff'
+    input = 'pump_pressure_check.i'
+    csvdiff = 'pump_pressure_check_out.csv'
+    gold_dir = '../../components/pump_1phase/gold'
+    abs_zero = 1e-4
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall compute the pressure rise across a pump ActionComponent from its head.'
+  []
+  [phy:pressure_check_orientation]
+    type = 'CSVDiff'
+    input = 'pump_pressure_check.i'
+    cli_args = "ActionComponents/pipe1/orientation='20 0 0' Outputs/file_base=pump_pressure_check_out_orientation"
+    csvdiff = 'pump_pressure_check_out_orientation.csv'
+    gold_dir = '../../components/pump_1phase/gold'
+    abs_zero = 1e-4
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall compute the pressure rise across a pump ActionComponent connected to a flow channel that is not aligned with the x axis.'
+  []
+  [phy:pipe_friction_pump_head_balance_x_direction]
+    type = 'Exodiff'
+    input = 'pipe_friction_pump_head_balance.i'
+    exodiff = 'pipe_friction_pump_head_balance_out_x.e'
+    gold_dir = '../../components/pump_1phase/gold'
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall balance the friction of a pipe with the head of a pump ActionComponent in the x direction.'
+  []
+  [phy:pipe_friction_pump_head_balance_y_direction]
+    type = 'Exodiff'
+    input = 'pipe_friction_pump_head_balance.i'
+    cli_args = "ActionComponents/pipe1/orientation='0 1 0' ActionComponents/pump/initial_vel_x=0 ActionComponents/pump/initial_vel_y=1 Outputs/file_base=pipe_friction_pump_head_balance_out_y"
+    exodiff = 'pipe_friction_pump_head_balance_out_y.e'
+    gold_dir = '../../components/pump_1phase/gold'
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall balance the friction of a pipe with the head of a pump ActionComponent in the y direction.'
+  []
+  [phy:pump_loop]
+    type = 'Exodiff'
+    input = 'pump_loop.i'
+    exodiff = 'pump_loop_out.e'
+    gold_dir = '../../components/pump_1phase/gold'
+    rel_err = 8e-5
+    abs_zero = 1e-9
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall be able to simulate a loop with a pump ActionComponent.'
+  []
+  [clg:head]
+    type = 'CSVDiff'
+    input = 'clg.head.i'
+    csvdiff = 'clg.head_out.csv'
+    gold_dir = '../../components/pump_1phase/gold'
+    restep = false # Test is prescribed to abort on failed timestep
+    requirement = 'The system shall be able to control the head of a pump ActionComponent.'
+  []
+  [jacobian]
+    type = 'PetscJacobianTester'
+    input = 'jacobian.i'
+    ratio_tol = 2e-8
+    difference_tol = 20
+    cli_args = 'Debug/check_jacobian=true'
+    max_parallel = 1
+    requirement = 'The system shall have correct Jacobians for a pump ActionComponent.'
+  []
+[]

@@ -25,9 +25,6 @@ public:
 protected:
   virtual void buildVolumeJunctionUserObject() override;
 
-  /// Direction of the flow channel connected first, which the others must be parallel to
-  RealVectorValue firstDirection() const;
-
   /// Name of the class of the junction user object. Derived classes with other physics override it.
   virtual std::string junctionUserObjectClass() const
   {

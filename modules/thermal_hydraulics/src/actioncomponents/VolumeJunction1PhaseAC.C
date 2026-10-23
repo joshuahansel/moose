@@ -67,7 +67,7 @@ VolumeJunction1PhaseAC::validParams()
 {
   InputParameters params = ActionComponent::validParams();
 
-  params.addRequiredParam<std::vector<BoundaryName>>(
+  params.addParam<std::vector<BoundaryName>>(
       "connections",
       "The flow channel boundaries to connect, each in the form 'component_name:in' or "
       "'component_name:out'");
@@ -105,7 +105,8 @@ VolumeJunction1PhaseAC::validParams()
 
 VolumeJunction1PhaseAC::VolumeJunction1PhaseAC(const InputParameters & params)
   : ActionComponent(params),
-    _connections(getParam<std::vector<BoundaryName>>("connections")),
+    _connections(isParamValid("connections") ? getParam<std::vector<BoundaryName>>("connections")
+                                             : std::vector<BoundaryName>()),
     _volume(getParam<Real>("volume")),
     _position(getParam<Point>("position")),
     _scaling_factor_rhoV(getParam<Real>("scaling_factor_rhoV")),
@@ -129,8 +130,6 @@ VolumeJunction1PhaseAC::VolumeJunction1PhaseAC(const InputParameters & params)
     _velocity_var_name("vel")
 {
   THM::informExperimental(*this);
-  if (_connections.size() == 0)
-    paramError("connections", "There must be at least one connection.");
 
   // Note: 'A_ref' can be required by derived classes
   if (!params.isParamRequired("A_ref") && params.isParamSetByUser("A_ref") &&
@@ -151,14 +150,12 @@ VolumeJunction1PhaseAC::VolumeJunction1PhaseAC(const InputParameters & params)
       paramError("initial_p", "The following initial condition parameters are missing:", oss.str());
   }
 
-  for (const auto & connection : _connections)
-  {
-    _connected_component_names.push_back(THM::parseConnectedComponentName(connection));
-    _normals.push_back(THM::parseConnectionNormal(connection));
-  }
-
   _dimension = 0;
   _blocks = {name()};
+
+  // A derived class that does not take 'connections' sets them up itself
+  if (isParamValid("connections") || params.isParamRequired("connections"))
+    setupConnections();
 
   addRequiredTask("add_mesh_generator");
   addRequiredTask("add_variable");
@@ -169,6 +166,28 @@ VolumeJunction1PhaseAC::VolumeJunction1PhaseAC(const InputParameters & params)
   addRequiredTask("add_kernel");
   addRequiredTask("add_aux_kernel");
   addRequiredTask("add_material");
+}
+
+RealVectorValue
+VolumeJunction1PhaseAC::connectedDirection(unsigned int i) const
+{
+  const auto & fch = _awh.getAction<FlowChannel1PhaseAC>(_connected_component_names[i]);
+  return fch.isParamValid("orientation") ? fch.direction() : RealVectorValue(1, 0, 0);
+}
+
+void
+VolumeJunction1PhaseAC::setupConnections()
+{
+  if (_connections.size() == 0)
+    paramError("connections", "There must be at least one connection.");
+
+  _connected_component_names.clear();
+  _normals.clear();
+  for (const auto & connection : _connections)
+  {
+    _connected_component_names.push_back(THM::parseConnectedComponentName(connection));
+    _normals.push_back(THM::parseConnectionNormal(connection));
+  }
 }
 
 const FlowChannel1PhasePhysics &

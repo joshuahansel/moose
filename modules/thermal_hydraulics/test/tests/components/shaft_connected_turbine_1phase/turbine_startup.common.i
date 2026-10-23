@@ -1,0 +1,170 @@
+# This test tests that the turbine can startup from rest and reach full power.
+# The mass flow rate for the inlet component is ramped up over 10s. The dyno
+# component and pid_ctrl controler are used to maintain the turbine's rated shaft
+# speed. The turbine should supply ~1e6 W of power to the shaft by the end of the test.
+
+omega_rated = 450
+mdot = 5.0
+T_in = 1000.0
+p_out = 1e6
+
+[GlobalParams]
+  f = 1
+  scaling_factor_1phase = '0.04 0.04 0.04e-5'
+  closures = simple_closures
+  n_elems = 20
+  initial_T = ${T_in}
+  initial_p = ${p_out}
+  initial_vel = 0
+  initial_vel_x = 0
+  initial_vel_y = 0
+  initial_vel_z = 0
+[]
+
+[FluidProperties]
+  [eos]
+    type = IdealGasFluidProperties
+  []
+[]
+
+[Closures]
+  [simple_closures]
+    type = Closures1PhaseSimple
+  []
+[]
+
+[Functions]
+  [head]
+    type = PiecewiseLinear
+    x = '0 7e-3 1e-2'
+    y = '0 15 20'
+  []
+  [power]
+    type = PiecewiseLinear
+    x = '0 6e-3 1e-2'
+    y = '0 0.05 0.18'
+  []
+
+  [mfr_fn]
+    type = PiecewiseLinear
+    x = '0    10'
+    y = '1e-6 ${mdot}'
+  []
+  [dts]
+    type = PiecewiseConstant
+    y = '5e-3 1e-2 5e-2 5e-1'
+    x = '0 0.5 1 10'
+  []
+  [dyno_torque_fn]
+    type = ConstantFunction
+    value = -450 # controlled
+  []
+[]
+
+[ChainControls]
+  [mfr_cntrl_fn]
+    type = GetFunctionValueChainControl
+    execute_on = 'INITIAL TIMESTEP_BEGIN'
+    function = mfr_fn
+  []
+  [mfr_cntrl]
+    type = SetRealValueChainControl
+    execute_on = 'INITIAL TIMESTEP_BEGIN'
+    parameter = component::inlet/m_dot
+    value = mfr_cntrl_fn:value
+  []
+
+  [get_omega]
+    type = GetPostprocessorChainControl
+    execute_on = 'INITIAL TIMESTEP_BEGIN'
+    postprocessor = omega
+    name_data_same_as_postprocessor = true
+  []
+  [speed_set_point]
+    type = GetFunctionValueChainControl
+    execute_on = 'INITIAL TIMESTEP_BEGIN'
+    function = ${omega_rated}
+  []
+  [pid_ctrl]
+    type = PIDChainControl
+    execute_on = 'INITIAL TIMESTEP_BEGIN'
+    input = omega
+    set_point = speed_set_point:value
+    K_i = 2
+    K_p = 5
+    K_d = 5
+    initial_integral = -450
+  []
+  [set_torque_value]
+    type = SetRealValueChainControl
+    execute_on = 'INITIAL TIMESTEP_BEGIN'
+    parameter = Functions/dyno_torque_fn/value
+    value = pid_ctrl:value
+  []
+[]
+
+[Postprocessors]
+  [omega]
+    type = ScalarVariable
+    variable = shaft:omega
+    execute_on = 'initial timestep_end'
+  []
+  [flow_coefficient]
+    type = ElementAverageValue
+    variable = flow_coeff
+    block = 'turbine'
+    execute_on = 'initial timestep_end'
+  []
+  [delta_p]
+    type = ElementAverageValue
+    variable = delta_p
+    block = 'turbine'
+    execute_on = 'initial timestep_end'
+  []
+  [power]
+    type = ElementAverageValue
+    variable = power
+    block = 'turbine'
+    execute_on = 'initial timestep_end'
+  []
+[]
+
+[Preconditioning]
+  [SMP]
+    type = SMP
+    full = true
+  []
+[]
+
+[Executioner]
+  type = Transient
+  scheme = 'implicit-euler'
+  start_time = 0
+  [TimeStepper]
+    type = FunctionDT
+    function = dts
+  []
+  end_time = 20
+  abort_on_solve_fail = true
+
+  solve_type = 'PJFNK'
+  line_search = 'basic'
+  nl_rel_tol = 1e-6
+  nl_abs_tol = 1e-4
+  nl_max_its = 30
+
+  l_tol = 1e-4
+  l_max_its = 20
+  [Quadrature]
+    type = GAUSS
+    order = SECOND
+  []
+[]
+
+[Outputs]
+  [console]
+    type = Console
+    max_rows = 1
+  []
+  print_linear_residuals = false
+[]

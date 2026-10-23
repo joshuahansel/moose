@@ -14,7 +14,7 @@ InputParameters
 HeatStructureInterfaceAC::validParams()
 {
   InputParameters params = ActionComponent::validParams();
-  params.addRequiredParam<FunctionName>("initial_T", "Initial temperature [K]");
+  params.addParam<FunctionName>("initial_T", "Initial temperature [K]");
   params.addParam<Real>(
       "scaling_factor_temperature", 1.0, "Scaling factor for solid temperature variable.");
   return params;
@@ -35,7 +35,10 @@ HeatStructureInterfaceAC::createPhysics(const InputParameters & params, bool sec
   physics_params.set<std::string>("registered_identifier") = "(AutoBuilt)";
 
   physics_params.set<VariableName>("temperature_name") = "T_solid";
-  physics_params.set<FunctionName>("initial_temperature") = getParam<FunctionName>("initial_T");
+  // Like classic THM, the initial temperature is only required if the simulation is not restarted.
+  // Whether it is restarted is not known yet, so this is checked in addPhysics().
+  if (isParamValid("initial_T"))
+    physics_params.set<FunctionName>("initial_temperature") = getParam<FunctionName>("initial_T");
   physics_params.set<bool>("second_order") = second_order;
   physics_params.set<Real>("scaling_factor_temperature") =
       getParam<Real>("scaling_factor_temperature");
@@ -56,5 +59,8 @@ HeatStructureInterfaceAC::createPhysics(const InputParameters & params, bool sec
 void
 HeatStructureInterfaceAC::addPhysics()
 {
+  if (!isParamValid("initial_T") && !_app.isRestarting())
+    paramError("initial_T", "Missing initial condition for temperature.");
+
   _physics->addComponent(*this);
 }

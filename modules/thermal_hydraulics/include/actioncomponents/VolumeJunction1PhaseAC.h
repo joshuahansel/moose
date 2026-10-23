@@ -70,6 +70,15 @@ protected:
   /// if they do not all use the same one
   UserObjectName fluidPropertiesName() const;
 
+  /// Direction of the i-th connected flow channel. A flow channel is generated along the x axis, which
+  /// is its direction if it has no orientation.
+  RealVectorValue connectedDirection(unsigned int i) const;
+
+  /// Sets up the connections (names of the connected components and the normals) from
+  /// _connections. A derived class that sets _connections from other parameters, such as 'inlet'
+  /// and 'outlet', does so in its constructor and then calls this.
+  void setupConnections();
+
   /// Adds the junction's user object. Derived classes with other junction physics override this.
   virtual void buildVolumeJunctionUserObject();
   /// Parameters shared by the junction user objects: everything but the class-specific ones
@@ -80,20 +89,20 @@ protected:
   subdomain_id_type junctionSubdomainID() const;
 
   /// Requests the junction's auxiliary variables (p, T, vel) from the THMVariableCoordinator
-  void addAuxiliaryVariables();
+  virtual void addAuxiliaryVariables();
   /// Adds a VolumeJunction1PhaseIC for each junction variable
-  void addInitialConditions();
+  virtual void addInitialConditions();
   /// Adds one ADVolumeJunction1PhaseBC per solution variable per connection
   void addWeakBCs();
   /// Adds the ADTimeDerivative and ADVolumeJunctionAdvectionKernel kernels for the junction
   void addKernels();
   /// Adds the pressure/temperature/speed VolumeJunction1PhaseAux auxiliary kernels
-  void addAuxiliaryKernels();
+  virtual void addAuxiliaryKernels();
   /// Adds a VolumeJunction1PhaseIC for a single junction variable
   void addVolumeJunctionIC(const VariableName & var_name, const std::string & quantity);
 
   /// The flow channel boundaries to connect, e.g. 'pipeA:out', 'pipeB:in', 'pipeC:in', ...
-  const std::vector<BoundaryName> _connections;
+  std::vector<BoundaryName> _connections;
   /// Names of the connected flow channel components, parsed from _connections
   std::vector<std::string> _connected_component_names;
   /// Outward normal direction at each connection: -1 at a ':in' end, +1 at a ':out' end

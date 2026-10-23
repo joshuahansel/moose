@@ -43,22 +43,13 @@ JunctionParallelChannels1PhaseAC::JunctionParallelChannels1PhaseAC(const InputPa
 {
 }
 
-RealVectorValue
-JunctionParallelChannels1PhaseAC::firstDirection() const
-{
-  const auto & fch_name = _connected_component_names[0];
-  const auto & fch = _awh.getAction<FlowChannel1PhaseAC>(fch_name);
-  // The flow channel is generated along the x axis if it has no orientation
-  return fch.isParamValid("orientation") ? fch.direction() : RealVectorValue(1, 0, 0);
-}
-
 void
 JunctionParallelChannels1PhaseAC::buildVolumeJunctionUserObject()
 {
   const std::string class_name = junctionUserObjectClass();
   InputParameters params = junctionUserObjectParameters(class_name);
   params.set<std::string>("component_name") = name();
-  params.set<RealVectorValue>("dir_c0") = firstDirection();
+  params.set<RealVectorValue>("dir_c0") = connectedDirection(0);
   params.set<bool>("apply_velocity_scaling") = _apply_velocity_scaling;
   setJunctionUserObjectParameters(params);
   getProblem().addUserObject(class_name, _junction_uo_name, params);

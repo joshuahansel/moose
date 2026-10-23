@@ -1,0 +1,27 @@
+# The ActionComponent flow channel only creates the heated perimeter (P_hf) variable when a heat
+# transfer component is connected, so it is not in this output.
+COORDINATES
+TIME STEPS
+ELEMENT VARIABLES
+	A
+	H
+	T
+	delta_p
+	driving_torque
+	e
+	flow_coeff
+	friction_torque
+	p
+	power
+	rho
+	rhoA
+	rhoEA
+	rhoEV
+	rhoV
+	rhouA
+	rhouV
+	rhovV
+	rhowV
+	turbine:moment_of_inertia
+	v
+	vel
