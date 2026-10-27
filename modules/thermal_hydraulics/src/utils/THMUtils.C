@@ -82,11 +82,15 @@ allGatherADVectorMapSum(const Parallel::Communicator & comm,
 std::string
 parseConnectedComponentName(const BoundaryName & connection)
 {
+  if (connection.find('(') != std::string::npos)
+    mooseError("You are using the old connection format 'comp_name(end)'. Please update your input "
+               "file to the new one 'comp_name:end'.");
+
   const auto colon_pos = connection.rfind(':');
   if (colon_pos == std::string::npos)
-    mooseError("Invalid connection '",
+    mooseError("Incorrect connection specified '",
                connection,
-               "'. Valid connection format is 'component_name:in' or 'component_name:out'.");
+               "'. Valid connection format is 'component_name:end_type'.");
   return connection.substr(0, colon_pos);
 }
 

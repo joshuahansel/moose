@@ -14,6 +14,7 @@
 #include "MooseUtils.h"
 #include "Function.h"
 #include "ClosuresRegistry.h"
+#include "SinglePhaseFluidProperties.h"
 #include "ClosuresBase.h"
 #include "InputParameterWarehouse.h"
 
@@ -49,6 +50,21 @@ FlowChannel1PhasePhysics::validParams()
       "scaling_factor_1phase",
       "Scaling factors for each single phase variable (rhoA, rhouA, rhoEA)");
 
+  params.addParam<std::vector<FunctionName>>(
+      "initial_passives",
+      {},
+      "Initial passive transport variable values in the flow channel, if any (units are "
+      "[amount/m^3], where 'amount' may be mass (kg) or a number (molecules, moles, etc.))");
+  params.addParam<std::vector<VariableName>>(
+      "passives_names",
+      {},
+      "Names for each passive transport variable [amount/m^3]. Note that the conserved (solution) "
+      "variables will be an amount per unit volume multiplied by the channel cross-sectional area, "
+      "yielding an amount per unit length; these solution variable names will append '_times_area' "
+      "to the names given in this parameter.");
+  params.addParam<std::vector<Real>>("scaling_factor_passives",
+                                     "Scaling factor for each passive transport variable");
+
   params.addParam<std::vector<std::string>>(
       "closures",
       {},
@@ -58,6 +74,7 @@ FlowChannel1PhasePhysics::validParams()
   params.addParam<FunctionName>("D_h", "Hydraulic diameter [m]");
   params.addParam<Real>("roughness", 0.0, "Roughness [m]");
   params.addParam<Real>("PoD", 1, "Pitch-to-diameter ratio for parallel bundle heat transfer [-]");
+  params.addParam<bool>("enable_heat_conduction", false, "Enable heat conduction?");
   params.addParam<bool>("name_multiple_ht_by_index",
                         true,
                         "If true, when there are multiple heat transfer components connected to "
@@ -86,6 +103,21 @@ FlowChannel1PhasePhysics::FlowChannel1PhasePhysics(const InputParameters & param
 {
   if (_scaling_factors.size() != 3)
     paramError("scaling_factor_1phase", "Must have exactly 3 entries (for rhoA, rhouA, rhoEA)");
+
+  const auto & passives_names = getParam<std::vector<VariableName>>("passives_names");
+  if (getParam<std::vector<FunctionName>>("initial_passives").size() != passives_names.size())
+    paramError("initial_passives",
+               "The number of entries must match that of 'passives_names' (",
+               passives_names.size(),
+               ").");
+  if (isParamValid("scaling_factor_passives") &&
+      getParam<std::vector<Real>>("scaling_factor_passives").size() != passives_names.size())
+    paramError("scaling_factor_passives",
+               "The number of entries must match that of 'passives_names' (",
+               passives_names.size(),
+               ").");
+  for (const auto & passive : passives_names)
+    _passives_times_area_names.push_back(passive + "_times_area");
 }
 
 void
@@ -235,6 +267,23 @@ FlowChannel1PhasePhysics::addSolverVariables()
   addFlowVariable(true, THM::RHOA, "MONOMIAL", "CONSTANT", _scaling_factors[0]);
   addFlowVariable(true, THM::RHOUA, "MONOMIAL", "CONSTANT", _scaling_factors[1]);
   addFlowVariable(true, THM::RHOEA, "MONOMIAL", "CONSTANT", _scaling_factors[2]);
+
+  for (const auto i : index_range(_passives_times_area_names))
+    addFlowVariable(true,
+                    _passives_times_area_names[i],
+                    "MONOMIAL",
+                    "CONSTANT",
+                    isParamValid("scaling_factor_passives")
+                        ? getParam<std::vector<Real>>("scaling_factor_passives")[i]
+                        : 1.0);
+}
+
+std::vector<VariableName>
+FlowChannel1PhasePhysics::solutionVariableNames() const
+{
+  std::vector<VariableName> vars = {THM::RHOA, THM::RHOUA, THM::RHOEA};
+  vars.insert(vars.end(), _passives_times_area_names.begin(), _passives_times_area_names.end());
+  return vars;
 }
 
 void
@@ -341,28 +390,19 @@ FlowChannel1PhasePhysics::addInitialConditions()
     params.set<FunctionName>("fn") = _initial_vel_fn;
     getProblem().addInitialCondition(class_name, genName(name(), "rhouA_ic"), params);
   }
+  for (const auto i : index_range(_passives_times_area_names))
   {
-    const std::string class_name = "RhoEAFromPressureTemperatureFunctionVelocityIC";
+    const std::string class_name = "VariableFunctionProductIC";
     InputParameters params = getFactory().getValidParams(class_name);
-    params.set<VariableName>("variable") = THM::RHOEA;
+    params.set<VariableName>("variable") = _passives_times_area_names[i];
     assignBlocks(params, _blocks);
-    params.set<std::vector<VariableName>>("p") = {THM::PRESSURE};
-    params.set<std::vector<VariableName>>("T") = {THM::TEMPERATURE};
-    params.set<FunctionName>("vel") = _initial_vel_fn;
-    params.set<std::vector<VariableName>>("A") = {THM::AREA};
-    params.set<UserObjectName>("fp") = _fp_name;
-    getProblem().addInitialCondition(class_name, genName(name(), "rhoEA_ic"), params);
+    params.set<FunctionName>("fn") = getParam<std::vector<FunctionName>>("initial_passives")[i];
+    params.set<std::vector<VariableName>>("var") = {THM::AREA};
+    getProblem().addInitialCondition(
+        class_name, genName(name(), _passives_times_area_names[i], "ic"), params);
   }
-  {
-    const std::string class_name = "RhoFromPressureTemperatureIC";
-    InputParameters params = getFactory().getValidParams(class_name);
-    params.set<VariableName>("variable") = THM::DENSITY;
-    assignBlocks(params, _blocks);
-    params.set<std::vector<VariableName>>("p") = {THM::PRESSURE};
-    params.set<std::vector<VariableName>>("T") = {THM::TEMPERATURE};
-    params.set<UserObjectName>("fp") = _fp_name;
-    getProblem().addInitialCondition(class_name, genName(name(), "rho_ic"), params);
-  }
+  addRhoEAInitialCondition();
+  addDensityInitialCondition();
   {
     const std::string class_name = "SpecificVolumeIC";
     InputParameters params = getFactory().getValidParams(class_name);
@@ -393,6 +433,34 @@ FlowChannel1PhasePhysics::addInitialConditions()
     params.set<std::vector<VariableName>>("A") = {THM::AREA};
     getProblem().addInitialCondition(class_name, genName(name(), "H_ic"), params);
   }
+}
+
+void
+FlowChannel1PhasePhysics::addRhoEAInitialCondition()
+{
+  const std::string class_name = "RhoEAFromPressureTemperatureFunctionVelocityIC";
+  InputParameters params = getFactory().getValidParams(class_name);
+  params.set<VariableName>("variable") = THM::RHOEA;
+  assignBlocks(params, _blocks);
+  params.set<std::vector<VariableName>>("p") = {THM::PRESSURE};
+  params.set<std::vector<VariableName>>("T") = {THM::TEMPERATURE};
+  params.set<FunctionName>("vel") = _initial_vel_fn;
+  params.set<std::vector<VariableName>>("A") = {THM::AREA};
+  params.set<UserObjectName>("fp") = _fp_name;
+  getProblem().addInitialCondition(class_name, genName(name(), "rhoEA_ic"), params);
+}
+
+void
+FlowChannel1PhasePhysics::addDensityInitialCondition()
+{
+  const std::string class_name = "RhoFromPressureTemperatureIC";
+  InputParameters params = getFactory().getValidParams(class_name);
+  params.set<VariableName>("variable") = THM::DENSITY;
+  assignBlocks(params, _blocks);
+  params.set<std::vector<VariableName>>("p") = {THM::PRESSURE};
+  params.set<std::vector<VariableName>>("T") = {THM::TEMPERATURE};
+  params.set<UserObjectName>("fp") = _fp_name;
+  getProblem().addInitialCondition(class_name, genName(name(), "rho_ic"), params);
 }
 
 void
@@ -453,6 +521,10 @@ FlowChannel1PhasePhysics::addFEKernels()
 
   // Energy equation
   addTimeDerivativeKernelIfTransient(THM::RHOEA);
+
+  // Passive transport equations
+  for (const auto & var : _passives_times_area_names)
+    addTimeDerivativeKernelIfTransient(var);
   {
     const std::string class_name = "ADOneD3EqnEnergyGravity";
     InputParameters params = getFactory().getValidParams(class_name);
@@ -470,21 +542,20 @@ FlowChannel1PhasePhysics::addFEKernels()
 void
 FlowChannel1PhasePhysics::addDGKernels()
 {
-  for (const auto & var : {THM::RHOA, THM::RHOUA, THM::RHOEA})
+  if (getParam<bool>("enable_heat_conduction"))
   {
-    const std::string class_name = "ADNumericalFlux3EqnDGKernel";
+    const std::string class_name = "HeatConduction3EqnDGKernel";
     InputParameters params = getFactory().getValidParams(class_name);
-    params.set<NonlinearVariableName>("variable") = var;
+    params.set<NonlinearVariableName>("variable") = THM::RHOEA;
     assignBlocks(params, _blocks);
-    params.set<std::vector<VariableName>>("A_linear") = {THM::AREA_LINEAR};
-    params.set<std::vector<VariableName>>("rhoA") = {THM::RHOA};
-    params.set<std::vector<VariableName>>("rhouA") = {THM::RHOUA};
-    params.set<std::vector<VariableName>>("rhoEA") = {THM::RHOEA};
-    params.set<std::vector<VariableName>>("passives_times_area") = {};
-    params.set<UserObjectName>("numerical_flux") = _numerical_flux_name;
-    params.set<bool>("implicit") = THM::implicitTimeIntegrationFlag(_app);
-    getProblem().addDGKernel(class_name, genName(name(), "flux_kernel_" + var), params);
+    params.set<MaterialPropertyName>("k") = THM::THERMAL_CONDUCTIVITY;
+    params.set<MaterialPropertyName>("T") = THM::TEMPERATURE;
+    params.set<MaterialPropertyName>("direction") = THM::DIRECTION;
+    params.set<std::vector<VariableName>>("A") = {THM::AREA};
+    getProblem().addDGKernel(class_name, genName(name(), "heat_cond"), params);
   }
+
+  addAdvectionDGKernels();
 }
 
 void
@@ -496,43 +567,8 @@ FlowChannel1PhasePhysics::addMaterials()
     assignBlocks(params, _blocks);
     getProblem().addMaterial(class_name, genName(name(), "dir_mat"), params);
   }
-  {
-    const std::string class_name = "ADFluidProperties3EqnMaterial";
-    InputParameters params = getFactory().getValidParams(class_name);
-    assignBlocks(params, _blocks);
-    params.set<UserObjectName>("fp") = _fp_name;
-    params.set<std::vector<VariableName>>("rhoA") = {THM::RHOA};
-    params.set<std::vector<VariableName>>("rhouA") = {THM::RHOUA};
-    params.set<std::vector<VariableName>>("rhoEA") = {THM::RHOEA};
-    params.set<std::vector<VariableName>>("A") = {THM::AREA};
-    getProblem().addMaterial(class_name, genName(name(), "fp_mat"), params);
-  }
-  {
-    const std::string class_name = "ADDynamicViscosityMaterial";
-    InputParameters params = getFactory().getValidParams(class_name);
-    assignBlocks(params, _blocks);
-    params.set<UserObjectName>("fp_1phase") = _fp_name;
-    params.set<MaterialPropertyName>("mu") = THM::DYNAMIC_VISCOSITY;
-    params.set<MaterialPropertyName>("v") = THM::SPECIFIC_VOLUME;
-    params.set<MaterialPropertyName>("e") = THM::SPECIFIC_INTERNAL_ENERGY;
-    getProblem().addMaterial(class_name, genName(name(), "mu_mat"), params);
-  }
-  {
-    const std::string class_name = "ADRDG3EqnMaterial";
-    InputParameters params = getFactory().getValidParams(class_name);
-    assignBlocks(params, _blocks);
-    params.set<MooseEnum>("scheme") = getParam<MooseEnum>("rdg_slope_reconstruction");
-    params.set<std::vector<VariableName>>("A_elem") = {THM::AREA};
-    params.set<std::vector<VariableName>>("A_linear") = {THM::AREA_LINEAR};
-    params.set<std::vector<VariableName>>("rhoA") = {THM::RHOA};
-    params.set<std::vector<VariableName>>("rhouA") = {THM::RHOUA};
-    params.set<std::vector<VariableName>>("rhoEA") = {THM::RHOEA};
-    params.set<std::vector<VariableName>>("passives_times_area") = {};
-    params.set<MaterialPropertyName>("direction") = THM::DIRECTION;
-    params.set<UserObjectName>("fluid_properties") = _fp_name;
-    params.set<bool>("implicit") = THM::implicitTimeIntegrationFlag(_app);
-    getProblem().addMaterial(class_name, genName(name(), "rdg_3eqn_mat"), params);
-  }
+  addFluidPropertiesMaterial();
+  addSlopeReconstructionMaterial();
 
   // weighted average wall heat flux of several heat flux connections
   if (!_temperature_mode && _heat_transfers.size() > 1)
@@ -563,12 +599,121 @@ FlowChannel1PhasePhysics::addMaterials()
 void
 FlowChannel1PhasePhysics::addUserObjects()
 {
+  // Checked before the objects that require the fluid properties are created
+  checkFluidProperties();
+
+  addNumericalFluxUserObject();
+}
+
+void
+FlowChannel1PhasePhysics::checkFluidProperties() const
+{
+  if (!dynamic_cast<const SinglePhaseFluidProperties *>(&getProblem().getUserObjectBase(_fp_name)))
+    paramError("fp", "Supplied fluid properties must be for 1-phase fluids.");
+}
+
+void
+FlowChannel1PhasePhysics::addAdvectionDGKernels()
+{
+  for (const auto & var : solutionVariableNames())
+  {
+    const std::string class_name = "ADNumericalFlux3EqnDGKernel";
+    InputParameters params = getFactory().getValidParams(class_name);
+    params.set<NonlinearVariableName>("variable") = var;
+    assignBlocks(params, _blocks);
+    params.set<std::vector<VariableName>>("A_linear") = {THM::AREA_LINEAR};
+    params.set<std::vector<VariableName>>("rhoA") = {THM::RHOA};
+    params.set<std::vector<VariableName>>("rhouA") = {THM::RHOUA};
+    params.set<std::vector<VariableName>>("rhoEA") = {THM::RHOEA};
+    params.set<std::vector<VariableName>>("passives_times_area") = _passives_times_area_names;
+    params.set<UserObjectName>("numerical_flux") = _numerical_flux_name;
+    params.set<bool>("implicit") = THM::implicitTimeIntegrationFlag(_app);
+    getProblem().addDGKernel(class_name, genName(name(), "flux_kernel_" + var), params);
+  }
+}
+
+void
+FlowChannel1PhasePhysics::addFluidPropertiesMaterial()
+{
+  const std::string class_name = "ADFluidProperties3EqnMaterial";
+  InputParameters params = getFactory().getValidParams(class_name);
+  assignBlocks(params, _blocks);
+  params.set<UserObjectName>("fp") = _fp_name;
+  params.set<std::vector<VariableName>>("rhoA") = {THM::RHOA};
+  params.set<std::vector<VariableName>>("rhouA") = {THM::RHOUA};
+  params.set<std::vector<VariableName>>("rhoEA") = {THM::RHOEA};
+  params.set<std::vector<VariableName>>("A") = {THM::AREA};
+  getProblem().addMaterial(class_name, genName(name(), "fp_mat"), params);
+
+  // The dynamic viscosity is needed by the closures that compute friction and heat transfer
+  {
+    const std::string mu_class_name = "ADDynamicViscosityMaterial";
+    InputParameters mu_params = getFactory().getValidParams(mu_class_name);
+    assignBlocks(mu_params, _blocks);
+    mu_params.set<UserObjectName>("fp_1phase") = _fp_name;
+    mu_params.set<MaterialPropertyName>("mu") = THM::DYNAMIC_VISCOSITY;
+    mu_params.set<MaterialPropertyName>("v") = THM::SPECIFIC_VOLUME;
+    mu_params.set<MaterialPropertyName>("e") = THM::SPECIFIC_INTERNAL_ENERGY;
+    getProblem().addMaterial(mu_class_name, genName(name(), "mu_mat"), mu_params);
+  }
+}
+
+void
+FlowChannel1PhasePhysics::addSlopeReconstructionMaterial()
+{
+  const std::string class_name = "ADRDG3EqnMaterial";
+  InputParameters params = getFactory().getValidParams(class_name);
+  assignBlocks(params, _blocks);
+  params.set<MooseEnum>("scheme") = getParam<MooseEnum>("rdg_slope_reconstruction");
+  params.set<std::vector<VariableName>>("A_elem") = {THM::AREA};
+  params.set<std::vector<VariableName>>("A_linear") = {THM::AREA_LINEAR};
+  params.set<std::vector<VariableName>>("rhoA") = {THM::RHOA};
+  params.set<std::vector<VariableName>>("rhouA") = {THM::RHOUA};
+  params.set<std::vector<VariableName>>("rhoEA") = {THM::RHOEA};
+  params.set<std::vector<VariableName>>("passives_times_area") = _passives_times_area_names;
+  params.set<MaterialPropertyName>("direction") = THM::DIRECTION;
+  params.set<UserObjectName>("fluid_properties") = _fp_name;
+  params.set<bool>("implicit") = THM::implicitTimeIntegrationFlag(_app);
+  getProblem().addMaterial(class_name, genName(name(), "rdg_3eqn_mat"), params);
+}
+
+void
+FlowChannel1PhasePhysics::addNumericalFluxUserObject()
+{
   const std::string class_name = "ADNumericalFlux3EqnHLLC";
   InputParameters params = getFactory().getValidParams(class_name);
   params.set<UserObjectName>("fluid_properties") = _fp_name;
   params.set<MooseEnum>("emit_on_nan") = "none";
   params.set<ExecFlagEnum>("execute_on") = {EXEC_INITIAL, EXEC_LINEAR, EXEC_NONLINEAR};
   addUserObject(class_name, _numerical_flux_name, params);
+}
+
+void
+FlowChannel1PhasePhysics::addPressureTemperatureAuxKernels()
+{
+  ExecFlagEnum state_execute_on(MooseUtils::getDefaultExecFlagEnum());
+  state_execute_on = {EXEC_INITIAL, EXEC_TIMESTEP_END};
+
+  {
+    const std::string class_name = "PressureAux";
+    InputParameters params = getFactory().getValidParams(class_name);
+    params.set<AuxVariableName>("variable") = THM::PRESSURE;
+    assignBlocks(params, _blocks);
+    params.set<std::vector<VariableName>>("e") = {THM::SPECIFIC_INTERNAL_ENERGY};
+    params.set<std::vector<VariableName>>("v") = {THM::SPECIFIC_VOLUME};
+    params.set<UserObjectName>("fp") = _fp_name;
+    getProblem().addAuxKernel(class_name, genName(name(), "pressure_uv_auxkernel"), params);
+  }
+  {
+    const std::string class_name = "TemperatureAux";
+    InputParameters params = getFactory().getValidParams(class_name);
+    params.set<AuxVariableName>("variable") = THM::TEMPERATURE;
+    assignBlocks(params, _blocks);
+    params.set<std::vector<VariableName>>("e") = {THM::SPECIFIC_INTERNAL_ENERGY};
+    params.set<std::vector<VariableName>>("v") = {THM::SPECIFIC_VOLUME};
+    params.set<UserObjectName>("fp") = _fp_name;
+    getProblem().addAuxKernel(class_name, genName(name(), "T_auxkernel"), params);
+  }
 }
 
 void
@@ -597,26 +742,7 @@ FlowChannel1PhasePhysics::addAuxiliaryKernels()
     params.set<ExecFlagEnum>("execute_on") = ts_execute_on;
     getProblem().addAuxKernel(class_name, genName(name(), "area_aux"), params);
   }
-  {
-    const std::string class_name = "PressureAux";
-    InputParameters params = getFactory().getValidParams(class_name);
-    params.set<AuxVariableName>("variable") = THM::PRESSURE;
-    assignBlocks(params, _blocks);
-    params.set<std::vector<VariableName>>("e") = {THM::SPECIFIC_INTERNAL_ENERGY};
-    params.set<std::vector<VariableName>>("v") = {THM::SPECIFIC_VOLUME};
-    params.set<UserObjectName>("fp") = _fp_name;
-    getProblem().addAuxKernel(class_name, genName(name(), "pressure_uv_auxkernel"), params);
-  }
-  {
-    const std::string class_name = "TemperatureAux";
-    InputParameters params = getFactory().getValidParams(class_name);
-    params.set<AuxVariableName>("variable") = THM::TEMPERATURE;
-    assignBlocks(params, _blocks);
-    params.set<std::vector<VariableName>>("e") = {THM::SPECIFIC_INTERNAL_ENERGY};
-    params.set<std::vector<VariableName>>("v") = {THM::SPECIFIC_VOLUME};
-    params.set<UserObjectName>("fp") = _fp_name;
-    getProblem().addAuxKernel(class_name, genName(name(), "T_auxkernel"), params);
-  }
+  addPressureTemperatureAuxKernels();
   {
     const std::string class_name = "QuotientAux";
     InputParameters params = getFactory().getValidParams(class_name);

@@ -32,6 +32,8 @@ InletMassFlowRateTemperature1PhaseAC::validParams()
   InputParameters params = FlowBoundary1PhaseAC::validParams();
   params.addRequiredParam<Real>("m_dot", "Prescribed mass flow rate [kg/s]");
   params.addRequiredParam<Real>("T", "Prescribed temperature [K]");
+  params.addParam<std::vector<FunctionName>>(
+      "passives", {}, "Prescribed passive transport functions [amount/m^3]");
   params.addParam<bool>("reversible", true, "True for reversible, false for pure inlet");
   params.declareControllable("m_dot T");
   params.addClassDescription("Boundary condition with prescribed mass flow rate and temperature "
@@ -54,6 +56,12 @@ InletMassFlowRateTemperature1PhaseAC::addUserObjects()
 {
   const auto & physics = connectedPhysics();
 
+  if (getParam<std::vector<FunctionName>>("passives").size() !=
+      physics.passiveTransportSolutionVariableNames().size())
+    paramError("passives",
+               "The number of entries in 'passives' must match the number of passive transport "
+               "variables provided in the connected flow channel.");
+
   ExecFlagEnum userobject_execute_on(MooseUtils::getDefaultExecFlagEnum());
   userobject_execute_on = {EXEC_INITIAL, EXEC_LINEAR, EXEC_NONLINEAR};
 
@@ -62,7 +70,8 @@ InletMassFlowRateTemperature1PhaseAC::addUserObjects()
   params.set<Real>("mass_flow_rate") = _m_dot;
   params.set<Real>("T") = _T;
   params.set<bool>("reversible") = _reversible;
-  params.set<std::vector<FunctionName>>("passives") = {};
+  params.set<std::vector<FunctionName>>("passives") =
+      getParam<std::vector<FunctionName>>("passives");
   params.set<Real>("normal") = _normal;
   params.set<UserObjectName>("numerical_flux") = physics.numericalFluxUserObjectName();
   params.set<UserObjectName>("fluid_properties") = physics.fluidPropertiesName();

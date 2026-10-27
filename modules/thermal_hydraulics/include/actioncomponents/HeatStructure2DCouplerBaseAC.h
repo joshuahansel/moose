@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "ActionComponentConvergenceInterface.h"
 #include "ActionComponent.h"
 #include "NamingInterface.h"
 #include "HeatStructureBaseAC.h"
@@ -29,7 +30,9 @@ class MeshAlignment;
  * native COORD_RZ coordinate system, which applies that factor itself, so the plain boundary
  * conditions are used for both geometries.
  */
-class HeatStructure2DCouplerBaseAC : public virtual ActionComponent, public NamingInterface
+class HeatStructure2DCouplerBaseAC : public virtual ActionComponent,
+                                     public NamingInterface,
+                                     public NoNonlinearConvergenceAC
 {
 public:
   static InputParameters validParams();

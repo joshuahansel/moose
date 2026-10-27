@@ -39,7 +39,8 @@ FlowBoundary1PhaseAC::FlowBoundary1PhaseAC(const InputParameters & params)
 const FlowChannel1PhasePhysics &
 FlowBoundary1PhaseAC::connectedPhysics() const
 {
-  return _awh.getAction<FlowChannel1PhaseAC>(_connected_component_name).getPhysics();
+  return FlowChannel1PhaseAC::connectedFlowChannel(_awh, _connected_component_name, name())
+      .getPhysics();
 }
 
 void
@@ -54,10 +55,11 @@ FlowBoundary1PhaseAC::addWeakBCs()
   params.set<std::vector<VariableName>>("rhoA") = {THM::RHOA};
   params.set<std::vector<VariableName>>("rhouA") = {THM::RHOUA};
   params.set<std::vector<VariableName>>("rhoEA") = {THM::RHOEA};
-  params.set<std::vector<VariableName>>("passives_times_area") = {};
+  params.set<std::vector<VariableName>>("passives_times_area") =
+      connectedPhysics().passiveTransportSolutionVariableNames();
   params.set<bool>("implicit") = THM::implicitTimeIntegrationFlag(_app);
 
-  for (const auto & var : {THM::RHOA, THM::RHOUA, THM::RHOEA})
+  for (const auto & var : connectedPhysics().solutionVariableNames())
   {
     params.set<NonlinearVariableName>("variable") = var;
     getProblem().addBoundaryCondition(class_name, genName(name(), var, "bnd_flux_3eqn_bc"), params);
@@ -68,5 +70,10 @@ void
 FlowBoundary1PhaseAC::actOnAdditionalTasks()
 {
   if (_current_task == "add_bc")
+  {
+    if (!connectedPhysics().passiveTransportSolutionVariableNames().empty() &&
+        !supportsPassiveTransport())
+      paramError("input", "Passive transport has not been implemented for this Component type.");
     addWeakBCs();
+  }
 }

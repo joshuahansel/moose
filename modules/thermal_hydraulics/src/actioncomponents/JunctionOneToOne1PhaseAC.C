@@ -70,12 +70,17 @@ JunctionOneToOne1PhaseAC::JunctionOneToOne1PhaseAC(const InputParameters & param
 const FlowChannel1PhasePhysics &
 JunctionOneToOne1PhaseAC::connectedPhysics(unsigned int i) const
 {
-  return _awh.getAction<FlowChannel1PhaseAC>(_connected_component_names[i]).getPhysics();
+  return FlowChannel1PhaseAC::connectedFlowChannel(_awh, _connected_component_names[i], name())
+      .getPhysics();
 }
 
 void
 JunctionOneToOne1PhaseAC::addUserObjects()
 {
+  for (const auto i : index_range(_connected_component_names))
+    if (!connectedPhysics(i).passiveTransportSolutionVariableNames().empty())
+      paramError("connections", "This Component type does not support passive transport.");
+
   // Build the element-adjacency map for AugmentSparsityBetweenElements now that the mesh exists -
   // the two connected pipes' end elements are not mesh-adjacent, since each pipe's mesh was built
   // and combined independently.

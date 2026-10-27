@@ -44,7 +44,10 @@ ComponentMeshTransformHelper::ComponentMeshTransformHelper(const InputParameters
     _translation(getParam<Point>("position"))
 {
   addRequiredTask("add_mesh_generator");
-  checkSecondParamNotSetIfFirstOneSet("rotation", "direction");
+  // A derived component may redefine 'rotation' as another type, e.g. a roll angle about its axis,
+  // which is compatible with the direction
+  if (_rotation)
+    checkSecondParamNotSetIfFirstOneSet("rotation", "direction");
 }
 
 void

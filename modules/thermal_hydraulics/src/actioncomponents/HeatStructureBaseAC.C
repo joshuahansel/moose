@@ -11,6 +11,8 @@
 #include "THMUtils.h"
 #include "ActionFactory.h"
 
+#include "DiscreteLineSegmentInterface.h"
+
 #include <numeric>
 
 InputParameters
@@ -35,6 +37,8 @@ HeatStructureBaseAC::validParams()
       "'solid_properties' is provided. The density in each region will be a constant value "
       "computed by evaluating the density function at the reference temperature.");
   params.addParam<Real>("num_rods", 1.0, "Number of rods represented by this heat structure");
+  params.addParam<Real>("T_rel_step_tol", 1e-5, "Temperature relative step tolerance");
+  params.addParam<Real>("res_tol", 1e-5, "Residual tolerance");
 
   params.addRequiredRangeCheckedParam<std::vector<Real>>(
       "length", "length > 0", "Length of each axial section of the heat structure [m]");
@@ -50,6 +54,14 @@ HeatStructureBaseAC::validParams()
                      "orientation",
                      "Direction to orient the heat structure with, assuming it is initially "
                      "oriented along the X-axis (1, 0, 0).");
+
+  // As in the classic heat structures, the rotation is a roll angle about the axis of the heat
+  // structure instead of the three angles of the helper
+  params.remove("rotation");
+  params.addParam<Real>("rotation",
+                        0.0,
+                        "Angle of rotation about the axis of the heat structure [degrees]. This is "
+                        "applied before the heat structure is oriented and translated.");
 
   return params;
 }
@@ -111,6 +123,12 @@ HeatStructureBaseAC::HeatStructureBaseAC(const InputParameters & params)
   addRequiredTask("init_component_physics");
   addRequiredTask("add_material");
   addRequiredTask("check_integrity");
+  if (isParamValid("solid_properties"))
+  {
+    addRequiredTask("add_functor_material");
+    addRequiredTask("add_postprocessor");
+    addRequiredTask("add_convergence");
+  }
 
   createPhysics(params, _second_order);
 }
@@ -322,6 +340,22 @@ HeatStructureBaseAC::addMeshGenerators()
 
   _top_mg_name = current;
 
+  // Roll the heat structure about its axis (the x axis, along which it is generated) before it is
+  // oriented
+  if (const auto rotation = getParam<Real>("rotation"); rotation != 0.0)
+  {
+    const std::string step_name = genSafeName(name(), "rotation");
+    InputParameters params = _factory.getValidParams("TransformGenerator");
+    params.set<MeshGeneratorName>("input") = current;
+    params.set<MooseEnum>("transform") = "ROTATE_WITH_MATRIX";
+    params.set<RealTensorValue>("rotation_matrix") =
+        DiscreteLineSegmentInterface::computeXRotationTransformationTensor(rotation);
+    _app.getMeshGeneratorSystem().addMeshGenerator("TransformGenerator", step_name, params);
+    _mg_names.push_back(step_name);
+    current = step_name;
+    _top_mg_name = current;
+  }
+
   ComponentMeshTransformHelper::addMeshGenerators();
 }
 
@@ -474,4 +508,95 @@ HeatStructureBaseAC::getExternalBoundaryType(const BoundaryName & boundary) cons
         return ExternalBoundaryType::OUTER;
     }
   mooseError(name(), ": '", boundary, "' is not an external boundary of this heat structure.");
+}
+
+std::optional<ConvergenceName>
+HeatStructureBaseAC::nonlinearConvergenceName() const
+{
+  if (!isParamValid("solid_properties"))
+    mooseError("ComponentsConvergence may only be used if 'solid_properties' is provided for '",
+               name(),
+               "'.");
+
+  return ConvergenceName(genName(name(), "nlconv"));
+}
+
+void
+HeatStructureBaseAC::actOnAdditionalTasks()
+{
+  if (isParamValid("solid_properties") &&
+      (_current_task == "add_functor_material" || _current_task == "add_postprocessor" ||
+       _current_task == "add_convergence"))
+    addConvergence();
+}
+
+void
+HeatStructureBaseAC::addConvergence()
+{
+  const auto & T_name = getPhysics().getParam<VariableName>("temperature_name");
+  const auto sp_names = getParam<std::vector<UserObjectName>>("solid_properties");
+  const auto T_ref = getParam<std::vector<Real>>("solid_properties_T_ref");
+  const std::string step_property = genName(name(), "hs_T_step");
+
+  if (_current_task == "add_functor_material")
+  {
+    // all regions share one functor material
+    THM::addNonlinearStepFunctorMaterial(getProblem(),
+                                         _factory,
+                                         genName(name(), "hs_T_step_fmat"),
+                                         _blocks,
+                                         T_name,
+                                         step_property,
+                                         true);
+  }
+  else if (_current_task == "add_postprocessor")
+  {
+    for (const auto i : index_range(_blocks))
+    {
+      THM::addMaximumFunctorPostprocessor(
+          getProblem(), _factory, step_property, _blocks[i] + "_T_step", T_ref[i], {_blocks[i]});
+
+      {
+        const std::string class_name = "AverageElementSize";
+        InputParameters params = _factory.getValidParams(class_name);
+        params.set<std::vector<SubdomainName>>("block") = {_blocks[i]};
+        params.set<ExecFlagEnum>("execute_on") = EXEC_INITIAL;
+        params.set<std::vector<OutputName>>("outputs") = {"none"};
+        getProblem().addPostprocessor(class_name, _blocks[i] + "_havg", params);
+      }
+      {
+        const std::string class_name = "NormalizedHeatStructureResidualNorm";
+        InputParameters params = _factory.getValidParams(class_name);
+        params.set<VariableName>("variable") = T_name;
+        params.set<std::vector<SubdomainName>>("block") = {_blocks[i]};
+        params.set<MooseEnum>("norm_type") = "l_inf";
+        params.set<Real>("T_ref") = T_ref[i];
+        params.set<UserObjectName>("solid_properties") = sp_names[i];
+        params.set<PostprocessorName>("ref_elem_size") = _blocks[i] + "_havg";
+        params.set<ExecFlagEnum>("execute_on") = EXEC_NONLINEAR_CONVERGENCE;
+        params.set<std::vector<OutputName>>("outputs") = {"none"};
+        getProblem().addPostprocessor(class_name, _blocks[i] + "_res", params);
+      }
+    }
+  }
+  else if (_current_task == "add_convergence")
+  {
+    std::vector<PostprocessorName> pp_names;
+    std::vector<std::string> descriptions;
+    std::vector<Real> tolerances;
+    for (const auto & block : _blocks)
+    {
+      pp_names.push_back(block + "_T_step");
+      descriptions.push_back("T step (" + block + ")");
+      tolerances.push_back(getParam<Real>("T_rel_step_tol"));
+    }
+    for (const auto & block : _blocks)
+    {
+      pp_names.push_back(block + "_res");
+      descriptions.push_back("residual (" + block + ")");
+      tolerances.push_back(getParam<Real>("res_tol"));
+    }
+    THM::addMultiPostprocessorConvergence(
+        getProblem(), _factory, *nonlinearConvergenceName(), pp_names, descriptions, tolerances);
+  }
 }

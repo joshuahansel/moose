@@ -50,7 +50,9 @@ HeatTransferFrom1PhaseAC::HeatTransferFrom1PhaseAC(const InputParameters & param
 const FlowChannel1PhasePhysics &
 HeatTransferFrom1PhaseAC::connectedPhysics() const
 {
-  return _awh.getAction<FlowChannel1PhaseAC>(getParam<std::string>("flow_channel")).getPhysics();
+  return FlowChannel1PhaseAC::connectedFlowChannel(
+             _awh, getParam<std::string>("flow_channel"), name())
+      .getPhysics();
 }
 
 std::string

@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "ActionComponentConvergenceInterface.h"
 #include "ActionComponent.h"
 #include "NamingInterface.h"
 
@@ -27,7 +28,9 @@ class MeshAlignment2D3D;
  * MeshAlignment2D3D, and the Jacobian needs an explicit coupling of the paired elements, added with
  * AugmentSparsityBetweenElements (as for JunctionOneToOne1PhaseAC).
  */
-class HSCoupler2D3DAC : public virtual ActionComponent, public NamingInterface
+class HSCoupler2D3DAC : public virtual ActionComponent,
+                        public NamingInterface,
+                        public NoNonlinearConvergenceAC
 {
 public:
   static InputParameters validParams();

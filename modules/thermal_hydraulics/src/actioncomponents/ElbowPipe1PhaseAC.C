@@ -22,6 +22,22 @@ registerMooseActionAliased("ThermalHydraulicsApp",
                            ElbowPipe1PhaseAC,
                            "ElbowPipe1Phase",
                            "init_component_physics");
+registerMooseActionAliased("ThermalHydraulicsApp",
+                           ElbowPipe1PhaseAC,
+                           "ElbowPipe1Phase",
+                           "add_functor_material");
+registerMooseActionAliased("ThermalHydraulicsApp",
+                           ElbowPipe1PhaseAC,
+                           "ElbowPipe1Phase",
+                           "add_postprocessor");
+registerMooseActionAliased("ThermalHydraulicsApp",
+                           ElbowPipe1PhaseAC,
+                           "ElbowPipe1Phase",
+                           "add_convergence");
+registerMooseActionAliased("ThermalHydraulicsApp",
+                           ElbowPipe1PhaseAC,
+                           "ElbowPipe1Phase",
+                           "add_vector_postprocessor");
 registerActionComponentAliased("ThermalHydraulicsApp", ElbowPipe1PhaseAC, "ElbowPipe1Phase");
 
 InputParameters
@@ -34,8 +50,8 @@ ElbowPipe1PhaseAC::validParams()
 
   // The length is determined by the radius and the angles. It is required by the parent class, so
   // it is given a value and hidden.
-  params.set<Real>("length") = 1.0;
-  params.suppressParameter<Real>("length");
+  params.set<std::vector<Real>>("length") = {1.0};
+  params.suppressParameter<std::vector<Real>>("length");
 
   params.addClassDescription("Bent pipe for 1-phase flow");
   return params;

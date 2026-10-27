@@ -72,4 +72,13 @@
       detail = 'in a steady problem.'
     []
   []
+
+  [components_convergence]
+    type = Exodiff
+    input = 'components_convergence.i'
+    exodiff = 'components_convergence.e'
+    gold_dir = '../../components/heat_structure_cylindrical/gold'
+    custom_cmp = 'transient.exodiff'
+    requirement = 'The system shall allow convergence of a heat structure ActionComponent to be assessed using ComponentsConvergence.'
+  []
 []

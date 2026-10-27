@@ -1,22 +1,5 @@
-[FluidProperties]
-  [fp]
-    type = IdealGasFluidProperties
-  []
-[]
+!include err.nonexisting_component.common.i
 
 [Components]
-  [cmp]
-    type = HeatTransferFromSpecifiedTemperature1Phase
-    flow_channel = pipe
-    T_wall = 100
-  []
-[]
-
-[Problem]
-  solve = false
-[]
-
-[Executioner]
-  type = Transient
-  num_steps = 1
+  !include err.nonexisting_component.components.i
 []

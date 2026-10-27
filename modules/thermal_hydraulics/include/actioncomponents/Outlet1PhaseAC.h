@@ -22,6 +22,7 @@ public:
 
 protected:
   virtual void addUserObjects() override;
+  virtual bool supportsPassiveTransport() const override { return true; }
 
   /// Prescribed pressure
   const Real _p;

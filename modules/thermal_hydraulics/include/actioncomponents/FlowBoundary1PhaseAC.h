@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "ActionComponentConvergenceInterface.h"
 #include "ActionComponent.h"
 #include "NamingInterface.h"
 #include "FlowChannel1PhasePhysics.h"
@@ -22,7 +23,9 @@
  * the weak boundary condition itself (one ADBoundaryFlux3EqnBC per solution variable, referencing
  * that UserObject) is common and added by this class on the 'add_bc' task.
  */
-class FlowBoundary1PhaseAC : public virtual ActionComponent, public NamingInterface
+class FlowBoundary1PhaseAC : public virtual ActionComponent,
+                             public NamingInterface,
+                             public NoNonlinearConvergenceAC
 {
 public:
   static InputParameters validParams();
@@ -42,12 +45,15 @@ public:
 protected:
   virtual void actOnAdditionalTasks() override;
 
+  /// True if the component supports passive transport variables on the connected flow channel
+  virtual bool supportsPassiveTransport() const { return false; }
+
   /// Returns the physics of the connected flow channel component (looked up by name, lazily, so
   /// that 'input' may name a component declared before or after this one)
   const FlowChannel1PhasePhysics & connectedPhysics() const;
-  /// Adds one ADBoundaryFlux3EqnBC per solution variable (rhoA, rhouA, rhoEA), all referencing
-  /// _boundary_uo_name
-  void addWeakBCs();
+  /// Adds one boundary condition per solution variable (rhoA, rhouA, rhoEA for a single phase), all
+  /// referencing _boundary_uo_name; ADBoundaryFlux3EqnBC unless the flow channel is of another kind
+  virtual void addWeakBCs();
 
   /// The boundary this component attaches to, e.g. 'pipe:out' - also the actual sideset name on
   /// the connected flow channel's mesh

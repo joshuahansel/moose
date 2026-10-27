@@ -35,6 +35,18 @@ registerMooseActionAliased("ThermalHydraulicsApp",
                            HeatStructureCylindricalAC,
                            "HeatStructureCylindrical",
                            "check_integrity");
+registerMooseActionAliased("ThermalHydraulicsApp",
+                           HeatStructureCylindricalAC,
+                           "HeatStructureCylindrical",
+                           "add_functor_material");
+registerMooseActionAliased("ThermalHydraulicsApp",
+                           HeatStructureCylindricalAC,
+                           "HeatStructureCylindrical",
+                           "add_postprocessor");
+registerMooseActionAliased("ThermalHydraulicsApp",
+                           HeatStructureCylindricalAC,
+                           "HeatStructureCylindrical",
+                           "add_convergence");
 registerActionComponentAliased("ThermalHydraulicsApp",
                                HeatStructureCylindricalAC,
                                "HeatStructureCylindrical");

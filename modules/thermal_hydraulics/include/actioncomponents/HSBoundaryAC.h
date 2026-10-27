@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "ActionComponentConvergenceInterface.h"
 #include "ActionComponent.h"
 #include "NamingInterface.h"
 
@@ -28,7 +29,9 @@ class HeatStructureCylindricalAC;
  * system, which already applies that weighting during assembly, so the derived classes use the
  * plain (Cartesian) boundary conditions and postprocessors for both geometries.
  */
-class HSBoundaryAC : public virtual ActionComponent, public NamingInterface
+class HSBoundaryAC : public virtual ActionComponent,
+                     public NamingInterface,
+                     public NoNonlinearConvergenceAC
 {
 public:
   static InputParameters validParams();

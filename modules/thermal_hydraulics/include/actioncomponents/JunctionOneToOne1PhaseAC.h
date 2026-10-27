@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "ActionComponentConvergenceInterface.h"
 #include "ActionComponent.h"
 #include "NamingInterface.h"
 #include "FlowChannel1PhasePhysics.h"
@@ -26,7 +27,9 @@
  * declaration - added via AugmentSparsityBetweenElements, the same RelationshipManager classic
  * THM's Component1DJunction uses (through Simulation::augmentSparsity).
  */
-class JunctionOneToOne1PhaseAC : public virtual ActionComponent, public NamingInterface
+class JunctionOneToOne1PhaseAC : public virtual ActionComponent,
+                                 public NamingInterface,
+                                 public NoNonlinearConvergenceAC
 {
 public:
   static InputParameters validParams();

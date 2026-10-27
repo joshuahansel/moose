@@ -13,6 +13,8 @@
 
 #include "ActionComponent.h"
 #include "ComponentMeshTransformHelper.h"
+#include "ActionComponentConvergenceInterface.h"
+#include "ActionComponentConvergenceInterface.h"
 #include "NamingInterface.h"
 #include "HeatStructureInterfaceAC.h"
 
@@ -38,7 +40,8 @@
 class HeatStructureBaseAC : public virtual ActionComponent,
                             public HeatStructureInterfaceAC,
                             public ComponentMeshTransformHelper,
-                            public NamingInterface
+                            public NamingInterface,
+                            public ActionComponentConvergenceInterface
 {
 public:
   static InputParameters validParams();
@@ -84,10 +87,19 @@ public:
   /// structure, whose normal is in the axial direction
   virtual Real computeAxialBoundaryArea(Real y_min, Real y_max) const = 0;
 
+  /// Name of the nonlinear convergence of the heat structure, which is only available if the
+  /// 'solid_properties' are provided
+  virtual std::optional<ConvergenceName> nonlinearConvergenceName() const override;
+
 protected:
   virtual void addMeshGenerators() override;
   virtual void addMaterials() override;
   virtual void checkIntegrity() override;
+  virtual void actOnAdditionalTasks() override;
+
+  /// Adds the objects that ComponentsConvergence uses: the temperature step and residual of each
+  /// region, and their combination into one Convergence object
+  void addConvergence();
 
   /// Returns the transverse ('y') offset of the innermost region's inner face from the component's
   /// own axis - the inner radius for a cylindrical heat structure, or 0 for a plate

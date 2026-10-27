@@ -27,6 +27,18 @@ registerMooseActionAliased("ThermalHydraulicsApp",
                            HeatStructurePlateAC,
                            "HeatStructurePlate",
                            "check_integrity");
+registerMooseActionAliased("ThermalHydraulicsApp",
+                           HeatStructurePlateAC,
+                           "HeatStructurePlate",
+                           "add_functor_material");
+registerMooseActionAliased("ThermalHydraulicsApp",
+                           HeatStructurePlateAC,
+                           "HeatStructurePlate",
+                           "add_postprocessor");
+registerMooseActionAliased("ThermalHydraulicsApp",
+                           HeatStructurePlateAC,
+                           "HeatStructurePlate",
+                           "add_convergence");
 registerActionComponentAliased("ThermalHydraulicsApp", HeatStructurePlateAC, "HeatStructurePlate");
 
 InputParameters

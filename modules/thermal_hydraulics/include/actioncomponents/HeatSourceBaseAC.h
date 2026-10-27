@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "ActionComponentConvergenceInterface.h"
 #include "ActionComponent.h"
 #include "NamingInterface.h"
 
@@ -18,7 +19,9 @@ class HeatStructureInterfaceAC;
  * Base class for ActionComponents that apply a heat source in regions of a heat structure
  * ActionComponent, mirroring the classic HeatSourceBase.
  */
-class HeatSourceBaseAC : public virtual ActionComponent, public NamingInterface
+class HeatSourceBaseAC : public virtual ActionComponent,
+                         public NamingInterface,
+                         public NoNonlinearConvergenceAC
 {
 public:
   static InputParameters validParams();

@@ -1,0 +1,10 @@
+[Tests]
+  issues = '#19830 #32558'
+  design = 'HeatTransferFromSpecifiedTemperature1PhaseAC.md'
+  [err:nonexisting_component]
+    type = 'RunException'
+    input = 'err.nonexisting_component.i'
+    expect_err = "cmp: Trying to connect to a component 'pipe', but there is no such component in the simulation. Please check your spelling."
+    requirement = 'The system shall report an error if a component specified in a parameter of an ActionComponent does not exist.'
+  []
+[]

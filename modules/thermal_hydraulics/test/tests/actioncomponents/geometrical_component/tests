@@ -1,0 +1,10 @@
+[Tests]
+  issues = '#19830 #32558'
+  design = 'HeatStructureCylindricalAC.md'
+  [err:2nd_order]
+    type = 'RunException'
+    input = 'err.2nd_order.i'
+    expect_err = "hs: Cannot use TRAP quadrature rule with 2nd order elements.  Use SIMPSON or GAUSS instead."
+    requirement = 'The system shall report an error if a TRAP quadrature is used with second order ActionComponents.'
+  []
+[]

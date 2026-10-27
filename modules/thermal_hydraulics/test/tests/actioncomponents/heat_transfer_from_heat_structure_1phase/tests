@@ -83,6 +83,14 @@
     cli_args = 'Executioner/nl_abs_tol=1e-3'
     requirement = 'The system shall transfer the temperature of a heat structure ActionComponent onto a flow channel with the opposite orientation, along y.'
   []
+  [phy:T_wall_transfer_3eqn_z]
+    type = Exodiff
+    input = 'phy.T_wall_transfer_3eqn_z.i'
+    exodiff = 'phy.T_wall_transfer_3eqn_z_out.e'
+    gold_dir = '../../components/heat_transfer_from_heat_structure_1phase/gold'
+    custom_cmp = 'T_wall_transfer.exodiff'
+    requirement = 'The system shall transfer the temperature of a heat structure ActionComponent onto a flow channel with the opposite orientation, along z, with the heat structure rotated about its axis.'
+  []
   [fin_enhancement]
     type = CSVDiff
     input = 'fin_enhancement.i'

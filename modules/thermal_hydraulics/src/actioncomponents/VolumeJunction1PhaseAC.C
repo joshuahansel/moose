@@ -171,7 +171,8 @@ VolumeJunction1PhaseAC::VolumeJunction1PhaseAC(const InputParameters & params)
 RealVectorValue
 VolumeJunction1PhaseAC::connectedDirection(unsigned int i) const
 {
-  const auto & fch = _awh.getAction<FlowChannel1PhaseAC>(_connected_component_names[i]);
+  const auto & fch =
+      FlowChannel1PhaseAC::connectedFlowChannel(_awh, _connected_component_names[i], name());
   return fch.isParamValid("orientation") ? fch.direction() : RealVectorValue(1, 0, 0);
 }
 
@@ -193,7 +194,8 @@ VolumeJunction1PhaseAC::setupConnections()
 const FlowChannel1PhasePhysics &
 VolumeJunction1PhaseAC::connectedPhysics(unsigned int i) const
 {
-  return _awh.getAction<FlowChannel1PhaseAC>(_connected_component_names[i]).getPhysics();
+  return FlowChannel1PhaseAC::connectedFlowChannel(_awh, _connected_component_names[i], name())
+      .getPhysics();
 }
 
 UserObjectName
@@ -289,6 +291,10 @@ VolumeJunction1PhaseAC::addInitialConditions()
 void
 VolumeJunction1PhaseAC::addUserObjects()
 {
+  for (const auto i : index_range(_connected_component_names))
+    if (!connectedPhysics(i).passiveTransportSolutionVariableNames().empty())
+      paramError("connections", "This Component type does not support passive transport.");
+
   auto & mesh = getProblem().mesh();
   const subdomain_id_type junction_subdomain_id = mesh.getSubdomainID(name());
 

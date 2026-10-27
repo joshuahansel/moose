@@ -10,6 +10,11 @@
 #include "ComponentsConvergence.h"
 #include "THMProblem.h"
 #include "Component.h"
+#include "ActionComponent.h"
+#include "ActionComponentConvergenceInterface.h"
+#include "ActionWarehouse.h"
+#include "MooseApp.h"
+#include "FEProblemBase.h"
 
 registerMooseObject("ThermalHydraulicsApp", ComponentsConvergence);
 
@@ -18,18 +23,17 @@ ComponentsConvergence::validParams()
 {
   InputParameters params = IterationCountConvergence::validParams();
 
-  params.addClassDescription("Assesses convergence of all Component objects in a simulation.");
+  params.addClassDescription(
+      "Assesses convergence of all Component and ActionComponent objects in a simulation.");
 
   return params;
 }
 
 ComponentsConvergence::ComponentsConvergence(const InputParameters & parameters)
   : IterationCountConvergence(parameters),
-    _thm_problem(
-        dynamic_cast<THMProblem *>(getCheckedPointerParam<FEProblemBase *>("_fe_problem_base")))
+    _fe_problem(*getCheckedPointerParam<FEProblemBase *>("_fe_problem_base")),
+    _thm_problem(dynamic_cast<THMProblem *>(&_fe_problem))
 {
-  if (!_thm_problem)
-    mooseError("ComponentsConvergence only works with THMProblem.");
 }
 
 void
@@ -37,11 +41,25 @@ ComponentsConvergence::initialSetup()
 {
   IterationCountConvergence::initialSetup();
 
-  for (const auto & comp : _thm_problem->getComponents())
+  if (_thm_problem)
+    for (const auto & comp : _thm_problem->getComponents())
+    {
+      const auto nl_conv = comp->getNonlinearConvergence();
+      if (nl_conv)
+        _convergence_objects.push_back(nl_conv);
+    }
+
+  for (const auto * component : _app.actionWarehouse().getActions<ActionComponent>())
   {
-    const auto nl_conv = comp->getNonlinearConvergence();
-    if (nl_conv)
-      _convergence_objects.push_back(nl_conv);
+    const auto * interface = dynamic_cast<const ActionComponentConvergenceInterface *>(component);
+    if (!interface)
+      mooseError("The component '",
+                 component->name(),
+                 "' does not provide a nonlinear convergence, which ComponentsConvergence "
+                 "requires of all ActionComponents.");
+
+    if (const auto name = interface->nonlinearConvergenceName())
+      _convergence_objects.push_back(&_fe_problem.getConvergence(*name));
   }
 }
 

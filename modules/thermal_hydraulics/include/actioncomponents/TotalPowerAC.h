@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "ActionComponentConvergenceInterface.h"
 #include "ActionComponent.h"
 #include "NamingInterface.h"
 
@@ -16,7 +17,9 @@
  * Provides a total power, held in a scalar variable, for components such as
  * HeatSourceFromTotalPowerAC to use.
  */
-class TotalPowerAC : public virtual ActionComponent, public NamingInterface
+class TotalPowerAC : public virtual ActionComponent,
+                     public NamingInterface,
+                     public NoNonlinearConvergenceAC
 {
 public:
   static InputParameters validParams();

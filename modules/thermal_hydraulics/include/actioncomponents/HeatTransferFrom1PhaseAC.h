@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "ActionComponentConvergenceInterface.h"
 #include "ActionComponent.h"
 #include "NamingInterface.h"
 #include "HeatTransferClosuresInterface.h"
@@ -50,7 +51,8 @@ class FlowChannel1PhasePhysics;
  */
 class HeatTransferFrom1PhaseAC : public virtual ActionComponent,
                                  public NamingInterface,
-                                 public HeatTransferClosuresInterface
+                                 public HeatTransferClosuresInterface,
+                                 public NoNonlinearConvergenceAC
 {
 public:
   static InputParameters validParams();

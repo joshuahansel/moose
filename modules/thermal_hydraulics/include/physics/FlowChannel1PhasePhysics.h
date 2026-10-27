@@ -52,6 +52,15 @@ public:
   const UserObjectName & fluidPropertiesName() const { return _fp_name; }
   /// Name of the numerical flux user object this Physics creates, used by boundary conditions
   const UserObjectName & numericalFluxUserObjectName() const { return _numerical_flux_name; }
+  /// Names of the passive transport solution variables, which are the passive transport variables
+  /// multiplied by the area
+  const std::vector<VariableName> & passiveTransportSolutionVariableNames() const
+  {
+    return _passives_times_area_names;
+  }
+  /// Names of all the variables solved for by the flow equations (mass, momentum, energy and the
+  /// passive transport variables)
+  virtual std::vector<VariableName> solutionVariableNames() const;
   /// Name of the function/constant defining the flow channel area, used to build a default heated
   /// perimeter when a heat-transfer component does not provide one
   const FunctionName & areaFunctionName() const { return _area_fn_name; }
@@ -102,6 +111,9 @@ public:
                                      const std::string & param) const override;
 
 protected:
+  /// The checks on the fluid properties of the flow channel
+  virtual void checkFluidProperties() const;
+
   virtual void addSolverVariables() override;
   virtual void addAuxiliaryVariables() override;
   virtual void addInitialConditions() override;
@@ -112,12 +124,27 @@ protected:
   virtual void addAuxiliaryKernels() override;
   virtual void checkIntegrity() const override;
 
+  /// Adds the initial condition of rhoEA
+  virtual void addRhoEAInitialCondition();
+  /// Adds the initial condition of the density
+  virtual void addDensityInitialCondition();
+  /// Adds the DG kernels of the advection terms of the solution variables
+  virtual void addAdvectionDGKernels();
+  /// Adds the material that computes the fluid properties from the solution variables
+  virtual void addFluidPropertiesMaterial();
+  /// Adds the material that computes the slope reconstruction (the rDG scheme)
+  virtual void addSlopeReconstructionMaterial();
+  /// Adds the user object of the numerical flux
+  virtual void addNumericalFluxUserObject();
+  /// Adds the auxiliary kernels of the pressure and the temperature
+  virtual void addPressureTemperatureAuxKernels();
+
   virtual std::vector<UserObjectName> getSuppliedUserObjects() const override
   {
     return {_numerical_flux_name};
   }
 
-private:
+protected:
   /// Adds the hydraulic diameter material, needed by the wall friction kernel/closures
   /// correlations - mirrors FlowChannel1PhaseBase::addHydraulicDiameterMaterial()
   void addHydraulicDiameterMaterial();
@@ -134,6 +161,7 @@ private:
   /// Adds an ADTimeDerivative kernel for the given variable if the physics is transient
   void addTimeDerivativeKernelIfTransient(const VariableName & var_name);
 
+protected:
   /// Name of the user object that defines fluid properties
   const UserObjectName _fp_name;
   /// Area of the flow channel; can be a constant or a function
@@ -144,6 +172,8 @@ private:
   const FunctionName _initial_vel_fn;
   /// Scaling factors for rhoA, rhouA, rhoEA
   const std::vector<Real> _scaling_factors;
+  /// Names of the passive transport solution variables (the passives multiplied by the area)
+  std::vector<VariableName> _passives_times_area_names;
   /// Name of the numerical flux user object this Physics creates
   const UserObjectName _numerical_flux_name;
   /// Coordinator that merges this and other components' requests for shared, bare-named
@@ -160,6 +190,8 @@ private:
     /// Name of its wall temperature variable, if it is not the one named by this flow channel
     std::optional<VariableName> _T_wall_name;
   };
+
+private:
   /// Suffix of the names of the wall quantities of the i-th heat transfer connection
   std::string connectionSuffix(unsigned int i) const;
   /// Names of the wall quantities of all the heat transfer connections, with the connection suffix

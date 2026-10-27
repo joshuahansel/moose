@@ -12,9 +12,12 @@
 #include "IterationCountConvergence.h"
 
 class THMProblem;
+class FEProblemBase;
 
 /**
- * Assesses convergence of all Component objects in a simulation.
+ * Assesses convergence of all Component objects in a simulation, and of all the ActionComponents
+ * if the simulation has any. Every ActionComponent must declare whether it has a convergence object
+ * (see ActionComponentConvergenceInterface).
  */
 class ComponentsConvergence : public IterationCountConvergence
 {
@@ -31,7 +34,9 @@ public:
 protected:
   virtual MooseConvergenceStatus checkConvergenceInner(unsigned int iter) override;
 
-  /// THM problem
+  /// The problem
+  FEProblemBase & _fe_problem;
+  /// THM problem, if the problem is one (it is not if the simulation only has ActionComponents)
   const THMProblem * const _thm_problem;
 
   /// Convergence objects for all Components that provide one

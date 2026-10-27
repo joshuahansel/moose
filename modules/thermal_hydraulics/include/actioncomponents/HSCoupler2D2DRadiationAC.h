@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "ActionComponentConvergenceInterface.h"
 #include "ActionComponent.h"
 #include "NamingInterface.h"
 
@@ -30,7 +31,9 @@ class MeshAlignment2D2D;
  * native COORD_RZ coordinate system, which applies that factor itself, so the plain boundary
  * condition is used.
  */
-class HSCoupler2D2DRadiationAC : public virtual ActionComponent, public NamingInterface
+class HSCoupler2D2DRadiationAC : public virtual ActionComponent,
+                                 public NamingInterface,
+                                 public NoNonlinearConvergenceAC
 {
 public:
   static InputParameters validParams();

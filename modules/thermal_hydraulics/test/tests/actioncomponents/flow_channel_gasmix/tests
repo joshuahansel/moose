@@ -1,0 +1,20 @@
+[Tests]
+  design = 'FlowChannelGasMixAC.md'
+  issues = '#19830 #32558'
+
+  [test]
+    type = Exodiff
+    input = 'flow_channel_gasmix.i'
+    exodiff = 'flow_channel_gasmix.e'
+    gold_dir = '../../components/flow_channel_gasmix/gold'
+    requirement = 'The system shall provide a flow channel ActionComponent that simulates a gas mixture.'
+  []
+
+  [err:wrong_fp]
+    type = RunException
+    input = 'flow_channel_gasmix.i'
+    cli_args = 'ActionComponents/pipe/fp=fp1'
+    expect_err = "ActionComponents/pipe/fp: The supplied fluid properties object must be of type 'VaporMixtureFluidProperties'."
+    requirement = 'The system shall report an error if the fluid properties of a gas mixture flow channel ActionComponent are not those of a gas mixture.'
+  []
+[]
